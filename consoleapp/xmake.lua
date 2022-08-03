@@ -1,0 +1,5 @@
+target("consoleapp")
+    set_kind("binary")
+    set_languages("cxxlatest", "clatest")
+    add_files("src/*.cpp")
+    add_includedirs("include")
