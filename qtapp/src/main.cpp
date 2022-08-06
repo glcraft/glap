@@ -6,8 +6,6 @@ int main(int argc, char *argv[])
 {
     auto app = QGuiApplication { argc, argv };
 
-    // QQuickStyle::setStyle("WinUI3Style");
-
     auto engine = QQmlApplicationEngine {};
 
     const auto url = QUrl { u"qrc:///qml/main.qml"_qs };
