@@ -147,32 +147,37 @@ namespace cmd
             std::string_view name;
             uint32_t occurrence;
         };
+        using Parameter = std::variant<Argument, Flag>;
         struct Command {
             std::string_view name;
-            std::vector<Argument> arguments;
-            std::vector<Flag> flags;
+            std::vector<Parameter> parameters;
         };
         struct Result {
-            std::vector<Command> commands;
-            std::vector<Argument> arguments;
-            std::vector<Flag> flags;
+            std::string_view program;
+            Command command;
+            std::vector<Parameter> parameters;
         };
         struct Error {
-            std::string_view name;
+            std::string_view argument;
             std::optional<std::string_view> value;
             enum class Type {
                 Argument,
                 Flag,
                 Command,
+                None,
                 Unknown
             } type;
             enum class Code {
                 MissingArgument,
                 MissingCommand,
                 MissingFlag,
-                UnknwonName,
+                NoGlobalCommand,
+                BadCommand,
+                UnknownName,
                 InvalidValue,
                 OutOfBound,
+                SyntaxError,
+                BadString
             } code;
             std::string to_string();
         };
