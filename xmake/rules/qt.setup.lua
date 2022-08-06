@@ -1,6 +1,8 @@
+
+
 rule("qt.setup")
     add_deps("qt.quickapp")
-    before_build(function (target, opt)
+    on_load(function (target, opt)
         target:add("frameworks", 
             "QtCore",
             "QtGui",
@@ -10,7 +12,14 @@ rule("qt.setup")
         )
         target:set("qt.deploy.qmldir", "qml/")
         if is_plat("macosx") then
-            target:add("includedirs", "/opt/homebrew/include")
+            import("lib.detect.find_path")
+            local qt_include = find_path("QtGui/QGuiApplication", { 
+                    "/usr/include", 
+                    "/usr/local/include", 
+                    "/opt/homebrew/include", 
+                    "$($HOME)/6.*/macos/include" 
+                })
+            target:add("includedirs", qt_include)
             target:add("qt.deploy.flags", "-no-plugins")
         end
     end)
