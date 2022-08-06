@@ -12,18 +12,17 @@
 
 namespace cmd
 {
-
     template <class CRTP>
     struct Common {
         std::string_view longname;
-        std::optional<std::string_view> shortname;
+        std::optional<char32_t> shortname;
         std::string_view description;
 
         Common(std::string_view longname) : longname(longname), description()
         {}
-        Common(std::string_view longname, std::string_view shortname) : longname(longname), shortname(shortname), description()
+        Common(std::string_view longname, char32_t shortname) : longname(longname), shortname(shortname), description()
         {}
-        Common(std::string_view longname, std::optional<std::string_view> shortname) : longname(longname), shortname(shortname), description()
+        Common(std::string_view longname, std::optional<char32_t> shortname) : longname(longname), shortname(shortname), description()
         {}
 
         constexpr CRTP& set_longname(std::string_view longname) noexcept {
@@ -65,9 +64,9 @@ namespace cmd
 
         Argument(std::string_view longname) : Common(longname), MinMax(), metavar()
         {}
-        Argument(std::string_view longname, std::string_view shortname) : Common(longname, shortname), MinMax<Argument>(), metavar()
+        Argument(std::string_view longname, char32_t shortname) : Common(longname, shortname), MinMax<Argument>(), metavar()
         {}
-        Argument(std::string_view longname, std::optional<std::string_view> shortname, int min, int max) : Common(longname, shortname), MinMax<Argument>(min, max), metavar()
+        Argument(std::string_view longname, std::optional<char32_t> shortname, int min, int max) : Common(longname, shortname), MinMax<Argument>(min, max), metavar()
         {}
         Argument(const Argument&) = default;
         Argument(Argument&&) = default;
@@ -91,9 +90,9 @@ namespace cmd
     struct Flag : Common<Flag>, MinMax<Flag> {
         Flag(std::string_view longname) : Common(longname), MinMax()
         {}
-        Flag(std::string_view longname, std::string_view shortname) : Common(longname, shortname), MinMax<Flag>()
+        Flag(std::string_view longname, char32_t shortname) : Common(longname, shortname), MinMax<Flag>()
         {}
-        Flag(std::string_view longname, std::optional<std::string_view> shortname, int min, int max) : Common(longname, shortname), MinMax<Flag>(min, max)
+        Flag(std::string_view longname, std::optional<char32_t> shortname, int min, int max) : Common(longname, shortname), MinMax<Flag>(min, max)
         {}
         Flag(const Flag&) = default;
         Flag(Flag&&) = default;
@@ -110,7 +109,7 @@ namespace cmd
 
         Command(std::string_view longname) : Common(longname)
         {}
-        Command(std::string_view longname, std::string_view shortname) : Common(longname, shortname)
+        Command(std::string_view longname, char32_t shortname) : Common(longname, shortname)
         {}
         Command(const Command&) = default;
         Command(Command&&) = default;
