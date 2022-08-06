@@ -223,6 +223,6 @@ namespace cmd
 
         auto parse_argument(std::span<std::string_view> args) const -> PosExpected<result::Argument>;
         auto parse_flag(std::span<std::string_view> args) const -> PosExpected<result::Flag>;
-        auto parse_command(std::span<std::string_view> args) const -> PosExpected<result::Command>;
+        auto parse_command(std::span<std::string_view> args, Command& command) const -> PosExpected<result::Command>;
     };
 }
