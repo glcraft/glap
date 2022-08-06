@@ -181,6 +181,8 @@ namespace cmd
             } code;
             std::string to_string();
         };
+        template <class T>
+        using Expected = expected<T, result::Error>;
     }
 
     class Parser {
@@ -188,8 +190,7 @@ namespace cmd
         std::vector<Command> commands;
         std::string_view program_name;
     public:
-        template <class T>
-        using Expected = expected<T, result::Error>;
+        
         Parser& add_command(Command command) {
             commands.push_back(command);
             return *this;
@@ -201,7 +202,7 @@ namespace cmd
             global_command = command;
             return *this;
         }
-        auto parse(std::span<std::string_view> args) const -> Expected<result::Result>;
+        auto parse(std::span<std::string_view> args) const -> result::Expected<result::Result>;
     private:
         auto get_global_command() const -> std::optional<std::reference_wrapper<const Command>> {
             if (!global_command.has_value()) 
@@ -218,7 +219,7 @@ namespace cmd
             return std::nullopt;
         }
         template<class T>
-        using PosExpected = Expected<std::tuple<T, std::span<std::string_view>::iterator>>;
+        using PosExpected = result::Expected<std::tuple<T, std::span<std::string_view>::iterator>>;
 
         auto parse_argument(std::span<std::string_view> args) const -> PosExpected<result::Argument>;
         auto parse_flag(std::span<std::string_view> args) const -> PosExpected<result::Flag>;
