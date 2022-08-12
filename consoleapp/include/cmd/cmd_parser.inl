@@ -16,7 +16,12 @@ namespace cmd
         } else {
             auto char_len = ::utils::uni::utf8_char_length(*itarg);
             if (!char_len) 
-                return unexpected<result::Error>(char_len.error());
+                return unexpected<result::Error>(result::Error{
+                    .argument = *itarg,
+                    .value = std::nullopt,
+                    .type = result::Error::Type::None,
+                    .code = result::Error::Code::BadString
+                });
             auto found_cmd = commands.end();
             if (char_len.value() <= std::string_view(*itarg).size()) {
                 auto codepoint = ::utils::uni::codepoint(*itarg).value();

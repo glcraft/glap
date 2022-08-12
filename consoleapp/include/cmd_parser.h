@@ -189,7 +189,7 @@ namespace cmd
                 SyntaxError,
                 BadString
             } code;
-            std::string to_string();
+            std::string to_string() const;
         };
         template <class T>
         using Expected = expected<T, result::Error>;
