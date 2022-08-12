@@ -119,6 +119,8 @@ namespace cmd
         {}
         Command(std::string_view longname, char32_t shortname) : Common(longname, shortname)
         {}
+        Command(std::string_view longname, std::optional<char32_t> shortname) : Common(longname, shortname)
+        {}
         Command(const Command&) = default;
         Command(Command&&) = default;
         Command& operator=(const Command&) = default;
@@ -203,8 +205,8 @@ namespace cmd
             commands.push_back(command);
             return *this;
         }
-        Command& make_command(std::string_view longname) {
-            return add_command(Command(longname)).commands.back();
+        Command& make_command(std::string_view longname, std::optional<char32_t> shortname = std::nullopt) {
+            return add_command(Command(longname, shortname)).commands.back();
         }
         Parser& set_global_command(Command command) {
             global_command = command;
