@@ -1,51 +1,28 @@
-#include <argumentum/argparse.h>
+#include <cmd_parser.h>
 #include <fmt/format.h>
-#include "config.h"
-#include <fmt/core.h>
+#include <span>
 #include <tl/expected.hpp>
-#include <functional>
-#include <iterator>
 #include <string_view>
-#include <concepts>
-#include <array>
-#include <iostream>
-#include <memory>
+#include <ranges>
 
-auto parse_argumnts(int argc, char **argv) -> tl::expected<argumentum::ParseResult, std::string> 
+auto parse_argumnts(int argc, char **argv) -> tl::expected<cmd::result::Result, cmd::result::Error> 
 {
-    auto parser = argumentum::argument_parser{};
-    auto params = parser.params();
-    parser.config().program( argv[0] ).description( "Archive Explorer" );
-    params.add_command<CompressConfig>("compress").help( "Compress files" );
-    params.add_command<ListConfig>("list").help( "List files" );
+    cmd::Parser parser;
+    parser.make_command("compress", 'c').set_description("Compress files and directories");
+    parser.make_command("extract", 'x').set_description("Extract files from compressed file");
+    parser.make_command("list", 'l').set_description("Explore compressed file");
 
-    auto result = parser.parse_args(argc, argv);
-    if (!result)
-    {
-        std::string buffer;
-        buffer.reserve(512);
-        auto it = std::back_inserter(buffer);
-        it = fmt::format_to(it, "Unable to parse arguments\n");
-        for (const auto& err : result.errors) {
-            it = fmt::format_to(it, "option \"{}\": error {}\n", err.option, err.errorCode);
-        }
-        return tl::make_unexpected(buffer);
-    }
-    return std::move(result);
+    return parser.parse(std::span(argv, argv+argc));
 }
 
 int main(int argc, char** argv)
 {
     auto arg_result = parse_argumnts(argc, argv);
     if (!arg_result) {
-        fmt::print("{}\n", arg_result.error());
+        fmt::print("{}\n", arg_result.error().to_string());
         return 1;
     } 
     auto arguments = std::move(*arg_result);
-    if (arguments.commands.empty()) {
-        fmt::print("No command specified\n");
-        return 1;
-    }
-    fmt::print("command: {}\n", arguments.commands.back()->getName());
+    fmt::print("command: {}\n", arguments.command.name);
     return 0;
 }
