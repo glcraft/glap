@@ -199,6 +199,8 @@ namespace cmd
         std::optional<std::variant<Command, std::string_view>> global_command;
         std::vector<Command> commands;
         std::string_view program_name;
+        template<class T>
+        using PosExpected = result::Expected<std::tuple<T, std::span<std::string_view>::iterator>>;
     public:
         
         Parser& add_command(Command command) {
