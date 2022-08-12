@@ -19,7 +19,7 @@ int main(int argc, char** argv)
 {
     auto arg_result = parse_argumnts(argc, argv);
     if (!arg_result) {
-        fmt::print("{}\n", arg_result.error().to_string());
+        fmt::print("error parsing arguments: {}\n", arg_result.error().to_string());
         return 1;
     } 
     auto arguments = std::move(*arg_result);
