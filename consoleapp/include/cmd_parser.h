@@ -28,15 +28,15 @@ namespace cmd
 
         constexpr CRTP& set_longname(std::string_view longname) noexcept {
             this->longname = longname;
-            return *this;
+            return *static_cast<CRTP*>(this);
         }
         constexpr CRTP& set_shortname(std::string_view shortname) noexcept {
             this->shortname = shortname;
-            return *this;
+            return *static_cast<CRTP*>(this);
         }
         constexpr CRTP& set_description(std::string_view description) noexcept {
             this->description = description;
-            return *this;
+            return *static_cast<CRTP*>(this);
         }
     };
     template<class CRTP>
@@ -50,11 +50,11 @@ namespace cmd
 
         constexpr CRTP& set_min(int min) noexcept {
             this->min = min;
-            return *this;
+            return *static_cast<CRTP*>(this);
         }
         constexpr CRTP& set_max(int max) noexcept {
             this->max = max;
-            return *this;
+            return *static_cast<CRTP*>(this);
         }
     };
 
