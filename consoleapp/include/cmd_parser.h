@@ -13,6 +13,13 @@
 
 namespace cmd
 {
+    namespace utils {
+        template <typename T, typename V>
+        concept Iterable = requires(T t) {
+            {*t.begin()} -> std::convertible_to<V>;
+            {*t.end()} -> std::convertible_to<V>;
+        };
+    }
     template <class CRTP>
     struct Common {
         std::string_view longname;
@@ -203,7 +210,7 @@ namespace cmd
             global_command = command;
             return *this;
         }
-        auto parse(std::span<std::string_view> args) const -> result::Expected<result::Result>;
+        auto parse(utils::Iterable<std::string_view> auto args) const -> result::Expected<result::Result>;
     private:
         auto get_global_command() const -> std::optional<std::reference_wrapper<const Command>> {
             if (!global_command.has_value()) 
@@ -219,11 +226,10 @@ namespace cmd
             }
             return std::nullopt;
         }
-        template<class T>
-        using PosExpected = result::Expected<std::tuple<T, std::span<std::string_view>::iterator>>;
-
-        auto parse_argument(std::span<std::string_view> args) const -> PosExpected<result::Argument>;
-        auto parse_flag(std::span<std::string_view> args) const -> PosExpected<result::Flag>;
-        auto parse_command(std::span<std::string_view> args, Command& command) const -> PosExpected<result::Command>;
+        auto parse_argument(utils::Iterable<std::string_view> auto args) const -> PosExpected<result::Argument>;
+        auto parse_flag(utils::Iterable<std::string_view> auto args) const -> PosExpected<result::Flag>;
+        auto parse_command(utils::Iterable<std::string_view> auto args, Command& command) const -> PosExpected<result::Command>;
     };
 }
+
+#include "cmd/cmd_parser.inl"
