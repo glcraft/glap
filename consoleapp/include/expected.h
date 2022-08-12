@@ -1,3 +1,4 @@
+#pragma once
 #ifdef __cpp_lib_expected
 #include <expected>
 template <class T, class E>

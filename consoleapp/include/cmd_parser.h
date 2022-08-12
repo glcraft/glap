@@ -1,3 +1,4 @@
+#pragma once
 #include <functional>
 #include <stddef.h>
 #include <limits>
