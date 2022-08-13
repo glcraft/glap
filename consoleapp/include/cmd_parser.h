@@ -71,6 +71,9 @@ namespace cmd
             this->max = max;
             return *static_cast<CRTP*>(this);
         }
+        constexpr bool is_valid(uint32_t value) const noexcept {
+            return value >= min && value <= max;
+        }
     };
 
     struct Argument : Common<Argument>, MinMax<Argument> {
