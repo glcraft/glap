@@ -45,7 +45,7 @@ namespace cmd
             this->longname = longname;
             return *static_cast<CRTP*>(this);
         }
-        constexpr CRTP& set_shortname(std::string_view shortname) noexcept {
+        constexpr CRTP& set_shortname(char32_t shortname) noexcept {
             this->shortname = shortname;
             return *static_cast<CRTP*>(this);
         }
