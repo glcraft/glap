@@ -1,5 +1,6 @@
 #pragma once
 #include <functional>
+#include <fmt/format.h>
 #include <stddef.h>
 #include <limits>
 #include <string>
@@ -206,6 +207,19 @@ namespace cmd
         };
         template <class T>
         using Expected = expected<T, result::Error>;
+        struct PositionnedError {
+            using difference_type = decltype(std::distance(std::span<std::string>().begin(), std::span<std::string>().end()));
+            Error error;
+            difference_type position;
+            auto to_string() const {
+                return fmt::format("at argument {}: {}", position, error.to_string());
+            }
+        };
+        template<class T>
+        using PosExpected = expected<T, PositionnedError>;
+        constexpr auto make_unexpected(PositionnedError error) {
+            return unexpected<PositionnedError>(error);
+        }
     }
 
     class Parser {
