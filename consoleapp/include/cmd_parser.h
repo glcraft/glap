@@ -73,16 +73,15 @@ namespace cmd
         }
     };
 
-    struct Argument : Common<Argument>, MinMax<Argument> {
+    struct Argument : Common<Argument> {
         std::optional<std::string_view> metavar;
         std::optional<std::function<bool(std::string_view)>> validator;
-        std::optional<std::string_view> default_value;
+        std::optional<std::string_view> default_value = std::nullopt;
+        bool is_required=false;
 
-        Argument(std::string_view longname) : Common(longname), MinMax(), metavar()
+        Argument(std::string_view longname) : Common(longname), metavar(), validator(), default_value(), is_required(false)
         {}
-        Argument(std::string_view longname, std::optional<char32_t> shortname) : Common(longname, shortname), MinMax<Argument>(), metavar()
-        {}
-        Argument(std::string_view longname, std::optional<char32_t> shortname, int min, int max) : Common(longname, shortname), MinMax<Argument>(min, max), metavar()
+        Argument(std::string_view longname, std::optional<char32_t> shortname) : Common(longname, shortname), metavar(), validator(), default_value(), is_required(false)
         {}
         Argument(const Argument&) = default;
         Argument(Argument&&) = default;
@@ -100,6 +99,10 @@ namespace cmd
         }
         constexpr Argument& set_default_value(std::string_view default_value) noexcept {
             this->default_value = default_value;
+            return *this;
+        }
+        constexpr Argument& set_required(bool is_required) noexcept {
+            this->is_required = is_required;
             return *this;
         }
     };
