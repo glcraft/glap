@@ -233,8 +233,6 @@ namespace cmd
         std::optional<std::variant<Command, std::string_view>> global_command;
         std::vector<Command> commands;
         std::string_view program_name;
-        template<class T>
-        using PosExpected = result::Expected<std::tuple<T, std::span<std::string_view>::iterator>>;
     public:
         
         Parser& add_command(Command command) {
@@ -248,7 +246,7 @@ namespace cmd
             global_command = command;
             return *this;
         }
-        auto parse(utils::Iterable<std::string_view> auto args) const -> result::Expected<result::Result>;
+        auto parse(utils::Iterable<std::string_view> auto args) const -> result::PosExpected<result::Result>;
     private:
         auto get_global_command() const -> std::optional<std::reference_wrapper<const Command>> {
             if (!global_command.has_value()) 
