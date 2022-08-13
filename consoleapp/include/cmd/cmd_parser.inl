@@ -80,7 +80,8 @@ namespace cmd
         result.command = std::move(parsed_cmd.value());
         return std::move(result);
     }
-    auto Parser::parse_long_argument(utils::Iterator<std::string_view> auto& itarg, const Command& command) const -> result::PosExpected<result::Parameter>
+    template <utils::Iterator<std::string_view> Iter>
+    auto Parser::parse_long_argument(Iter& itarg, Iter end, const Command& command, result::Command& result_command) const -> result::PosExpected<bool>
     {
         std::string_view arg = *itarg;
         std::string_view name;
@@ -112,12 +113,7 @@ namespace cmd
                     .position = 0
                 });
             }
-            return result::Parameter {
-                result::Flag{
-                    .name = name,
-                    .occurrence = 0
-                }
-            };
+            result_command.add_flag(name);
         } else {
             auto found_argument = std::find_if(command.arguments.begin(), command.arguments.end(), long_finder);
             if (found_argument != command.arguments.end()) {
@@ -132,12 +128,12 @@ namespace cmd
                         .position = 0
                     });
                 }
-                return result::Parameter {
+                result_command.parameters.push_back(result::Parameter {
                     result::Argument{
                         .name = name,
                         .value = value.value()
                     }
-                };
+                });
             } else {
                 return result::make_unexpected(result::PositionnedError{
                     .error = result::Error{
@@ -150,6 +146,7 @@ namespace cmd
                 });
             }
         }
+        return true;
     }
     template <utils::Iterator<std::string_view> Iter>
     auto Parser::parse_short_argument(Iter& itarg, Iter endarg, const Command& command, result::Command& result_command) const -> result::PosExpected<bool>
@@ -281,19 +278,12 @@ namespace cmd
                     .position = std::distance(args.begin(), itarg)
                 });
             }
-            result::PosExpected<result::Parameter> parameter;
+            result::PosExpected<bool> parameter;
             if (name.starts_with("--")) {
                 // argument format: --name=value
-                parameter = this->parse_long_argument(itarg, command);
+                parameter = this->parse_long_argument(itarg, args.end(), command, result_command);
             } else if (name.starts_with("-")) {
-                auto res = this->parse_short_argument(itarg, args.end(), command, result_command);
-                if (!res) {
-                    return result::make_unexpected(result::PositionnedError{
-                        .error = res.error().error,
-                        .position = res.error().position + std::distance(args.begin(), itarg)
-                    });
-                }
-                continue;
+                parameter = this->parse_short_argument(itarg, args.end(), command, result_command);
             } else {
                 //TODO: is an input
             }
@@ -301,7 +291,6 @@ namespace cmd
                 parameter.error().position += std::distance(args.begin(), itarg);
                 return result::make_unexpected(parameter.error());
             }
-            result_command.parameters.push_back(std::move(parameter.value()));
         }
         return std::move(result_command);
     }
