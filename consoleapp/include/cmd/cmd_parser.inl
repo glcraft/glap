@@ -113,7 +113,16 @@ namespace cmd
                     .position = 0
                 });
             }
-            result_command.add_flag(name);
+            if (!found_flag->max < (result_command.add_flag(name).occurrence))
+                return result::make_unexpected(result::PositionnedError{
+                    .error = result::Error{
+                        .argument = name,
+                        .value = std::nullopt,
+                        .type = result::Error::Type::Flag,
+                        .code = result::Error::Code::TooManyFlags
+                    },
+                    .position = 0
+                });
         } else {
             auto found_argument = std::find_if(command.arguments.begin(), command.arguments.end(), long_finder);
             if (found_argument != command.arguments.end()) {
@@ -128,6 +137,16 @@ namespace cmd
                         .position = 0
                     });
                 }
+                if (found_argument->validator.has_value() && !found_argument->validator.value()(value.value()))
+                    return result::make_unexpected(result::PositionnedError{
+                        .error = result::Error{
+                            .argument = name,
+                            .value = value,
+                            .type = result::Error::Type::Argument,
+                            .code = result::Error::Code::InvalidValue
+                        },
+                        .position = 0
+                    });
                 result_command.parameters.push_back(result::Parameter {
                     result::Argument{
                         .name = name,
@@ -197,10 +216,20 @@ namespace cmd
                         .position = 0
                     });
                 }
-                result_command.add_flag(found_flag->longname);
+                if (result_command.add_flag(found_flag->longname).occurrence > found_flag->max)
+                    return result::make_unexpected(result::PositionnedError{
+                        .error = result::Error{
+                            .argument = name,
+                            .value = std::nullopt,
+                            .type = result::Error::Type::Flag,
+                            .code = result::Error::Code::TooManyFlags
+                        },
+                        .position = 0
+                    });
                 iName += len;
             }
         } else {
+            // one flag or argument
             name = arg.substr(1);
             auto exp_codepoint = ::utils::uni::codepoint(name);
             if (!exp_codepoint)
@@ -214,12 +243,20 @@ namespace cmd
                     .position = 0
                 });
             auto codepoint = exp_codepoint.value();
-            // one flag or argument
             auto found_flag = std::find_if(command.flags.begin(), command.flags.end(), [codepoint](const auto& flag) {
                 return flag.shortname == codepoint;
             });
             if (found_flag != command.flags.end()) {
-                result_command.add_flag(found_flag->longname);
+                if (result_command.add_flag(found_flag->longname).occurrence > found_flag->max)
+                    return result::make_unexpected(result::PositionnedError{
+                        .error = result::Error{
+                            .argument = name,
+                            .value = std::nullopt,
+                            .type = result::Error::Type::Flag,
+                            .code = result::Error::Code::TooManyFlags
+                        },
+                        .position = 0
+                    });
             } else {
                 auto found_argument = std::find_if(command.arguments.begin(), command.arguments.end(), [codepoint](const auto& argument) {
                     return argument.shortname == codepoint;
@@ -237,6 +274,17 @@ namespace cmd
                             .position = 0
                         });
                     }
+                    value = *itvalue;
+                    if (found_argument->validator.has_value() && !found_argument->validator.value()(value.value()))
+                        return result::make_unexpected(result::PositionnedError{
+                            .error = result::Error{
+                                .argument = name,
+                                .value = value,
+                                .type = result::Error::Type::Argument,
+                                .code = result::Error::Code::InvalidValue
+                            },
+                            .position = 0
+                        });
                     result_command.parameters.push_back(result::Parameter{
                         result::Argument{
                             .name = found_argument->longname,

@@ -11,7 +11,15 @@ auto parse_argumnts(int argc, char **argv) -> cmd::result::PosExpected<cmd::resu
     cmd::Parser parser;
     auto& cmd_compress = parser.make_command("compress", 'c').set_description("Compress files and directories");
     cmd_compress.make_argument("output", 'o').set_description("Output file");
-    cmd_compress.make_flag("verbose", 'v').set_description("Verbose mode");
+    cmd_compress
+        .make_argument("check", 'c')
+        .set_validator([](std::string_view value) -> bool {
+            using namespace std::string_view_literals;
+            static auto constexpr types = std::array{"hello"sv, "world"sv};
+            return std::find(types.begin(), types.end(), value) != types.end();
+        })
+        .set_description("Output file");
+    cmd_compress.make_flag("verbose", 'v').set_description("Verbose mode").set_max(3);
     cmd_compress.make_flag("Flag1", 'a').set_description("Test flag 1");
     cmd_compress.make_flag("Flag2", 'b').set_description("Test flag 2");
     parser.make_command("extract", 'x').set_description("Extract files from compressed file");
