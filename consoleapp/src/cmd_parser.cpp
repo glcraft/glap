@@ -23,7 +23,8 @@ namespace cmd
             "invalid value",
             "missing value",
             "flag with value",
-            "out of bound",
+            "parameter too used",
+            "required parameter(s) missing",
             "syntax error",
             "bad string",
         };
