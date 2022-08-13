@@ -1,6 +1,7 @@
 #pragma once
 #include <functional>
 #include <fmt/format.h>
+#include <iterator>
 #include <stddef.h>
 #include <limits>
 #include <string>
@@ -20,6 +21,12 @@ namespace cmd
             {*t.begin()} -> std::convertible_to<V>;
             {*t.end()} -> std::convertible_to<V>;
         };
+        template <typename T, typename V>
+        concept Iterator = requires(T t) {
+            {*t} -> std::convertible_to<V>;
+            {++t} -> std::same_as<T&>;
+        };
+
     }
     template <class CRTP>
     struct Common {
