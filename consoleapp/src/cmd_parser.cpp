@@ -14,13 +14,15 @@ namespace cmd
             " (type: unknown)",
         };
         auto constexpr codes_text = std::array{
+            "no argument",
             "missing argument",
-            "missing command",
             "missing flag",
-            "no global command",
+            "no global command set",
             "bad command",
-            "unknown name",
+            "unknown parameter",
             "invalid value",
+            "missing value",
+            "flag with value",
             "out of bound",
             "syntax error",
             "bad string",

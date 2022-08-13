@@ -178,13 +178,15 @@ namespace cmd
                 Unknown
             } type;
             enum class Code {
+                NoArgument,
                 MissingArgument,
-                MissingCommand,
                 MissingFlag,
                 NoGlobalCommand,
                 BadCommand,
-                UnknownName,
+                UnknownParameter,
                 InvalidValue,
+                MissingValue,
+                FlagWithValue,
                 OutOfBound,
                 SyntaxError,
                 BadString
