@@ -211,8 +211,9 @@ namespace cmd
                 InvalidValue,
                 MissingValue,
                 FlagWithValue,
-                TooManyParameters,
-                NotEnoughParameters,
+                TooManyFlags,
+                NotEnoughFlags,
+                RequiredArgument,
                 SyntaxError,
                 BadString
             } code;
