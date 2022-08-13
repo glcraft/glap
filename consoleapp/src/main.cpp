@@ -4,15 +4,21 @@
 #include <tl/expected.hpp>
 #include <string_view>
 #include <ranges>
+#include <variant>
 
-auto parse_argumnts(int argc, char **argv) -> tl::expected<cmd::result::Result, cmd::result::Error> 
+auto parse_argumnts(int argc, char **argv) -> cmd::result::PosExpected<cmd::result::Result> 
 {
     cmd::Parser parser;
-    parser.make_command("compress", 'c').set_description("Compress files and directories");
+    auto& cmd_compress = parser.make_command("compress", 'c').set_description("Compress files and directories");
+    cmd_compress.make_argument("output", 'o').set_description("Output file");
+    cmd_compress.make_flag("verbose", 'v').set_description("Verbose mode");
+    cmd_compress.make_flag("Flag1", 'a').set_description("Test flag 1");
+    cmd_compress.make_flag("Flag2", 'b').set_description("Test flag 2");
     parser.make_command("extract", 'x').set_description("Extract files from compressed file");
     parser.make_command("list", 'l').set_description("Explore compressed file");
 
-    return parser.parse(std::span(argv, argv+argc));
+    auto result = parser.parse(std::span(argv, argv+argc));
+    return std::move(result);
 }
 
 int main(int argc, char** argv)
@@ -22,7 +28,21 @@ int main(int argc, char** argv)
         fmt::print("error parsing arguments: {}\n", arg_result.error().to_string());
         return 1;
     } 
-    auto arguments = std::move(*arg_result);
+    auto arguments = std::move(arg_result.value());
+
+    fmt::print("program name: {}\n", arguments.program);
     fmt::print("command: {}\n", arguments.command.name);
+    if (!arguments.command.parameters.empty()) {
+        fmt::print("argument(s):\n");
+        for (auto const& parameter : arguments.command.parameters) {
+            if (std::holds_alternative<cmd::result::Flag>(parameter)) {
+                auto const& flag = std::get<cmd::result::Flag>(parameter);
+                fmt::print("  flag {} ({}x)\n", flag.name, flag.occurrence);
+            } else {
+                const auto& argument = std::get<cmd::result::Argument>(parameter);
+                fmt::print("  argument {} = {}\n", argument.name, argument.value);
+            }
+        }
+    }
     return 0;
 }

@@ -263,7 +263,8 @@ namespace cmd
             return std::nullopt;
         }
         auto parse_long_argument(utils::Iterator<std::string_view> auto& itarg, const Command& command) const -> result::PosExpected<result::Parameter>;
-        auto parse_short_argument(utils::Iterator<std::string_view> auto& itarg, const Command& command, result::Command& result_command) const -> result::PosExpected<bool>;
+        template <utils::Iterator<std::string_view> Iter>
+        auto parse_short_argument(Iter& itarg, Iter end, const Command& command, result::Command& result_command) const -> result::PosExpected<bool>;
         auto parse_command(utils::Iterable<std::string_view> auto args, const Command& command) const -> result::PosExpected<result::Command>;
     };
 }

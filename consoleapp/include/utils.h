@@ -47,7 +47,7 @@ namespace utils {
             }
             return len;
         }
-        [[nodiscard]] constexpr Expected<uint8_t> codepoint(std::string_view utf8) noexcept {
+        [[nodiscard]] constexpr Expected<char32_t> codepoint(std::string_view utf8) noexcept {
             char32_t codepoint = 0;
             auto it = utf8.begin();
             if ((*it & 0x80) == 0) {
