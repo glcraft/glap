@@ -161,6 +161,17 @@ namespace cmd
         struct Command {
             std::string_view name;
             std::vector<Parameter> parameters;
+
+            void add_flag(std::string_view name) {
+                auto found = std::find_if(parameters.begin(), parameters.end(), [&name](const auto& parameter) {
+                    return std::holds_alternative<Flag>(parameter) && std::get<Flag>(parameter).name == name;
+                });
+                if (found == parameters.end()) {
+                    parameters.push_back(Flag{name, 1});
+                } else {
+                    std::get<Flag>(*found).occurrence++;
+                }
+            }
         };
         struct Result {
             std::string_view program;
