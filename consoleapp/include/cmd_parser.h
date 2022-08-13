@@ -72,7 +72,7 @@ namespace cmd
 
         Argument(std::string_view longname) : Common(longname), MinMax(), metavar()
         {}
-        Argument(std::string_view longname, char32_t shortname) : Common(longname, shortname), MinMax<Argument>(), metavar()
+        Argument(std::string_view longname, std::optional<char32_t> shortname) : Common(longname, shortname), MinMax<Argument>(), metavar()
         {}
         Argument(std::string_view longname, std::optional<char32_t> shortname, int min, int max) : Common(longname, shortname), MinMax<Argument>(min, max), metavar()
         {}
@@ -98,7 +98,7 @@ namespace cmd
     struct Flag : Common<Flag>, MinMax<Flag> {
         Flag(std::string_view longname) : Common(longname), MinMax()
         {}
-        Flag(std::string_view longname, char32_t shortname) : Common(longname, shortname), MinMax<Flag>()
+        Flag(std::string_view longname, std::optional<char32_t> shortname) : Common(longname, shortname), MinMax<Flag>()
         {}
         Flag(std::string_view longname, std::optional<char32_t> shortname, int min, int max) : Common(longname, shortname), MinMax<Flag>(min, max)
         {}
@@ -135,11 +135,11 @@ namespace cmd
             flags.push_back(flag);
             return *this;
         }
-        Argument& make_argument(std::string_view longname, std::optional<std::string_view> shortname = std::nullopt) {
-            return add_argument(Argument(longname)).arguments.back();
+        Argument& make_argument(std::string_view longname, std::optional<char32_t> shortname = std::nullopt) {
+            return add_argument(Argument(longname, shortname)).arguments.back();
         }
-        Flag& make_flag(std::string_view longname) {
-            return add_flag(Flag(longname)).flags.back();
+        Flag& make_flag(std::string_view longname, std::optional<char32_t> shortname = std::nullopt) {
+            return add_flag(Flag(longname, shortname)).flags.back();
         }
         // Command& add_subcommand(Command subcommand) {
         //     subcommands.push_back(subcommand);
