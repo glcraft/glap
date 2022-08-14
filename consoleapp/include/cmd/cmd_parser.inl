@@ -21,17 +21,6 @@ namespace cmd
         // If no argument or starts with a flag, then it is a global command
         if (itarg == args.end() || std::string_view(*itarg).starts_with("-")) {
             current_command = this->get_global_command();
-            if (!current_command.has_value()) {
-                return result::make_unexpected(result::PositionnedError{
-                        .error = result::Error{
-                        .argument = "",
-                        .value = std::nullopt,
-                        .type = result::Error::Type::Command,
-                        .code = result::Error::Code::NoGlobalCommand
-                    },
-                    .position = std::distance(args.begin(), itarg)
-                });
-            }
         } else {
             // Determine if the command name is a shortname (single character) or longname (multiple characters)
             auto char_len = ::utils::uni::utf8_char_length(*itarg);
@@ -60,19 +49,23 @@ namespace cmd
             // If the command was not found, then return an error
             if (found_cmd != commands.end()) {
                 current_command = std::ref(*found_cmd);
+                ++itarg;
             } else {
-                return result::make_unexpected(result::PositionnedError{
-                    .error = result::Error{
-                        .argument = *itarg,
-                        .value = std::nullopt,
-                        .type = result::Error::Type::Command,
-                        .code = result::Error::Code::BadCommand
-                    },
-                    .position = std::distance(args.begin(), itarg)
-                });
+                current_command = this->get_global_command();
             }
-            ++itarg;
         }
+        if (!current_command.has_value()) {
+            return result::make_unexpected(result::PositionnedError{
+                    .error = result::Error{
+                    .argument = "",
+                    .value = std::nullopt,
+                    .type = result::Error::Type::Command,
+                    .code = result::Error::Code::NoGlobalCommand
+                },
+                .position = std::distance(args.begin(), itarg)
+            });
+        }
+
         // Parse command arguments
         auto parsed_cmd = parse_command(args.subspan(std::distance(args.begin(), itarg)), current_command.value());
         if (!parsed_cmd) {
@@ -267,6 +260,8 @@ namespace cmd
         return true;
     }
 
+    
+
     auto Parser::parse_command(utils::Iterable<std::string_view> auto args, const Command& command) const -> result::PosExpected<result::Command> {
         result::Command result_command;
         result_command.name = command.longname;
@@ -294,6 +289,7 @@ namespace cmd
                 parameter = this->parse_short_argument(itarg, args.end(), command, result_command);
             } else {
                 //TODO: is an input
+                parameter = this->add_input(result_command, command, name);
             }
             if (!parameter) {
                 parameter.error().position += std::distance(args.begin(), itarg);

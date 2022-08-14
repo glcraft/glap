@@ -47,9 +47,11 @@ int main(int argc, char** argv)
             if (std::holds_alternative<cmd::result::Flag>(parameter)) {
                 auto const& flag = std::get<cmd::result::Flag>(parameter);
                 fmt::print("  flag {} ({}x)\n", flag.name, flag.occurrence);
-            } else {
+            } else if (std::holds_alternative<cmd::result::Argument>(parameter)) {
                 const auto& argument = std::get<cmd::result::Argument>(parameter);
                 fmt::print("  argument {} = {}\n", argument.name, argument.value);
+            } else {
+                fmt::print("  input: {}\n", std::get<cmd::result::Input>(parameter));
             }
         }
     }

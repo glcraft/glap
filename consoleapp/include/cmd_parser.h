@@ -119,6 +119,7 @@ namespace cmd
 
     struct Command : Common<Command> {
         std::vector<Argument> arguments;
+        std::optional<std::function<bool(std::string_view)>> input_validator;
         std::vector<Flag> flags;
         // std::vector<Command> subcommands;
 
@@ -142,6 +143,10 @@ namespace cmd
             flags.push_back(flag);
             return *this;
         }
+        Command& set_input_validator(std::function<bool(std::string_view)> validator) {
+            input_validator = validator;
+            return *this;
+        }
         Argument& make_argument(std::string_view longname, std::optional<char32_t> shortname = std::nullopt) {
             return add_argument(Argument(longname, shortname)).arguments.back();
         }
@@ -156,6 +161,7 @@ namespace cmd
 
     namespace result 
     {
+        using Input = std::string_view;
         struct Argument {
             std::string_view name;
             std::string_view value;
@@ -166,7 +172,7 @@ namespace cmd
             uint32_t occurrence;
             const cmd::Flag& flag_parser;
         };
-        using Parameter = std::variant<Argument, Flag>;
+        using Parameter = std::variant<Argument, Flag, Input>;
         struct Command {
             std::string_view name;
             std::vector<Parameter> parameters;
@@ -193,9 +199,10 @@ namespace cmd
             std::string_view argument;
             std::optional<std::string_view> value;
             enum class Type {
+                Command,
                 Argument,
                 Flag,
-                Command,
+                Input,
                 None,
                 Unknown
             } type;
@@ -278,6 +285,7 @@ namespace cmd
         
         auto add_argument(result::Command& result_command, const Argument& argument, std::string_view name, const std::string_view value) const -> result::PosExpected<bool>;
         auto add_flag(result::Command& result_command, const Flag& flag, std::string_view name) const -> result::PosExpected<bool>;
+        auto add_input(result::Command& result_command, const Command& command, std::string_view input) const -> result::PosExpected<bool>;
 
         auto parse_command(utils::Iterable<std::string_view> auto args, const Command& command) const -> result::PosExpected<result::Command>;
 

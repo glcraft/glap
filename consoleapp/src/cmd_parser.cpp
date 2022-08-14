@@ -7,9 +7,10 @@ namespace cmd
     
     auto result::Error::to_string() const -> std::string {
         auto constexpr types = std::array{
+            " (type: command)",
             " (type: argument)",
             " (type: flag)",
-            " (type: command)",
+            " (type: input)",
             "",
             " (type: unknown)",
         };
@@ -68,6 +69,22 @@ namespace cmd
                 },
                 .position = 0
             });
+        return true;
+    }
+    auto Parser::add_input(result::Command& result_command, const Command& command, std::string_view input) const -> result::PosExpected<bool>
+    {
+        if (command.input_validator && !command.input_validator.value()(input)) {
+            return result::make_unexpected(result::PositionnedError{
+                .error = result::Error{
+                    .argument = input,
+                    .value = std::nullopt,
+                    .type = result::Error::Type::Input,
+                    .code = result::Error::Code::InvalidValue
+                },
+                .position = 0
+            });
+        }
+        result_command.parameters.push_back(input);
         return true;
     }
 }
