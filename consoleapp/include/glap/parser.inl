@@ -8,7 +8,7 @@
 #include <string_view>
 #include <variant>
 #include <unordered_set>
-namespace cmd
+namespace glap
 {
     auto Parser::parse(utils::Iterable<std::string_view> auto args) const -> result::PosExpected<result::Result> {
         result::Result result;
@@ -23,7 +23,7 @@ namespace cmd
             current_command = this->get_global_command();
         } else {
             // Determine if the command name is a shortname (single character) or longname (multiple characters)
-            auto char_len = cmd::utils::uni::utf8_char_length(*itarg);
+            auto char_len = glap::utils::uni::utf8_char_length(*itarg);
             if (!char_len) 
                 return result::make_unexpected(result::PositionnedError{
                         .error = result::Error{
@@ -37,7 +37,7 @@ namespace cmd
             auto found_cmd = commands.end();
             // If the command name is a single character, then search for a command with that shortname
             if (char_len.value() <= std::string_view(*itarg).size()) {
-                auto codepoint = cmd::utils::uni::codepoint(*itarg).value();
+                auto codepoint = glap::utils::uni::codepoint(*itarg).value();
                 found_cmd = std::find_if(commands.begin(), commands.end(), [codepoint](const config::Command& command) {
                     return command.shortname == codepoint;
                 });
@@ -152,10 +152,10 @@ namespace cmd
         std::optional<std::string_view> value;
         // argument format: -n [value] or -fff
         name = arg.substr(1);
-        if (name.size() > cmd::utils::uni::utf8_char_length(name).value()) {
+        if (name.size() > glap::utils::uni::utf8_char_length(name).value()) {
             //multi flags
             for (auto iName = 0; iName<name.size();) {
-                auto exp_len = cmd::utils::uni::utf8_char_length(name.substr(iName));
+                auto exp_len = glap::utils::uni::utf8_char_length(name.substr(iName));
                 if (!exp_len)
                     return result::make_unexpected(result::PositionnedError{
                         .error = result::Error{
@@ -167,7 +167,7 @@ namespace cmd
                         .position = 0
                     });
                 auto len = exp_len.value();
-                auto exp_codepoint = cmd::utils::uni::codepoint(name.substr(iName, len));
+                auto exp_codepoint = glap::utils::uni::codepoint(name.substr(iName, len));
                 if (!exp_codepoint)
                     return result::make_unexpected(result::PositionnedError{
                         .error = result::Error{
@@ -202,7 +202,7 @@ namespace cmd
         } else {
             // one flag or argument
             name = arg.substr(1);
-            auto exp_codepoint = cmd::utils::uni::codepoint(name);
+            auto exp_codepoint = glap::utils::uni::codepoint(name);
             if (!exp_codepoint)
                 return result::make_unexpected(result::PositionnedError{
                     .error = result::Error{

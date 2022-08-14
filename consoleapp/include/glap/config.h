@@ -3,7 +3,7 @@
 #include <optional>
 #include <functional>
 #include <vector>
-namespace cmd::config
+namespace glap::config
 {
     template <class CRTP>
     struct Common {

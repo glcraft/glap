@@ -3,7 +3,7 @@
 #include "expected.h"
 #include "utf8.h"
 #include "fmt.h"
-namespace cmd
+namespace glap
 {
     namespace utils {
         template <typename T, typename V>

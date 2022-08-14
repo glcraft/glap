@@ -2,7 +2,7 @@
 #include <iterator>
 #include <string_view>
 #include "expected.h"
-namespace cmd::utils::uni {
+namespace glap::utils::uni {
     struct UnicodeError {
         std::string_view str;
         size_t pos;

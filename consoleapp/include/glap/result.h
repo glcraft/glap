@@ -4,25 +4,25 @@
 #include "config.h"
 #include "utils.h"
 
-namespace cmd::result 
+namespace glap::result 
 {
     using Input = std::string_view;
     struct Argument {
         std::string_view name;
         std::string_view value;
-        const cmd::config::Argument& argument_parser;
+        const glap::config::Argument& argument_parser;
     };
     struct Flag {
         std::string_view name;
         uint32_t occurrence;
-        const cmd::config::Flag& flag_parser;
+        const glap::config::Flag& flag_parser;
     };
     using Parameter = std::variant<Argument, Flag, Input>;
     struct Command {
         std::string_view name;
         std::vector<Parameter> parameters;
 
-        Flag& add_flag(const cmd::config::Flag& flag) {
+        Flag& add_flag(const glap::config::Flag& flag) {
             auto found = std::find_if(parameters.begin(), parameters.end(), [name=flag.longname](const auto& parameter) {
                 return std::holds_alternative<Flag>(parameter) && std::get<Flag>(parameter).name == name;
             });
@@ -76,7 +76,7 @@ namespace cmd::result
         Error error;
         difference_type position;
         auto to_string() const {
-            return cmd::format("at argument {}: {}", position, error.to_string());
+            return glap::format("at argument {}: {}", position, error.to_string());
         }
     };
     template<class T>

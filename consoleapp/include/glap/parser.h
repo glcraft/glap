@@ -3,7 +3,7 @@
 #include "config.h"
 #include "result.h"
 
-namespace cmd
+namespace glap
 {
     class Parser {
         std::optional<std::variant<config::Command, std::string_view>> global_command;

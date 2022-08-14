@@ -6,9 +6,9 @@
 #include <ranges>
 #include <variant>
 
-auto parse_argumnts(int argc, char **argv) -> cmd::result::PosExpected<cmd::result::Result> 
+auto parse_argumnts(int argc, char **argv) -> glap::result::PosExpected<glap::result::Result> 
 {
-    cmd::Parser parser;
+    glap::Parser parser;
     auto& cmd_compress = parser.make_command("compress", 'c').set_description("Compress files and directories");
     cmd_compress.make_argument("output", 'o').set_description("Output file").set_required(true);
     cmd_compress
@@ -44,14 +44,14 @@ int main(int argc, char** argv)
     if (!arguments.command.parameters.empty()) {
         fmt::print("argument(s):\n");
         for (auto const& parameter : arguments.command.parameters) {
-            if (std::holds_alternative<cmd::result::Flag>(parameter)) {
-                auto const& flag = std::get<cmd::result::Flag>(parameter);
+            if (std::holds_alternative<glap::result::Flag>(parameter)) {
+                auto const& flag = std::get<glap::result::Flag>(parameter);
                 fmt::print("  flag {} ({}x)\n", flag.name, flag.occurrence);
-            } else if (std::holds_alternative<cmd::result::Argument>(parameter)) {
-                const auto& argument = std::get<cmd::result::Argument>(parameter);
+            } else if (std::holds_alternative<glap::result::Argument>(parameter)) {
+                const auto& argument = std::get<glap::result::Argument>(parameter);
                 fmt::print("  argument {} = {}\n", argument.name, argument.value);
             } else {
-                fmt::print("  input: {}\n", std::get<cmd::result::Input>(parameter));
+                fmt::print("  input: {}\n", std::get<glap::result::Input>(parameter));
             }
         }
     }

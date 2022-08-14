@@ -2,7 +2,7 @@
 #include <fmt/format.h>
 #include <string_view>
 
-namespace cmd 
+namespace glap 
 {
     
     auto result::Error::to_string() const -> std::string {
