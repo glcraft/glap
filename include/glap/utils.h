@@ -2,7 +2,7 @@
 #include <concepts>
 #include "expected.h"
 #include "utf8.h"
-#include "fmt.h"
+
 namespace glap
 {
     namespace utils {

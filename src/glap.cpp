@@ -1,6 +1,7 @@
 #include <glap.h>
 #include <fmt/format.h>
 #include <string_view>
+#include <glap/fmt.h>
 
 namespace glap 
 {
