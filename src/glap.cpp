@@ -5,7 +5,6 @@
 
 namespace glap 
 {
-    
     auto result::Error::to_string() const -> std::string {
         auto constexpr types = std::array{
             " (type: command)",

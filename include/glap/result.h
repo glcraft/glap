@@ -3,6 +3,7 @@
 #include <span>
 #include "config.h"
 #include "utils.h"
+#include "fmt.h"
 
 namespace glap::result 
 {
