@@ -50,7 +50,8 @@ namespace cmd
         result_command.parameters.push_back(result::Parameter{
             result::Argument{
                 .name = argument.longname,
-                .value = value
+                .value = value,
+                .argument_parser = argument
             }
         });
         return true;

@@ -159,22 +159,24 @@ namespace cmd
         struct Argument {
             std::string_view name;
             std::string_view value;
+            const cmd::Argument& argument_parser;
         };
         struct Flag {
             std::string_view name;
             uint32_t occurrence;
+            const cmd::Flag& flag_parser;
         };
         using Parameter = std::variant<Argument, Flag>;
         struct Command {
             std::string_view name;
             std::vector<Parameter> parameters;
 
-            Flag& add_flag(std::string_view name) {
-                auto found = std::find_if(parameters.begin(), parameters.end(), [&name](const auto& parameter) {
+            Flag& add_flag(const cmd::Flag& flag) {
+                auto found = std::find_if(parameters.begin(), parameters.end(), [name=flag.longname](const auto& parameter) {
                     return std::holds_alternative<Flag>(parameter) && std::get<Flag>(parameter).name == name;
                 });
                 if (found == parameters.end()) {
-                    parameters.push_back(Flag{name, 1});
+                    parameters.push_back(Flag{flag.longname, 1, flag});
                     return std::get<Flag>(parameters.back());
                 } else {
                     std::get<Flag>(*found).occurrence++;
