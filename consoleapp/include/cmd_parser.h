@@ -56,17 +56,13 @@ namespace cmd
     };
     template<class CRTP>
     struct MinMax {
-        uint32_t min;
+        // uint32_t min;
         uint32_t max;
-        MinMax() : min(0), max(std::numeric_limits<decltype(this->max)>::max())
+        MinMax() : max(std::numeric_limits<decltype(this->max)>::max())
         {}
-        MinMax(uint32_t min, uint32_t max) : min(min), max(max)
+        MinMax(uint32_t max) : max(max)
         {}
 
-        constexpr CRTP& set_min(int min) noexcept {
-            this->min = min;
-            return *static_cast<CRTP*>(this);
-        }
         constexpr CRTP& set_max(int max) noexcept {
             this->max = max;
             return *static_cast<CRTP*>(this);
@@ -111,7 +107,7 @@ namespace cmd
         {}
         Flag(std::string_view longname, std::optional<char32_t> shortname) : Common(longname, shortname), MinMax<Flag>()
         {}
-        Flag(std::string_view longname, std::optional<char32_t> shortname, int min, int max) : Common(longname, shortname), MinMax<Flag>(min, max)
+        Flag(std::string_view longname, std::optional<char32_t> shortname, int max) : Common(longname, shortname), MinMax<Flag>(max)
         {}
         Flag(const Flag&) = default;
         Flag(Flag&&) = default;
