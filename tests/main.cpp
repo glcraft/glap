@@ -1,44 +1,51 @@
 #include <glap.h>
 #include <fmt/format.h>
-#include <span>
-#include <tl/expected.hpp>
 #include <string_view>
-#include <ranges>
-#include <variant>
-
-auto parse_argumnts(int argc, char **argv) -> glap::result::PosExpected<glap::result::Result> 
-{
-    glap::Parser parser;
-    auto& cmd_compress = parser.make_command("compress", 'c').set_description("Compress files and directories");
-    cmd_compress.make_argument("output", 'o').set_description("Output file").set_required(true);
-    cmd_compress
-        .make_argument("check", 'c')
-        .set_validator([](std::string_view value) -> bool {
-            using namespace std::string_view_literals;
-            static auto constexpr types = std::array{"hello"sv, "world"sv};
-            return std::find(types.begin(), types.end(), value) != types.end();
-        })
-        .set_description("Output file");
-    cmd_compress.make_flag("verbose", 'v').set_description("Verbose mode").set_max(3);
-    cmd_compress.make_flag("Flag1", 'a').set_description("Test flag 1");
-    cmd_compress.make_flag("Flag2", 'b').set_description("Test flag 2");
-    parser.set_global_command("compress");
-    parser.make_command("extract", 'x').set_description("Extract files from compressed file");
-    parser.make_command("list", 'l').set_description("Explore compressed file");
-
-    auto result = parser.parse(std::span(argv, argv+argc));
-    return std::move(result);
-}
+#include <array>
 
 int main(int argc, char** argv)
 {
-    auto arg_result = parse_argumnts(argc, argv);
+    glap::Parser parser;
+    // Add a command
+    auto& cmd_compress = parser.make_command("read", 'd').set_description("Compress files and directories");
+    // Setup an input validator
+    cmd_compress.set_input_validator([](std::string_view input) -> bool {
+        //Only accept *.txt files
+        return input.ends_with(".txt");
+    });
+    // Add an "output" argument. Set it required.
+    cmd_compress.make_argument("output", 'o').set_description("Output file").set_required(true);
+    // Add a "chack" argument with a custom validator
+    cmd_compress
+        .make_argument("mode", 'm')
+        .set_description("Type of read")
+        .set_validator([](std::string_view value) -> bool {
+            // only accept "debug" or "release"
+            using namespace std::string_view_literals;
+            static auto constexpr types = std::array{"debug"sv, "release"sv};
+            return std::find(types.begin(), types.end(), value) != types.end();
+        });
+    // Add a simple flag
+    cmd_compress.make_flag("flag1", 'a').set_description("Test flag 1");
+    // Add a simple flag, without short name
+    cmd_compress.make_flag("flag2").set_description("Test flag 2");
+    // Add "verbose" flag, usable up to 3x (like -vvv)
+    cmd_compress.make_flag("verbose", 'v').set_description("Verbose mode").set_max(3);
+    // Setup the global command to "compress" defined earlier
+    parser.set_global_command("compress");
+
+    //Parse program arguments
+    auto arg_result = parser.parse(std::span(argv, argv+argc));
+    
+    // if there is a parsing error
     if (!arg_result) {
+        // ...display it
         fmt::print("error parsing arguments: {}\n", arg_result.error().to_string());
         return 1;
     } 
     auto arguments = std::move(arg_result.value());
 
+    //Just print what we receive
     fmt::print("program name: {}\n", arguments.program);
     fmt::print("command: {}\n", arguments.command.name);
     if (!arguments.command.parameters.empty()) {
@@ -55,5 +62,4 @@ int main(int argc, char** argv)
             }
         }
     }
-    return 0;
 }
