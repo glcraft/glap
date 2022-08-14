@@ -7,7 +7,7 @@ int main(int argc, char** argv)
 {
     glap::Parser parser;
     // Add a command
-    auto& cmd_compress = parser.make_command("read", 'd').set_description("Compress files and directories");
+    auto& cmd_compress = parser.make_command("read", 'r').set_description("Compress files and directories");
     // Setup an input validator
     cmd_compress.set_input_validator([](std::string_view input) -> bool {
         //Only accept *.txt files
@@ -32,7 +32,7 @@ int main(int argc, char** argv)
     // Add "verbose" flag, usable up to 3x (like -vvv)
     cmd_compress.make_flag("verbose", 'v').set_description("Verbose mode").set_max(3);
     // Setup the global command to "compress" defined earlier
-    parser.set_global_command("compress");
+    parser.set_global_command("read");
 
     //Parse program arguments
     auto arg_result = parser.parse(std::span(argv, argv+argc));
