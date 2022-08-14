@@ -251,6 +251,10 @@ namespace cmd
             global_command = command;
             return *this;
         }
+        Parser& set_global_command(std::string_view longname) {
+            global_command = longname;
+            return *this;
+        }
         auto parse(utils::Iterable<std::string_view> auto args) const -> result::PosExpected<result::Result>;
     private:
         auto get_global_command() const -> std::optional<std::reference_wrapper<const Command>> {
