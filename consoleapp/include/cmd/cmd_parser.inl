@@ -6,6 +6,8 @@
 #include <functional>
 #include <optional>
 #include <string_view>
+#include <variant>
+#include <unordered_set>
 namespace cmd
 {
     auto Parser::parse(utils::Iterable<std::string_view> auto args) const -> result::PosExpected<result::Result> {
@@ -297,6 +299,32 @@ namespace cmd
                 parameter.error().position += std::distance(args.begin(), itarg);
                 return result::make_unexpected(parameter.error());
             }
+        }
+        //post validation
+        std::unordered_set<std::string_view> required_arguments;
+        for (auto& argument : command.arguments) {
+            if (argument.required) {
+                required_arguments.insert(argument.longname);
+            }
+        }
+        for (auto param : result_command.parameters) {
+            if (std::holds_alternative<result::Argument>(param)) {
+                auto argument = std::get<result::Argument>(param);
+                if (auto found = required_arguments.find(argument.name); found != required_arguments.end()) {
+                    required_arguments.erase(found);
+                }
+            }
+        }
+        if (!required_arguments.empty()) {
+            return result::make_unexpected(result::PositionnedError{
+                .error = result::Error{
+                    .argument = *required_arguments.begin(),
+                    .value = std::nullopt,
+                    .type = result::Error::Type::Argument,
+                    .code = result::Error::Code::RequiredArgument
+                },
+                .position = 0
+            });
         }
         return std::move(result_command);
     }
