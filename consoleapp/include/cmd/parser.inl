@@ -1,6 +1,6 @@
 #pragma once
-#include "../cmd_parser.h"
-#include "../utils.h"
+#include "parser.h"
+#include "utils.h"
 #include "expected.h"
 #include <algorithm>
 #include <functional>
@@ -16,14 +16,14 @@ namespace cmd
 
         auto itarg = std::next(args.begin());
         
-        std::optional<std::reference_wrapper<const Command>> current_command = std::nullopt;
+        std::optional<std::reference_wrapper<const config::Command>> current_command = std::nullopt;
         // Find command
         // If no argument or starts with a flag, then it is a global command
         if (itarg == args.end() || std::string_view(*itarg).starts_with("-")) {
             current_command = this->get_global_command();
         } else {
             // Determine if the command name is a shortname (single character) or longname (multiple characters)
-            auto char_len = ::utils::uni::utf8_char_length(*itarg);
+            auto char_len = cmd::utils::uni::utf8_char_length(*itarg);
             if (!char_len) 
                 return result::make_unexpected(result::PositionnedError{
                         .error = result::Error{
@@ -37,12 +37,12 @@ namespace cmd
             auto found_cmd = commands.end();
             // If the command name is a single character, then search for a command with that shortname
             if (char_len.value() <= std::string_view(*itarg).size()) {
-                auto codepoint = ::utils::uni::codepoint(*itarg).value();
-                found_cmd = std::find_if(commands.begin(), commands.end(), [codepoint](const Command& command) {
+                auto codepoint = cmd::utils::uni::codepoint(*itarg).value();
+                found_cmd = std::find_if(commands.begin(), commands.end(), [codepoint](const config::Command& command) {
                     return command.shortname == codepoint;
                 });
             } else {
-                found_cmd = std::find_if(commands.begin(), commands.end(), [&](const Command& command) {
+                found_cmd = std::find_if(commands.begin(), commands.end(), [&](const config::Command& command) {
                     return command.longname == *itarg;
                 });
             }
@@ -76,7 +76,7 @@ namespace cmd
         return std::move(result);
     }
     template <utils::Iterator<std::string_view> Iter>
-    auto Parser::parse_long_argument(Iter& itarg, Iter end, const Command& command, result::Command& result_command) const -> result::PosExpected<bool>
+    auto Parser::parse_long_argument(Iter& itarg, Iter end, const config::Command& command, result::Command& result_command) const -> result::PosExpected<bool>
     {
         std::string_view arg = *itarg;
         std::string_view name;
@@ -145,17 +145,17 @@ namespace cmd
         return true;
     }
     template <utils::Iterator<std::string_view> Iter>
-    auto Parser::parse_short_argument(Iter& itarg, Iter endarg, const Command& command, result::Command& result_command) const -> result::PosExpected<bool>
+    auto Parser::parse_short_argument(Iter& itarg, Iter endarg, const config::Command& command, result::Command& result_command) const -> result::PosExpected<bool>
     {
         std::string_view arg = *itarg;
         std::string_view name;
         std::optional<std::string_view> value;
         // argument format: -n [value] or -fff
         name = arg.substr(1);
-        if (name.size() > ::utils::uni::utf8_char_length(name).value()) {
+        if (name.size() > cmd::utils::uni::utf8_char_length(name).value()) {
             //multi flags
             for (auto iName = 0; iName<name.size();) {
-                auto exp_len = ::utils::uni::utf8_char_length(name.substr(iName));
+                auto exp_len = cmd::utils::uni::utf8_char_length(name.substr(iName));
                 if (!exp_len)
                     return result::make_unexpected(result::PositionnedError{
                         .error = result::Error{
@@ -167,7 +167,7 @@ namespace cmd
                         .position = 0
                     });
                 auto len = exp_len.value();
-                auto exp_codepoint = ::utils::uni::codepoint(name.substr(iName, len));
+                auto exp_codepoint = cmd::utils::uni::codepoint(name.substr(iName, len));
                 if (!exp_codepoint)
                     return result::make_unexpected(result::PositionnedError{
                         .error = result::Error{
@@ -202,7 +202,7 @@ namespace cmd
         } else {
             // one flag or argument
             name = arg.substr(1);
-            auto exp_codepoint = ::utils::uni::codepoint(name);
+            auto exp_codepoint = cmd::utils::uni::codepoint(name);
             if (!exp_codepoint)
                 return result::make_unexpected(result::PositionnedError{
                     .error = result::Error{
@@ -262,7 +262,7 @@ namespace cmd
 
     
 
-    auto Parser::parse_command(utils::Iterable<std::string_view> auto args, const Command& command) const -> result::PosExpected<result::Command> {
+    auto Parser::parse_command(utils::Iterable<std::string_view> auto args, const config::Command& command) const -> result::PosExpected<result::Command> {
         result::Command result_command;
         result_command.name = command.longname;
 
