@@ -113,16 +113,10 @@ namespace cmd
                     .position = 0
                 });
             }
-            if (!found_flag->max < (result_command.add_flag(name).occurrence))
-                return result::make_unexpected(result::PositionnedError{
-                    .error = result::Error{
-                        .argument = name,
-                        .value = std::nullopt,
-                        .type = result::Error::Type::Flag,
-                        .code = result::Error::Code::TooManyFlags
-                    },
-                    .position = 0
-                });
+            auto res = this->add_flag(result_command, *found_flag, name);
+            if (!res) {
+                return res;
+            }
         } else {
             auto found_argument = std::find_if(command.arguments.begin(), command.arguments.end(), long_finder);
             if (found_argument != command.arguments.end()) {
@@ -137,22 +131,10 @@ namespace cmd
                         .position = 0
                     });
                 }
-                if (found_argument->validator.has_value() && !found_argument->validator.value()(value.value()))
-                    return result::make_unexpected(result::PositionnedError{
-                        .error = result::Error{
-                            .argument = name,
-                            .value = value,
-                            .type = result::Error::Type::Argument,
-                            .code = result::Error::Code::InvalidValue
-                        },
-                        .position = 0
-                    });
-                result_command.parameters.push_back(result::Parameter {
-                    result::Argument{
-                        .name = name,
-                        .value = value.value()
-                    }
-                });
+                auto res = this->add_argument(result_command, *found_argument, name, value.value());
+                if (!res) {
+                    return res;
+                }
             } else {
                 return result::make_unexpected(result::PositionnedError{
                     .error = result::Error{
@@ -216,16 +198,10 @@ namespace cmd
                         .position = 0
                     });
                 }
-                if (result_command.add_flag(found_flag->longname).occurrence > found_flag->max)
-                    return result::make_unexpected(result::PositionnedError{
-                        .error = result::Error{
-                            .argument = name,
-                            .value = std::nullopt,
-                            .type = result::Error::Type::Flag,
-                            .code = result::Error::Code::TooManyFlags
-                        },
-                        .position = 0
-                    });
+                auto res = this->add_flag(result_command, *found_flag, name);
+                if (!res) {
+                    return res;
+                }
                 iName += len;
             }
         } else {
@@ -247,16 +223,10 @@ namespace cmd
                 return flag.shortname == codepoint;
             });
             if (found_flag != command.flags.end()) {
-                if (result_command.add_flag(found_flag->longname).occurrence > found_flag->max)
-                    return result::make_unexpected(result::PositionnedError{
-                        .error = result::Error{
-                            .argument = name,
-                            .value = std::nullopt,
-                            .type = result::Error::Type::Flag,
-                            .code = result::Error::Code::TooManyFlags
-                        },
-                        .position = 0
-                    });
+                auto res = this->add_flag(result_command, *found_flag, name);
+                if (!res) {
+                    return res;
+                }
             } else {
                 auto found_argument = std::find_if(command.arguments.begin(), command.arguments.end(), [codepoint](const auto& argument) {
                     return argument.shortname == codepoint;
@@ -274,23 +244,10 @@ namespace cmd
                             .position = 0
                         });
                     }
-                    value = *itvalue;
-                    if (found_argument->validator.has_value() && !found_argument->validator.value()(value.value()))
-                        return result::make_unexpected(result::PositionnedError{
-                            .error = result::Error{
-                                .argument = name,
-                                .value = value,
-                                .type = result::Error::Type::Argument,
-                                .code = result::Error::Code::InvalidValue
-                            },
-                            .position = 0
-                        });
-                    result_command.parameters.push_back(result::Parameter{
-                        result::Argument{
-                            .name = found_argument->longname,
-                            .value = *itvalue
-                        }
-                    });
+                    auto res = this->add_argument(result_command, *found_argument, name, *itvalue);
+                    if (!res) {
+                        return res;
+                    }
                 } else {
                     return result::make_unexpected(result::PositionnedError{
                         .error = result::Error{
@@ -307,6 +264,7 @@ namespace cmd
         
         return true;
     }
+
     auto Parser::parse_command(utils::Iterable<std::string_view> auto args, const Command& command) const -> result::PosExpected<result::Command> {
         result::Command result_command;
         result_command.name = command.longname;

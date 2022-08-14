@@ -273,7 +273,12 @@ namespace cmd
         auto parse_long_argument(Iter& itarg, Iter end, const Command& command, result::Command& result_command) const -> result::PosExpected<bool>;
         template <utils::Iterator<std::string_view> Iter>
         auto parse_short_argument(Iter& itarg, Iter end, const Command& command, result::Command& result_command) const -> result::PosExpected<bool>;
+        
+        auto add_argument(result::Command& result_command, const Argument& argument, std::string_view name, const std::string_view value) const -> result::PosExpected<bool>;
+        auto add_flag(result::Command& result_command, const Flag& flag, std::string_view name) const -> result::PosExpected<bool>;
+
         auto parse_command(utils::Iterable<std::string_view> auto args, const Command& command) const -> result::PosExpected<result::Command>;
+
     };
 }
 
