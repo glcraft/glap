@@ -2,11 +2,31 @@
 
 A UTF-8 command line parser written in C++20 respecting conventionals shell arguments.
 
+## Notable features
+
+### Up to date library
+
+The library is written in C++20 with language features like concepts, ranges, views... which make the library easier to use and maintain.
+
+### Low heap memory usage
+
+Every string used by the library is a view. Take a look [here](#something-about-lifetime) for more details.
+
+### Error analysis and validators
+
+Several error types is catch and returned for a better analysis or the arguments. Validators over input and argument values can be set up.
+
+Moreover, the library doesn't use exception but expected class in return instead.
+
+### UTF-8 compliant
+
+If you want to use emoji or non latin alphabet in long or short name, you can !
+
 ## Something about lifetime...
 
-Except for dynamic array used to declare arguments and flags, the library doesn't own string. Every strings used in the library is a view, either of arguments, strings in the code. That means even config objects doesn't own strings !
+Except for dynamic array used to declare arguments and flags, the library doesn't own strings. Every string used in the library is a view from arguments or strings in the code. That means even config objects doesn't own strings !
 
-For example
+Take a look at this :
 
 ```cpp
 glap::Parser parser;
