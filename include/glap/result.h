@@ -39,7 +39,7 @@ namespace glap::result
     struct Result {
         std::string_view program;
         Command command;
-        std::vector<Parameter> parameters;
+        // std::vector<Parameter> parameters;
     };
     struct Error {
         std::string_view argument;
