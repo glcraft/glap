@@ -281,6 +281,9 @@ namespace glap
                     .position = std::distance(args.begin(), itarg)
                 });
             }
+            else if (name == "--") {
+                break;
+            }
             else if (name == "--help") {
                 //no parameter for help
                 result_command.parameters.clear();
