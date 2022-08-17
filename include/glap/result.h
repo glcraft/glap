@@ -22,6 +22,7 @@ namespace glap::result
     struct Command {
         std::string_view name;
         std::vector<Parameter> parameters;
+        bool help;
 
         Flag& add_flag(const glap::config::Flag& flag) {
             auto found = std::find_if(parameters.begin(), parameters.end(), [name=flag.longname](const auto& parameter) {
