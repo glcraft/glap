@@ -6,6 +6,7 @@
 #include <optional>
 #include <type_traits>
 #include <variant>
+#include <vector>
 namespace glap::v2 
 {
     enum class ParameterType {
@@ -34,8 +35,6 @@ namespace glap::v2
     // template <class T>
     // concept Input = ;
 
-    template <class T>
-    concept Parameter = (_Argument<T> /*|| Flag<T> || Input<T>*/) && HasNames<T> && HasResultType<T>;
 
     // template <std::string_view T>
     // consteval auto test() -> std::string_view {
@@ -111,9 +110,31 @@ namespace glap::v2
             return Resolver(value);
         }
     };
+    template <class ArgNames>
+    class Flag : public GetNames<ArgNames> {
+    public:
+        size_t occurences = 0;
+
+        static constexpr auto type = ParameterType::Flag;
+        using names = ArgNames;
+    };
+    template <auto Resolver = discard, auto Validator = discard>
+    class Inputs {
+    public:
+        std::vector<std::string_view> values;
+
+        static constexpr auto resolver = Resolver;
+        static constexpr auto validator = Validator;
+        static constexpr auto type = ParameterType::Input;
+    };
+
+    template <class T>
+    concept Parameter = requires {
+        std::same_as<std::remove_cvref_t<decltype(T::type)>, ParameterType>;
+    };
     
-    template <class CommandNames, class... P>
-    class Command {
+    template <class CommandNames, Parameter... P>
+    class Command : public GetNames<CommandNames> {
         using Params = std::variant<P...>;
         static constexpr size_t NbParams = sizeof...(P);
         template <size_t I>
