@@ -102,7 +102,8 @@ namespace glap::v2
         std::string_view value;
 
         using names = ArgNames;
-        [[nodiscard]]constexpr auto resolve(std::string_view value) const requires (!std::same_as<decltype(Resolver), Discard>) {
+
+        [[nodiscard]]constexpr auto resolve() const requires (!std::same_as<decltype(Resolver), Discard>) {
             static_assert(std::invocable<decltype(Resolver), std::string_view>, "Resolver must be callable with std::string_view");
             return Resolver(value);
         }
