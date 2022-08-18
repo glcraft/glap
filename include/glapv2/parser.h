@@ -1,6 +1,6 @@
 #pragma once
 
-#include <__concepts/same_as.h>
+#include <tuple>
 #include <string_view>
 #include <concepts>
 #include <optional>
@@ -156,6 +156,10 @@ namespace glap::v2
         using names = CommandNames;
         template <StringLiteral lit>
         constexpr auto& get_parameter() noexcept requires (NbParams > 0) {
+            return std::get<_get_parameter_id<0, lit>()>(params);
+        }
+        template <StringLiteral lit>
+        constexpr const auto& get_parameter() const noexcept requires (NbParams > 0) {
             return std::get<_get_parameter_id<0, lit>()>(params);
         }
     };
