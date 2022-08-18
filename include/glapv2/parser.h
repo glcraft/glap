@@ -81,9 +81,23 @@ namespace glap::v2
         static constexpr std::string_view longname = LongName.value;
         static constexpr std::optional<char32_t> shortname = std::same_as<decltype(ShortName), Discard> ? std::optional<char32_t>{} : std::optional<char32_t>{ShortName};
     };
+    template <class CRTP>
+        requires requires {
+            std::same_as<std::remove_cvref_t<decltype(CRTP::longname)>, std::string_view>;
+            std::same_as<std::remove_cvref_t<decltype(CRTP::shortname)>, std::optional<char32_t>>;
+        }
+    class GetNames {
+    public:
+        constexpr auto longname() const noexcept {
+            return CRTP::longname;
+        }
+        constexpr auto shortname() const noexcept {
+            return CRTP::hortname;
+        }
+    };
 
     template <class ArgNames, auto Resolver = discard, auto Validator = discard>
-    class Argument {
+    class Argument : public GetNames<ArgNames> {
     public:
         std::string_view value;
 
