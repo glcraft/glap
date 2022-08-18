@@ -149,7 +149,7 @@ namespace glap::v2
             if constexpr (Param<i>::names::longname == lit) {
                 return i;
             } else {
-                return _get_parameter<i + 1, lit>();
+                return _get_parameter_id<i + 1, lit>();
             }
         }
     public:
