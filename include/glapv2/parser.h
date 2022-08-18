@@ -135,10 +135,10 @@ namespace glap::v2
     
     template <class CommandNames, Parameter... P>
     class Command : public GetNames<CommandNames> {
-        using Params = std::variant<P...>;
+        using Params = std::tuple<P...>;
         static constexpr size_t NbParams = sizeof...(P);
         template <size_t I>
-        using Param = std::variant_alternative_t<I, Params>;
+        using Param = std::tuple_element_t<I, Params>;
         
 
         Params params;
