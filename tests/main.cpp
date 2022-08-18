@@ -28,12 +28,15 @@ constexpr auto to_int(std::string_view str) -> tl::expected<int, std::errc> {
 int main(int argc, char** argv)
 {
     glap::v2::Command<glap::v2::Names<"command", glap::v2::discard>, Param1> command;
-    glap::v2::Command<glap::v2::Names<"command", 'c'>, Param1> command1;
-    glap::v2::Command<glap::v2::Names<"command">, glap::v2::Argument<glap::v2::Names<"param", 'p'>, to_int>> command2;
-    auto param = command2.get_parameter<"param">();
-    
-    auto value = param.resolve("std::string_view value");
+    glap::v2::Command<glap::v2::Names<"command", 'c'>, 
+        glap::v2::Flag<glap::v2::Names<"flag", 'f'>>,
+        glap::v2::Argument<glap::v2::Names<"argument", 'a'>>,
+        glap::v2::Argument<glap::v2::Names<"integer", glap::v2::discard>, to_int>,
+        glap::v2::Inputs<>
+    > command1;
 
-
-    fmt::print("{}", decltype(command1)::names::longname);
+    fmt::print("{}", command1.longname());
+    if (auto val = command1.get_parameter<"integer">().resolve(); val) {
+        fmt::print("{}", *val);
+    }
 }
