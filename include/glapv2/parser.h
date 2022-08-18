@@ -101,6 +101,9 @@ namespace glap::v2
     public:
         std::string_view value;
 
+        static constexpr auto resolver = Resolver;
+        static constexpr auto validator = Validator;
+        static constexpr auto type = ParameterType::Argument;
         using names = ArgNames;
 
         [[nodiscard]]constexpr auto resolve() const requires (!std::same_as<decltype(Resolver), Discard>) {
