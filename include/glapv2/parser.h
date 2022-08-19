@@ -14,32 +14,6 @@ namespace glap::v2
         Flag,
         Input
     };
-    template <class T>
-    concept HasResultType = requires(T t) {
-        typename T::result_type;
-    };
-    template <class T>
-    concept HasNames = requires(T t) {
-        std::same_as<std::remove_cvref_t<decltype(T::longname)>, std::string_view>;
-        std::same_as<std::remove_cvref_t<decltype(T::shortname)>, std::optional<char32_t>>;
-        // { T::longname } -> std::same_as<std::string_view>;
-        // { T::shortname } -> std::same_as<std::optional<char32_t>>;
-    };
-    template <class T>
-    concept _Argument = requires {
-        std::same_as<std::remove_cvref_t<decltype(T::type)>, ParameterType>;
-        T::type == ParameterType::Argument;
-    };
-    // template <class T>
-    // concept Flag = ;
-    // template <class T>
-    // concept Input = ;
-
-
-    // template <std::string_view T>
-    // consteval auto test() -> std::string_view {
-    //     return T;
-    // }
 
     template<size_t N>
     struct StringLiteral {
@@ -52,26 +26,6 @@ namespace glap::v2
         
         char value[N];
     };
-    
-    // template <class T>
-    // concept Command = HasNames<T> && HasResultType<T>;
-
-    // template <size_t i, Parameter... P>
-    // static consteval size_t _get_parameter_id(std::string_view name) noexcept {
-    //         static constexpr size_t NbParams = sizeof...(P);
-    //     if constexpr (i < NbParams) {
-    //         using v = std::variant<P...>;
-    //         using v_alt = std::variant_alternative_t<i, v>;
-    //         if (v_alt::longname == name) {
-    //             return i;
-    //         } else {
-    //             return _get_parameter_id<i + 1>(name);
-    //         }
-    //     } else {
-    //         return -1;
-    //     }
-    // }
-    
 
     struct Discard {};
     static constexpr Discard discard = {};
