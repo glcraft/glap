@@ -47,7 +47,7 @@ namespace glap::v2
             return CRTP::longname;
         }
         constexpr auto shortname() const noexcept {
-            return CRTP::hortname;
+            return CRTP::shortname;
         }
     };
     template <class ArgNames, auto Resolver = discard, auto Validator = discard>
