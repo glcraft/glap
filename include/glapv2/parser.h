@@ -1,5 +1,7 @@
 #pragma once
 
+#include <algorithm>
+#include <cstddef>
 #include <tuple>
 #include <string_view>
 #include <concepts>
@@ -48,10 +50,8 @@ namespace glap::v2
             return CRTP::hortname;
         }
     };
-
     template <class ArgNames, auto Resolver = discard, auto Validator = discard>
-    class Argument : public GetNames<ArgNames> {
-    public:
+    struct Argument  : public GetNames<ArgNames> {
         std::string_view value;
 
         static constexpr auto resolver = Resolver;
@@ -63,7 +63,55 @@ namespace glap::v2
             static_assert(std::invocable<decltype(Resolver), std::string_view>, "Resolver must be callable with std::string_view");
             return Resolver(value);
         }
+        [[nodiscard]]constexpr auto validate() const requires (!std::same_as<decltype(Validator), Discard>) {
+            static_assert(std::invocable<decltype(Validator), std::string_view>, "Validator must be callable with std::string_view");
+            return Validator(value);
+        }
     };
+    template <class ArgNames, auto N, auto Resolver = discard, auto Validator = discard>
+    class Arguments : public GetNames<ArgNames> {
+        template <auto Value, size_t Default>
+        struct value_or {
+            static constexpr auto value = Default;
+        };
+        template <auto Value, size_t Default>
+            requires std::convertible_to<decltype(Value), size_t>
+        struct value_or<Value, Default> {
+            static constexpr size_t value = Value;
+        };
+
+        template <class T, auto I>
+        struct is_zero
+        {
+            static constexpr bool value = false;
+        };
+        template <class T>
+        struct is_zero<T, 0>
+        {
+            static constexpr bool value = true;
+        };
+
+        using n_type = std::remove_cvref_t<decltype(N)>;
+        static constexpr auto is_n_discard = std::is_same_v<n_type, Discard>;
+        static constexpr auto is_n_zero = is_zero<n_type, N>::value;
+    public:
+        using argument_type = Argument<ArgNames, Resolver, Validator>;
+        using values_type = std::conditional_t<is_n_discard || is_n_zero, std::vector<argument_type>, std::array<argument_type, value_or<N, 0>::value>>;
+        values_type values;
+
+        static constexpr auto resolver = Resolver;
+        static constexpr auto validator = Validator;
+        static constexpr auto type = ParameterType::Argument;
+        using names = ArgNames;
+
+        [[nodiscard]]constexpr const auto& get(size_t i) const noexcept {
+            return values[i];
+        }
+        [[nodiscard]]constexpr auto& get(size_t i) noexcept {
+            return values[i];
+        }
+    };
+    
     template <class ArgNames>
     class Flag : public GetNames<ArgNames> {
     public:
