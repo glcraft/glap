@@ -68,7 +68,7 @@ namespace glap::v2
             return Validator(value);
         }
     };
-    template <class ArgNames, auto N, auto Resolver = discard, auto Validator = discard>
+    template <class ArgNames, auto N = discard, auto Resolver = discard, auto Validator = discard>
     class Arguments : public GetNames<ArgNames> {
         template <auto Value, size_t Default>
         struct value_or {
