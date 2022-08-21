@@ -109,6 +109,29 @@ namespace glap::v2
             return Shortname;
         }
     };
+    template <typename T>
+    concept HasNames = requires {
+        std::same_as<std::remove_cvref_t<decltype(T::Longname)>, std::string_view>;
+        std::same_as<std::remove_cvref_t<decltype(T::Shortname)>, std::optional<char32_t>>;
+    };
+   
+    template <class ...ArgN>
+    struct NameChecker 
+    {};
+    template <HasNames Arg1, HasNames Arg2, class ...ArgN>
+    struct NameChecker<Arg1, Arg2, ArgN...> : NameChecker<Arg1, ArgN...>, NameChecker<Arg2, ArgN...> {
+        static_assert(Arg1::Longname != Arg2::Longname, "Duplicate longname");
+        static_assert(!Arg1::Shortname.has_value() || !Arg2::Shortname.has_value() || Arg1::Shortname.value() != Arg2::Shortname.value(), "Duplicate shortname");
+    };
+    template <typename Arg1, typename Arg2, class ...ArgN>
+        requires HasNames<Arg1> && (!HasNames<Arg2>)
+    struct NameChecker<Arg1, Arg2, ArgN...> : NameChecker<Arg1, ArgN...> 
+    {};
+    template <typename Arg1, class ...ArgN>
+    struct NameChecker<Arg1, Arg1, ArgN...>
+    {
+        static_assert(!std::is_same_v<Arg1, Arg1>, "Duplicate parameter");
+    };
 
     enum class ParameterType {
         Argument,
@@ -170,7 +193,7 @@ namespace glap::v2
     };
     
     template <class CommandNames, Parameter... P>
-    class Command : public CommandNames
+    class Command : public CommandNames, public NameChecker<P...> {
         using Params = std::tuple<P...>;
         static constexpr size_t NbParams = sizeof...(P);
         template <size_t I>
