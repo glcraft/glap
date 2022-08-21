@@ -21,7 +21,7 @@ namespace glap
             "missing argument",
             "missing flag",
             "no global command set",
-            "bad command",
+            "command not found",
             "unknown parameter",
             "invalid value",
             "missing value",
