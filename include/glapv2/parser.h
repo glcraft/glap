@@ -25,35 +25,40 @@ namespace glap::v2
 
     struct Discard {};
     static constexpr Discard discard = {};
+
+    template <auto Value, size_t Default>
+    struct value_or {
+        static constexpr auto value = Default;
+    };
+    template <auto Value, size_t Default>
+        requires std::convertible_to<decltype(Value), size_t>
+    struct value_or<Value, Default> {
+        static constexpr size_t value = Value;
+    };
+    template <auto Value, size_t Default>
+    constexpr auto value_or_v = value_or<Value, Default>::value;
+
+    template <class Ty, auto I, size_t V>
+    struct is_value
+    {
+        static constexpr bool value = false;
+    };
+    template <class Ty, size_t V>
+    struct is_value<Ty, V, V>
+    {
+        static constexpr bool value = true;
+    };
+    template <class Ty, auto I, size_t V>
+    constexpr bool is_value_v = is_value<Ty, I, V>::value;
+
     template <class T, auto N = discard>
     class Container {
-        template <auto Value, size_t Default>
-        struct value_or {
-            static constexpr auto value = Default;
-        };
-        template <auto Value, size_t Default>
-            requires std::convertible_to<decltype(Value), size_t>
-        struct value_or<Value, Default> {
-            static constexpr size_t value = Value;
-        };
-
-        template <class Ty, auto I>
-        struct is_zero
-        {
-            static constexpr bool value = false;
-        };
-        template <class Ty>
-        struct is_zero<Ty, 0>
-        {
-            static constexpr bool value = true;
-        };
-
         using n_type = std::remove_cvref_t<decltype(N)>;
         static constexpr auto is_n_discard = std::is_same_v<n_type, Discard>;
-        static constexpr auto is_n_zero = is_zero<n_type, N>::value;
+        static constexpr auto is_n_zero = is_value_v<n_type, N, 0>;
     public:
         using value_type = T;
-        using container_type = std::conditional_t<is_n_discard || is_n_zero, std::vector<value_type>, std::array<value_type, value_or<N, 0>::value>>;
+        using container_type = std::conditional_t<is_n_discard || is_n_zero, std::vector<value_type>, std::array<value_type, value_or_v<N, 0>>>;
         container_type values;
 
         constexpr auto size() const noexcept {
