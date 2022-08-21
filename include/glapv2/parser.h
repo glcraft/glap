@@ -304,6 +304,11 @@ namespace glap::v2
             return std::get<_get_parameter_id<0, lit>()>(params);
         }
     };
+    template<class... Commands>
+    class Program {
+        std::string_view program;
+        std::variant<Commands...> command;
+    };
 
     template<class... Commands>
     class Parser : NameChecker<Commands...>{
