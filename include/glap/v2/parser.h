@@ -1,6 +1,8 @@
 #pragma once
 
 #include "../common/expected.h"
+#include "../common/error.h"
+#include "../common/utils.h"
 #include <algorithm>
 #include <cstddef>
 #include <limits>
@@ -307,7 +309,7 @@ namespace glap::v2
         }
     };
     template<class... Commands>
-    class Program {
+    struct Program {
         std::string_view program;
         std::variant<Commands...> command;
     };
@@ -315,23 +317,72 @@ namespace glap::v2
     template<class... Commands>
     class Parser : NameChecker<Commands...>{
     public:
-        enum class Error {
-            MissingParameter,
-        };
-        template <class T>
-        using Expected = expected<T, Error>;
-        Program<Commands...> parse(std::span<std::string_view> arguments) {
-            if (arguments.size() == 0) 
-                return unexpected<E>
+        constexpr auto parse(utils::Iterable<std::string_view> auto args) const -> PosExpected<Program<Commands...>> {
+            if (args.size() == 0) 
+                return make_unexpected(PositionnedError{
+                    .error = Error{
+                        .argument = "",
+                        .value = std::nullopt,
+                        .type = Error::Type::None,
+                        .code = Error::Code::NoArgument
+                    },
+                    .position = 0
+                });
+            auto itarg = args.begin();
             Program<Commands...> program;
-            program.program = arguments[0];
-            if (arguments.size() == 1) {
-                
+            program.program = *itarg++;
+            
+            //TODO: implement global command
+
+            if (itarg == args.end()) {
+                return make_unexpected(PositionnedError{
+                    .error = Error{
+                        .argument = "",
+                        .value = std::nullopt,
+                        .type = Error::Type::None,
+                        .code = Error::Code::NoGlobalCommand
+                    },
+                    .position = 0
+                });
             }
+            auto arg = std::string_view{*itarg};
+            if (arg.starts_with("-")) {
+                return make_unexpected(PositionnedError{
+                    .error = Error{
+                        .argument = arg,
+                        .value = std::nullopt,
+                        .type = Error::Type::None,
+                        .code = Error::Code::NoGlobalCommand
+                    },
+                    .position = 1
+                });
+            }
+            auto found_command = this->find_command<Commands...>(arg);
+            if (!found_command) {
+                return make_unexpected(found_command.error());
+            }
+            program.command = found_command.value();
+            
+            
             return program;
         }
-        constexpr auto make_unexpected(PositionnedError error) {
-            return unexpected<PositionnedError>(error);
+        template <class CurrentCommand, class ...Command>
+        constexpr auto find_command(std::string_view cmd_name) const noexcept -> PosExpected<std::variant<Commands...>> {
+            if (cmd_name == CurrentCommand::Longname) {
+                return CurrentCommand{};
+            } else if constexpr(sizeof...(Command) == 0) {
+                return make_unexpected(PositionnedError{
+                    .error = Error{
+                        .argument = cmd_name,
+                        .value = std::nullopt,
+                        .type = Error::Type::None,
+                        .code = Error::Code::BadCommand
+                    },
+                    .position = 0
+                });
+            } else {
+                return find_command<Command...>(cmd_name);
+            }
         }
     };
 }
