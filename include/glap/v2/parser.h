@@ -3,6 +3,7 @@
 #include "../common/expected.h"
 #include "../common/error.h"
 #include "../common/utils.h"
+#include "../common/utf8.h"
 #include <algorithm>
 #include <cstddef>
 #include <limits>
@@ -370,12 +371,29 @@ namespace glap::v2
         constexpr auto find_command(std::string_view cmd_name) const noexcept -> PosExpected<std::variant<Commands...>> {
             if (cmd_name == CurrentCommand::Longname) {
                 return CurrentCommand{};
-            } else if constexpr(sizeof...(Command) == 0) {
+            } 
+            auto exp_codepoint = glap::utils::uni::codepoint(cmd_name);
+            if (!exp_codepoint) {
                 return make_unexpected(PositionnedError{
                     .error = Error{
                         .argument = cmd_name,
                         .value = std::nullopt,
-                        .type = Error::Type::None,
+                        .type = Error::Type::Command,
+                        .code = Error::Code::BadString
+                    },
+                    .position = 0
+                });
+            }
+            auto codepoint = exp_codepoint.value();
+            if (codepoint == CurrentCommand::Shortname) {
+                return CurrentCommand{};
+            }
+            if constexpr(sizeof...(Command) == 0) {
+                return make_unexpected(PositionnedError{
+                    .error = Error{
+                        .argument = cmd_name,
+                        .value = std::nullopt,
+                        .type = Error::Type::Command,
                         .code = Error::Code::BadCommand
                     },
                     .position = 0
