@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <limits>
 #include <tuple>
 #include <string_view>
 #include <concepts>
@@ -51,6 +52,92 @@ namespace glap::v2
     template <class Ty, auto I, size_t V>
     constexpr bool is_value_v = is_value<Ty, I, V>::value;
 
+    template<typename T, size_t N>
+    class FixedVector {
+        T m_data[N];
+        size_t m_size = 0;
+        
+        template <class Ty>
+        class _iterator {
+            FixedVector<Ty, N>& array;
+            size_t index;
+        public:
+            constexpr _iterator(FixedVector<T, N>& array, size_t index = 0) noexcept : array(array), index(index) 
+            {}
+            constexpr _iterator& operator++() noexcept {
+                ++index;
+                return *this;
+            }
+            constexpr _iterator operator++(int) noexcept {
+                _iterator result(*this);
+                ++index;
+                return result;
+            }
+            constexpr bool operator==(const _iterator& other) const noexcept {
+                return &array == &other.array && index == other.index;
+            }
+        };
+    public:
+        using iterator = _iterator<T>;
+        using const_iterator = _iterator<const T>;
+        ~FixedVector() requires std::destructible<T> {
+            if constexpr (!std::is_trivially_destructible_v<T>) {
+                for (size_t i = 0; i < m_size; ++i) {
+                    m_data[i].~T();
+                }
+            }
+            m_size = 0;
+        }
+        constexpr void push_back(T value) noexcept {
+            m_data[m_size++] = value;
+        }
+        template <class ...Args>
+        [[nodiscard]] constexpr T& emplace_back(Args... args) noexcept(std::is_nothrow_constructible_v<T, Args...>) {
+            auto& current_data = m_data[m_size++];
+            new (current_data) T(args...);
+            return current_data;
+        }
+        constexpr bool remove(size_t index) noexcept((!std::destructible<T> || std::is_nothrow_destructible_v<T>) && (!std::swappable<T> || std::is_nothrow_swappable_v<T>)) {
+            if (index >= m_size) {
+                return false;
+            }
+            if constexpr (std::destructible<T>)
+                m_data[index].~T();
+            if constexpr(std::swappable<T>) {
+                using std::swap;
+                swap(m_data[m_size - 1], m_data[index]);
+            } else {
+                std::copy_n(reinterpret_cast<std::byte*>(&m_data[m_size - 1]), sizeof(T), reinterpret_cast<std::byte*>(&m_data[index]));
+            }
+            m_size--;
+            return true;
+        }
+        constexpr T& operator[](size_t index) {
+            return m_data[index];
+        }
+
+        constexpr const T& operator[](size_t index) const {
+            return m_data[index];
+        }
+        [[nodiscard]] constexpr auto size() const noexcept {
+            return size;
+        }
+        [[nodiscard]] constexpr auto capacity() const noexcept {
+            return N;
+        }
+        [[nodiscard]] constexpr auto begin() noexcept -> iterator {
+            return iterator(*this);
+        }
+        [[nodiscard]] constexpr auto end() noexcept -> iterator {
+            return iterator(*this, m_size);
+        }
+        [[nodiscard]] constexpr auto begin() const noexcept -> const_iterator {
+            return const_iterator(*this);
+        }
+        [[nodiscard]] constexpr auto end() const noexcept -> const_iterator {
+            return const_iterator(*this, m_size);
+        }
+    };
     template <class T, auto N = discard>
     class Container {
     public: 
