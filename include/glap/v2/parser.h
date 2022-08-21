@@ -358,7 +358,7 @@ namespace glap::v2
                     .position = 1
                 });
             }
-            auto found_command = this->find_command<Commands...>(arg);
+            auto found_command = this->find_by_name<Commands...>(arg);
             if (!found_command) {
                 return make_unexpected(found_command.error());
             }
@@ -367,10 +367,10 @@ namespace glap::v2
             
             return program;
         }
-        template <class CurrentCommand, class ...Command>
-        constexpr auto find_command(std::string_view cmd_name) const noexcept -> PosExpected<std::variant<Commands...>> {
-            if (cmd_name == CurrentCommand::Longname) {
-                return CurrentCommand{};
+        template <class Current, class ...Others>
+        constexpr auto find_by_name(std::string_view cmd_name) const noexcept -> PosExpected<std::variant<Commands...>> {
+            if (cmd_name == Current::Longname) {
+                return Current{};
             } 
             auto exp_codepoint = glap::utils::uni::codepoint(cmd_name);
             if (!exp_codepoint) {
@@ -385,10 +385,10 @@ namespace glap::v2
                 });
             }
             auto codepoint = exp_codepoint.value();
-            if (codepoint == CurrentCommand::Shortname) {
-                return CurrentCommand{};
+            if (codepoint == Current::Shortname) {
+                return Current{};
             }
-            if constexpr(sizeof...(Command) == 0) {
+            if constexpr(sizeof...(Others) == 0) {
                 return make_unexpected(PositionnedError{
                     .error = Error{
                         .argument = cmd_name,
@@ -399,7 +399,7 @@ namespace glap::v2
                     .position = 0
                 });
             } else {
-                return find_command<Command...>(cmd_name);
+                return find_command<Others...>(cmd_name);
             }
         }
     };
