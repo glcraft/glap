@@ -53,12 +53,16 @@ namespace glap::v2
 
     template <class T, auto N = discard>
     class Container {
+    public: 
+        using value_type = T;
+    private:
         using n_type = std::remove_cvref_t<decltype(N)>;
         static constexpr auto is_n_discard = std::is_same_v<n_type, Discard>;
         static constexpr auto is_n_zero = is_value_v<n_type, N, 0>;
+        using dynamic_vector = std::vector<value_type>;
+        using fixed_vector = FixedVector<value_type, value_or_v<N, 0>>;
     public:
-        using value_type = T;
-        using container_type = std::conditional_t<is_n_discard || is_n_zero, std::vector<value_type>, std::array<value_type, value_or_v<N, 0>>>;
+        using container_type = std::conditional_t<is_n_discard || is_n_zero, dynamic_vector, fixed_vector>;
         container_type values;
 
         constexpr auto size() const noexcept {
