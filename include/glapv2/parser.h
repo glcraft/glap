@@ -11,12 +11,6 @@
 #include <vector>
 namespace glap::v2 
 {
-    enum class ParameterType {
-        Argument,
-        Flag,
-        Input
-    };
-
     template<size_t N>
     struct StringLiteral {
         constexpr StringLiteral(const char (&str)[N]) {
@@ -102,6 +96,13 @@ namespace glap::v2
             return CRTP::shortname;
         }
     };
+    
+    enum class ParameterType {
+        Argument,
+        Flag,
+        Input
+    };
+
     template <class ArgNames, auto Resolver = discard, auto Validator = discard>
     struct Argument  : public GetNames<ArgNames> {
         std::string_view value;
