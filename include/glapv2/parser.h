@@ -1,8 +1,10 @@
 #pragma once
 
+#include "expected.h"
 #include <algorithm>
 #include <cstddef>
 #include <limits>
+#include <span>
 #include <tuple>
 #include <string_view>
 #include <concepts>
@@ -312,6 +314,24 @@ namespace glap::v2
 
     template<class... Commands>
     class Parser : NameChecker<Commands...>{
-
+    public:
+        enum class Error {
+            MissingParameter,
+        };
+        template <class T>
+        using Expected = expected<T, Error>;
+        Program<Commands...> parse(std::span<std::string_view> arguments) {
+            if (arguments.size() == 0) 
+                return unexpected<E>
+            Program<Commands...> program;
+            program.program = arguments[0];
+            if (arguments.size() == 1) {
+                
+            }
+            return program;
+        }
+        constexpr auto make_unexpected(PositionnedError error) {
+            return unexpected<PositionnedError>(error);
+        }
     };
 }
