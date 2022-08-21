@@ -87,21 +87,26 @@ namespace glap::v2
 
     template <StringLiteral LongName, auto ShortName = discard>
     struct Names {
-        static constexpr std::string_view longname = LongName.value;
-        static constexpr std::optional<char32_t> shortname = std::same_as<decltype(ShortName), Discard> ? std::optional<char32_t>{} : std::optional<char32_t>{ShortName};
-    };
-    template <class CRTP>
-        requires requires {
-            std::same_as<std::remove_cvref_t<decltype(CRTP::longname)>, std::string_view>;
-            std::same_as<std::remove_cvref_t<decltype(CRTP::shortname)>, std::optional<char32_t>>;
-        }
-    class GetNames {
+    private:
+        template <auto SN>
+        struct _short_name {
+            static constexpr auto value = std::optional<char32_t>{SN};
+        };
+        template<> struct _short_name<discard> {
+            static constexpr auto value = std::optional<char32_t>{};
+        };
+        template<> struct _short_name<0> {
+            static constexpr auto value = std::optional<char32_t>{};
+        };
     public:
+        static constexpr std::string_view Longname = LongName;
+        static constexpr std::optional<char32_t> Shortname = _short_name<ShortName>::value;
+
         constexpr auto longname() const noexcept {
-            return CRTP::longname;
+            return Longname;
         }
         constexpr auto shortname() const noexcept {
-            return CRTP::shortname;
+            return Shortname;
         }
     };
 
@@ -112,13 +117,12 @@ namespace glap::v2
     };
 
     template <class ArgNames, auto Resolver = discard, auto Validator = discard>
-    struct Argument  : public GetNames<ArgNames> {
+    struct Argument : public ArgNames {
         std::string_view value;
 
         static constexpr auto resolver = Resolver;
         static constexpr auto validator = Validator;
         static constexpr auto type = ParameterType::Argument;
-        using names = ArgNames;
 
         [[nodiscard]]constexpr auto resolve() const requires (!std::same_as<decltype(Resolver), Discard>) {
             static_assert(std::invocable<decltype(Resolver), std::string_view>, "Resolver must be callable with std::string_view");
@@ -131,21 +135,19 @@ namespace glap::v2
     };
     
     template <class ArgNames, auto N = discard, auto Resolver = discard, auto Validator = discard>
-    class Arguments : public GetNames<ArgNames>, public Container<Argument<ArgNames, Resolver, Validator>, N> {
+    class Arguments : public ArgNames, public Container<Argument<ArgNames, Resolver, Validator>, N> {
     public:
         static constexpr auto resolver = Resolver;
         static constexpr auto validator = Validator;
         static constexpr auto type = ParameterType::Argument;
-        using names = ArgNames;
     };
     
     template <class ArgNames>
-    class Flag : public GetNames<ArgNames> {
+    class Flag : public ArgNames {
     public:
         size_t occurences = 0;
 
         static constexpr auto type = ParameterType::Flag;
-        using names = ArgNames;
     };
     template <auto Resolver = discard, auto Validator = discard>
     class Input {
@@ -168,7 +170,7 @@ namespace glap::v2
     };
     
     template <class CommandNames, Parameter... P>
-    class Command : public GetNames<CommandNames> {
+    class Command : public CommandNames
         using Params = std::tuple<P...>;
         static constexpr size_t NbParams = sizeof...(P);
         template <size_t I>
@@ -180,14 +182,13 @@ namespace glap::v2
         template <size_t i, StringLiteral lit>
         static consteval size_t _get_parameter_id() noexcept {
             static_assert((i < NbParams), "Parameter not found");
-            if constexpr (Param<i>::names::longname == lit) {
+            if constexpr (Param<i>::Longname == lit) {
                 return i;
             } else {
                 return _get_parameter_id<i + 1, lit>();
             }
         }
     public:
-        using names = CommandNames;
         template <StringLiteral lit>
         constexpr auto& get_parameter() noexcept requires (NbParams > 0) {
             return std::get<_get_parameter_id<0, lit>()>(params);
