@@ -1,11 +1,13 @@
 #include <glap.h>
 #include <fmt/format.h>
 #include <string_view>
-#include <glap/fmt.h>
+#include <glap/common/fmt.h>
+#include <glap/common/error.h>
+
 
 namespace glap 
 {
-    auto result::Error::to_string() const -> std::string {
+    auto Error::to_string() const -> std::string {
         auto constexpr types = std::array{
             " (type: command)",
             " (type: argument)",
@@ -36,15 +38,15 @@ namespace glap
         }
         return fmt::format("\"{}\"{}{} : {}", this->argument, value, types[static_cast<std::size_t>(this->type)], codes_text[static_cast<std::size_t>(this->code)]);
     }
-    auto Parser::add_argument(result::Command& result_command, const config::Argument& argument, std::string_view name, const std::string_view value) const -> result::PosExpected<bool>
+    auto Parser::add_argument(result::Command& result_command, const config::Argument& argument, std::string_view name, const std::string_view value) const -> PosExpected<bool>
     {
         if (argument.validator.has_value() && !argument.validator.value()(value))
-            return result::make_unexpected(result::PositionnedError{
-                .error = result::Error{
+            return make_unexpected(PositionnedError{
+                .error = Error{
                     .argument = name,
                     .value = value,
-                    .type = result::Error::Type::Argument,
-                    .code = result::Error::Code::InvalidValue
+                    .type = Error::Type::Argument,
+                    .code = Error::Code::InvalidValue
                 },
                 .position = 0
             });
@@ -57,29 +59,29 @@ namespace glap
         });
         return true;
     }
-    auto Parser::add_flag(result::Command& result_command, const config::Flag& flag, std::string_view name) const -> result::PosExpected<bool>
+    auto Parser::add_flag(result::Command& result_command, const config::Flag& flag, std::string_view name) const -> PosExpected<bool>
     {
         if (result_command.add_flag(flag.longname).occurrence > flag.max)
-            return result::make_unexpected(result::PositionnedError{
-                .error = result::Error{
+            return make_unexpected(PositionnedError{
+                .error = Error{
                     .argument = name,
                     .value = std::nullopt,
-                    .type = result::Error::Type::Flag,
-                    .code = result::Error::Code::TooManyFlags
+                    .type = Error::Type::Flag,
+                    .code = Error::Code::TooManyFlags
                 },
                 .position = 0
             });
         return true;
     }
-    auto Parser::add_input(result::Command& result_command, const config::Command& command, std::string_view input) const -> result::PosExpected<bool>
+    auto Parser::add_input(result::Command& result_command, const config::Command& command, std::string_view input) const -> PosExpected<bool>
     {
         if (command.input_validator && !command.input_validator.value()(input)) {
-            return result::make_unexpected(result::PositionnedError{
-                .error = result::Error{
+            return make_unexpected(PositionnedError{
+                .error = Error{
                     .argument = input,
                     .value = std::nullopt,
-                    .type = result::Error::Type::Input,
-                    .code = result::Error::Code::InvalidValue
+                    .type = Error::Type::Input,
+                    .code = Error::Code::InvalidValue
                 },
                 .position = 0
             });

@@ -1,4 +1,9 @@
 #pragma once
 
-#include "glap/parser.h"
-#include "glapv2/parser.h"
+#ifndef GLAP_NO_V1
+#include "glap/v1/parser.h"
+#endif
+
+#ifndef GLAP_NO_V2
+#include "glap/v2/parser.h"
+#endif

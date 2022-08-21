@@ -2,7 +2,7 @@
 #if defined (__cpp_lib_format) && __cpp_lib_format >= 201907L
 #include <format>
 namespace glap {
-    using fmt::format;
+    using std::format;
 }
 #else
 #include <fmt/format.h>
