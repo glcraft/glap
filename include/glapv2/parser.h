@@ -284,9 +284,6 @@ namespace glap::v2
         template <size_t I>
         using Param = std::tuple_element_t<I, Params>;
         
-
-        Params params;
-        
         template <size_t i, StringLiteral lit>
         static consteval size_t _get_parameter_id() noexcept {
             static_assert((i < NbParams), "Parameter not found");
@@ -297,6 +294,7 @@ namespace glap::v2
             }
         }
     public:
+        Params params;
         template <StringLiteral lit>
         constexpr auto& get_parameter() noexcept requires (NbParams > 0) {
             return std::get<_get_parameter_id<0, lit>()>(params);
