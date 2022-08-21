@@ -219,21 +219,12 @@ namespace glap::v2
     {
         static_assert(!std::is_same_v<Arg1, Arg1>, "Duplicate parameter");
     };
-
-    enum class ParameterType {
-        Argument,
-        Flag,
-        Input
-    };
-
-    template <class ArgNames, auto Resolver = discard, auto Validator = discard>
-    struct Argument : public ArgNames {
-        std::string_view value;
-
+    template <auto Resolver = discard, auto Validator = discard>
+    struct Value {
         static constexpr auto resolver = Resolver;
         static constexpr auto validator = Validator;
-        static constexpr auto type = ParameterType::Argument;
 
+        std::string_view value;
         [[nodiscard]]constexpr auto resolve() const requires (!std::same_as<decltype(Resolver), Discard>) {
             static_assert(std::invocable<decltype(Resolver), std::string_view>, "Resolver must be callable with std::string_view");
             return Resolver(value);
@@ -243,6 +234,17 @@ namespace glap::v2
             return Validator(value);
         }
     };
+
+    enum class ParameterType {
+        Argument,
+        Flag,
+        Input
+    };
+
+    template <class ArgNames, auto Resolver = discard, auto Validator = discard>
+    struct Argument : public ArgNames, public Value<Resolver, Validator> {
+        static constexpr auto type = ParameterType::Argument;
+    };
     
     template <class ArgNames, auto N = discard, auto Resolver = discard, auto Validator = discard>
     class Arguments : public ArgNames, public Container<Argument<ArgNames, Resolver, Validator>, N> {
@@ -251,19 +253,15 @@ namespace glap::v2
         static constexpr auto validator = Validator;
         static constexpr auto type = ParameterType::Argument;
     };
-    
     template <class ArgNames>
     class Flag : public ArgNames {
     public:
         size_t occurences = 0;
-
         static constexpr auto type = ParameterType::Flag;
     };
     template <auto Resolver = discard, auto Validator = discard>
-    class Input {
+    class Input : public Value<Resolver, Validator> {
     public:
-        static constexpr auto resolver = Resolver;
-        static constexpr auto validator = Validator;
         static constexpr auto type = ParameterType::Input;
     };
     template <auto N = discard, auto Resolver = discard, auto Validator = discard>
