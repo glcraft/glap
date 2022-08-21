@@ -72,16 +72,15 @@ namespace glap::v2
             return this->values[i];
         }
         template <size_t I>
-        [[nodiscard]]constexpr auto& get() noexcept requires (I<N) {
+        [[nodiscard]]constexpr auto& get() noexcept requires (I < value_or<N, std::numeric_limits<size_t>::max()>::value) {
             return this->values[I];
         }
         template <size_t I>
-        [[nodiscard]]constexpr const auto& get() const noexcept requires (I<N) {
+        [[nodiscard]]constexpr const auto& get() const noexcept requires (I < value_or<N, std::numeric_limits<size_t>::max()>::value) {
             return this->values[I];
         }
     };
 
-    
     template <StringLiteral LongName, auto ShortName = discard>
     struct Names {
         static constexpr std::string_view longname = LongName.value;
@@ -101,7 +100,7 @@ namespace glap::v2
             return CRTP::shortname;
         }
     };
-    
+
     enum class ParameterType {
         Argument,
         Flag,
