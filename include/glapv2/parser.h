@@ -305,8 +305,8 @@ namespace glap::v2
         }
     };
 
-    template<class... Params>
-    class Parser {
+    template<class... Commands>
+    class Parser : NameChecker<Commands...>{
 
     };
 }
