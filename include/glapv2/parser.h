@@ -138,11 +138,9 @@ namespace glap::v2
         static constexpr auto type = ParameterType::Flag;
         using names = ArgNames;
     };
-    template <auto Resolver = discard, auto Validator = discard>
-    class Inputs {
+    template <auto N = discard, auto Resolver = discard, auto Validator = discard>
+    class Inputs : public Container<std::string_view, N> {
     public:
-        std::vector<std::string_view> values;
-
         static constexpr auto resolver = Resolver;
         static constexpr auto validator = Validator;
         static constexpr auto type = ParameterType::Input;
