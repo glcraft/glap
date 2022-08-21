@@ -31,6 +31,58 @@ namespace glap::v2
 
     struct Discard {};
     static constexpr Discard discard = {};
+    template <class T, auto N = discard>
+    class Container {
+        template <auto Value, size_t Default>
+        struct value_or {
+            static constexpr auto value = Default;
+        };
+        template <auto Value, size_t Default>
+            requires std::convertible_to<decltype(Value), size_t>
+        struct value_or<Value, Default> {
+            static constexpr size_t value = Value;
+        };
+
+        template <class Ty, auto I>
+        struct is_zero
+        {
+            static constexpr bool value = false;
+        };
+        template <class Ty>
+        struct is_zero<Ty, 0>
+        {
+            static constexpr bool value = true;
+        };
+
+        using n_type = std::remove_cvref_t<decltype(N)>;
+        static constexpr auto is_n_discard = std::is_same_v<n_type, Discard>;
+        static constexpr auto is_n_zero = is_zero<n_type, N>::value;
+    public:
+        using value_type = T;
+        using container_type = std::conditional_t<is_n_discard || is_n_zero, std::vector<value_type>, std::array<value_type, value_or<N, 0>::value>>;
+        container_type values;
+
+        constexpr auto size() const noexcept {
+            return values.size();
+        }
+
+        [[nodiscard]]constexpr const auto& get(size_t i) const noexcept {
+            return this->values[i];
+        }
+        [[nodiscard]]constexpr auto& get(size_t i) noexcept {
+            return this->values[i];
+        }
+        template <size_t I>
+        [[nodiscard]]constexpr auto& get() noexcept requires (I<N) {
+            return this->values[I];
+        }
+        template <size_t I>
+        [[nodiscard]]constexpr const auto& get() const noexcept requires (I<N) {
+            return this->values[I];
+        }
+    };
+
+    
     template <StringLiteral LongName, auto ShortName = discard>
     struct Names {
         static constexpr std::string_view longname = LongName.value;
@@ -68,48 +120,14 @@ namespace glap::v2
             return Validator(value);
         }
     };
+    
     template <class ArgNames, auto N = discard, auto Resolver = discard, auto Validator = discard>
-    class Arguments : public GetNames<ArgNames> {
-        template <auto Value, size_t Default>
-        struct value_or {
-            static constexpr auto value = Default;
-        };
-        template <auto Value, size_t Default>
-            requires std::convertible_to<decltype(Value), size_t>
-        struct value_or<Value, Default> {
-            static constexpr size_t value = Value;
-        };
-
-        template <class T, auto I>
-        struct is_zero
-        {
-            static constexpr bool value = false;
-        };
-        template <class T>
-        struct is_zero<T, 0>
-        {
-            static constexpr bool value = true;
-        };
-
-        using n_type = std::remove_cvref_t<decltype(N)>;
-        static constexpr auto is_n_discard = std::is_same_v<n_type, Discard>;
-        static constexpr auto is_n_zero = is_zero<n_type, N>::value;
+    class Arguments : public GetNames<ArgNames>, public Container<Argument<ArgNames, Resolver, Validator>, N> {
     public:
-        using argument_type = Argument<ArgNames, Resolver, Validator>;
-        using values_type = std::conditional_t<is_n_discard || is_n_zero, std::vector<argument_type>, std::array<argument_type, value_or<N, 0>::value>>;
-        values_type values;
-
         static constexpr auto resolver = Resolver;
         static constexpr auto validator = Validator;
         static constexpr auto type = ParameterType::Argument;
         using names = ArgNames;
-
-        [[nodiscard]]constexpr const auto& get(size_t i) const noexcept {
-            return values[i];
-        }
-        [[nodiscard]]constexpr auto& get(size_t i) noexcept {
-            return values[i];
-        }
     };
     
     template <class ArgNames>
