@@ -1,9 +1,4 @@
 #include "glap/v2/parser.h"
-#include "tl/expected.hpp"
-#include <fmt/format.h>
-#include <string>
-#include <string_view>
-#include <array>
 #include <charconv>
 
 struct Param1 {
@@ -13,7 +8,7 @@ struct Param1 {
     using result_type = void;
 };
 
-constexpr auto to_int(std::string_view str) -> tl::expected<int, std::errc> {
+auto to_int(std::string_view str) -> tl::expected<int, std::errc> {
     int result;
     auto [_, ec] { std::from_chars(str.data(), str.data() + str.size(), result) };
  
@@ -36,11 +31,11 @@ int main(int argc, char** argv)
             glap::v2::Inputs<>
     >> parser;
     
-    auto result = parser.parse(std::span{argv, argv+argc});
+    // auto result = parser.parse(std::span{argv, argv+argc});
 
-    if (result) {
-        fmt::print("{}\n", result.value().program);
-    } else {
-        fmt::print("{}\n", result.error().to_string());
-    }
+    // if (result) {
+    //     fmt::print("{}\n", result.value().program);
+    // } else {
+    //     fmt::print("{}\n", result.error().to_string());
+    // }
 }
