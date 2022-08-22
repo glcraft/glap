@@ -1,6 +1,7 @@
 #include <glap.h>
 #include <fmt/format.h>
 #include <string_view>
+#include <array>
 #include <glap/common/fmt.h>
 #include <glap/common/error.h>
 

@@ -1,6 +1,7 @@
 #pragma once
 #include <string_view>
 #include <span>
+#include <variant>
 #include "config.h"
 #include "../common/utils.h"
 #include "../common/fmt.h"
