@@ -1,6 +1,5 @@
-#include "glapv2/parser.h"
+#include "glap/v2/parser.h"
 #include "tl/expected.hpp"
-#include <glap.h>
 #include <fmt/format.h>
 #include <string>
 #include <string_view>
@@ -28,18 +27,20 @@ constexpr auto to_int(std::string_view str) -> tl::expected<int, std::errc> {
 int main(int argc, char** argv)
 {
     using namespace glap::v2;
-    glap::v2::Command<glap::v2::Names<"command", glap::v2::discard>, Param1> command;
-    glap::v2::Command<glap::v2::Names<"command", 'c'>, 
-        glap::v2::Flag<glap::v2::Names<"flag", 'f'>>,
-        glap::v2::Arguments<glap::v2::Names<"flags", 'a'>, 4>,
-        glap::v2::Argument<glap::v2::Names<"integer", 'g'>, to_int>,
-        glap::v2::Inputs<>
-    > command1;
+    Parser<
+        glap::v2::Command<glap::v2::Names<"commands", glap::v2::discard>, Param1>,
+        glap::v2::Command<glap::v2::Names<"command", 'c'>, 
+            glap::v2::Flag<glap::v2::Names<"flag", 'f'>>,
+            glap::v2::Arguments<glap::v2::Names<"flags", 'a'>, 4>,
+            glap::v2::Argument<glap::v2::Names<"integer", 'g'>, to_int>,
+            glap::v2::Inputs<>
+    >> parser;
+    
+    auto result = parser.parse(std::span{argv, argv+argc});
 
-    // auto test = command1.get_parameter<"argument">().get<3>();
-
-    fmt::print("{}", command1.longname());
-    if (auto val = command1.get_parameter<"integer">().resolve(); val) {
-        fmt::print("{}", *val);
+    if (result) {
+        fmt::print("{}\n", result.value().program);
+    } else {
+        fmt::print("{}\n", result.error().to_string());
     }
 }
