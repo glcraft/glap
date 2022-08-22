@@ -7,8 +7,11 @@ template <class E>
 using unexpected = std::unexpected<E>;
 #else
 #include <tl/expected.hpp>
-template <class T, class E>
-using expected = tl::expected<T, E>;
-template <class E>
-using unexpected = tl::unexpected<E>;
-#endif
+namespace glap
+{
+    template <class T, class E>
+    using expected = tl::expected<T, E>;
+    template <class E>
+    using unexpected = tl::unexpected<E>;
+    #endif
+}
