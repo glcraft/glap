@@ -32,12 +32,12 @@ namespace glap::utils::uni {
     }
     [[nodiscard]] constexpr Expected<size_t> utf8_length(std::string_view str) noexcept {
         uint8_t len = 0;
-        for (auto itChar = str.begin(); itChar != str.end();) {
+        for (auto itChar = str.data(); itChar != str.data()+str.size();) {
             auto c = *itChar;
             auto char_len = utf8_char_length(std::string_view{itChar, 1});
             if (!char_len) {
                 auto error = std::move(char_len.error());
-                error.pos = std::distance(str.begin(), itChar);
+                error.pos = std::distance(str.data(), itChar);
                 return unexpected<UnicodeError>(std::move(error));
             }
             len += 1;
