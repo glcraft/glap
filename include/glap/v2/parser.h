@@ -28,6 +28,7 @@ namespace glap::v2
         
         char value[N];
     };
+    
 
     struct Discard {};
     static constexpr Discard discard = {};
@@ -209,16 +210,23 @@ namespace glap::v2
    
     template <class ...ArgN>
     struct NameChecker 
-    {};
+    {
+        static constexpr bool has_duplicate_longname = false;
+        static constexpr bool has_duplicate_shortname = false;
+    };
     template <HasNames Arg1, HasNames Arg2, class ...ArgN>
-    struct NameChecker<Arg1, Arg2, ArgN...> : NameChecker<Arg1, ArgN...>, NameChecker<Arg2, ArgN...> {
-        static_assert(Arg1::Longname != Arg2::Longname, "Duplicate longname");
-        static_assert(!Arg1::Shortname.has_value() || !Arg2::Shortname.has_value() || Arg1::Shortname.value() != Arg2::Shortname.value(), "Duplicate shortname");
+    struct NameChecker<Arg1, Arg2, ArgN...> 
+    {
+        static constexpr bool has_duplicate_longname = Arg1::Longname == Arg2::Longname || NameChecker<Arg1, ArgN...>::has_duplicate_longname || NameChecker<Arg2, ArgN...>::has_duplicate_longname;
+        static constexpr bool has_duplicate_shortname = Arg1::Shortname.has_value() && Arg2::Shortname.has_value() && Arg1::Shortname.value() == Arg2::Shortname.value() || NameChecker<Arg1, ArgN...>::has_duplicate_shortname || NameChecker<Arg2, ArgN...>::has_duplicate_shortname;
     };
     template <typename Arg1, typename Arg2, class ...ArgN>
         requires HasNames<Arg1> && (!HasNames<Arg2>)
-    struct NameChecker<Arg1, Arg2, ArgN...> : NameChecker<Arg1, ArgN...> 
-    {};
+    struct NameChecker<Arg1, Arg2, ArgN...>
+    {
+        static constexpr bool has_duplicate_longname = NameChecker<Arg1, ArgN...>::has_duplicate_longname;
+        static constexpr bool has_duplicate_shortname = NameChecker<Arg1, ArgN...>::has_duplicate_shortname;
+    };
     template <typename Arg1, class ...ArgN>
     struct NameChecker<Arg1, Arg1, ArgN...>
     {
@@ -283,7 +291,11 @@ namespace glap::v2
     };
     
     template <class CommandNames, Parameter... P>
-    class Command : public CommandNames, public NameChecker<P...> {
+    class Command : public CommandNames {
+        using NameCheck = NameChecker<P...>;
+        static_assert(!NameCheck::has_duplicate_longname, "parameters has duplicate long name");
+        static_assert(!NameCheck::has_duplicate_shortname, "parameters has duplicate short name");
+
         using Params = std::tuple<P...>;
         static constexpr size_t NbParams = sizeof...(P);
         template <size_t I>
@@ -316,7 +328,10 @@ namespace glap::v2
     };
 
     template<class... Commands>
-    class Parser : NameChecker<Commands...>{
+    class Parser {
+        using NameCheck = NameChecker<Commands...>;
+        static_assert(!NameCheck::has_duplicate_longname, "commands has duplicate long name");
+        static_assert(!NameCheck::has_duplicate_shortname, "commands has duplicate short name");
     public:
         constexpr auto parse(utils::Iterable<std::string_view> auto args) const -> PosExpected<Program<Commands...>> {
             if (args.size() == 0) 
