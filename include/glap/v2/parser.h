@@ -379,9 +379,9 @@ namespace glap::v2
             }
             program.command = found_command.value();
             
-            
             return program;
         }
+    private:
         template <class Current, class ...Others>
         constexpr auto find_by_name(std::string_view cmd_name) const noexcept -> PosExpected<std::variant<Commands...>> {
             if (cmd_name == Current::Longname) {
