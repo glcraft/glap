@@ -39,7 +39,8 @@ namespace glap
         }
         return fmt::format("\"{}\"{}{} : {}", this->argument, value, types[static_cast<std::size_t>(this->type)], codes_text[static_cast<std::size_t>(this->code)]);
     }
-    auto Parser::add_argument(result::Command& result_command, const config::Argument& argument, std::string_view name, const std::string_view value) const -> PosExpected<bool>
+#ifndef GLAP_NO_V1
+        auto Parser::add_argument(result::Command& result_command, const config::Argument& argument, std::string_view name, std::string_view value) const -> PosExpected<bool>
     {
         if (argument.validator.has_value() && !argument.validator.value()(value))
             return make_unexpected(PositionnedError{
@@ -90,4 +91,5 @@ namespace glap
         result_command.parameters.push_back(input);
         return true;
     }
+#endif
 }

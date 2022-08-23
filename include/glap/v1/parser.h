@@ -48,7 +48,7 @@ namespace glap
         template <utils::Iterator<std::string_view> Iter>
         auto parse_short_argument(Iter& itarg, Iter end, const config::Command& command, result::Command& result_command) const -> PosExpected<bool>;
         
-        auto add_argument(result::Command& result_command, const config::Argument& argument, std::string_view name, const std::string_view value) const -> PosExpected<bool>;
+        auto add_argument(result::Command& result_command, const config::Argument& argument, std::string_view name, std::string_view value) const -> PosExpected<bool>;
         auto add_flag(result::Command& result_command, const config::Flag& flag, std::string_view name) const -> PosExpected<bool>;
         auto add_input(result::Command& result_command, const config::Command& command, std::string_view input) const -> PosExpected<bool>;
 
