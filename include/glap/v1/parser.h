@@ -4,7 +4,7 @@
 #include "config.h"
 #include "result.h"
 
-namespace glap
+namespace glap::v1
 {
     class Parser {
         std::optional<std::variant<config::Command, std::string_view>> global_command;

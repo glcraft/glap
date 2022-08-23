@@ -9,7 +9,7 @@
 #include <string_view>
 #include <variant>
 #include <unordered_set>
-namespace glap
+namespace glap::v1
 {
     auto Parser::parse(utils::Iterable<std::string_view> auto args) const -> PosExpected<result::Result> {
         result::Result result;

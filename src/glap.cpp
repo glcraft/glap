@@ -40,56 +40,59 @@ namespace glap
         return fmt::format("\"{}\"{}{} : {}", this->argument, value, types[static_cast<std::size_t>(this->type)], codes_text[static_cast<std::size_t>(this->code)]);
     }
 #ifndef GLAP_NO_V1
+    namespace v1 
+    {
         auto Parser::add_argument(result::Command& result_command, const config::Argument& argument, std::string_view name, std::string_view value) const -> PosExpected<bool>
-    {
-        if (argument.validator.has_value() && !argument.validator.value()(value))
-            return make_unexpected(PositionnedError{
-                .error = Error{
-                    .argument = name,
+        {
+            if (argument.validator.has_value() && !argument.validator.value()(value))
+                return make_unexpected(PositionnedError{
+                    .error = Error{
+                        .argument = name,
+                        .value = value,
+                        .type = Error::Type::Argument,
+                        .code = Error::Code::InvalidValue
+                    },
+                    .position = 0
+                });
+            result_command.parameters.push_back(result::Parameter{
+                result::Argument{
+                    .name = argument.longname,
                     .value = value,
-                    .type = Error::Type::Argument,
-                    .code = Error::Code::InvalidValue
-                },
-                .position = 0
+                    .argument_parser = argument
+                }
             });
-        result_command.parameters.push_back(result::Parameter{
-            result::Argument{
-                .name = argument.longname,
-                .value = value,
-                .argument_parser = argument
-            }
-        });
-        return true;
-    }
-    auto Parser::add_flag(result::Command& result_command, const config::Flag& flag, std::string_view name) const -> PosExpected<bool>
-    {
-        if (result_command.add_flag(flag.longname).occurrence > flag.max)
-            return make_unexpected(PositionnedError{
-                .error = Error{
-                    .argument = name,
-                    .value = std::nullopt,
-                    .type = Error::Type::Flag,
-                    .code = Error::Code::TooManyFlags
-                },
-                .position = 0
-            });
-        return true;
-    }
-    auto Parser::add_input(result::Command& result_command, const config::Command& command, std::string_view input) const -> PosExpected<bool>
-    {
-        if (command.input_validator && !command.input_validator.value()(input)) {
-            return make_unexpected(PositionnedError{
-                .error = Error{
-                    .argument = input,
-                    .value = std::nullopt,
-                    .type = Error::Type::Input,
-                    .code = Error::Code::InvalidValue
-                },
-                .position = 0
-            });
+            return true;
         }
-        result_command.parameters.push_back(input);
-        return true;
+        auto Parser::add_flag(result::Command& result_command, const config::Flag& flag, std::string_view name) const -> PosExpected<bool>
+        {
+            if (result_command.add_flag(flag.longname).occurrence > flag.max)
+                return make_unexpected(PositionnedError{
+                    .error = Error{
+                        .argument = name,
+                        .value = std::nullopt,
+                        .type = Error::Type::Flag,
+                        .code = Error::Code::TooManyFlags
+                    },
+                    .position = 0
+                });
+            return true;
+        }
+        auto Parser::add_input(result::Command& result_command, const config::Command& command, std::string_view input) const -> PosExpected<bool>
+        {
+            if (command.input_validator && !command.input_validator.value()(input)) {
+                return make_unexpected(PositionnedError{
+                    .error = Error{
+                        .argument = input,
+                        .value = std::nullopt,
+                        .type = Error::Type::Input,
+                        .code = Error::Code::InvalidValue
+                    },
+                    .position = 0
+                });
+            }
+            result_command.parameters.push_back(input);
+            return true;
+        }
     }
 #endif
 }

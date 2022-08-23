@@ -6,18 +6,18 @@
 #include "../common/utils.h"
 #include "../common/fmt.h"
 
-namespace glap::result 
+namespace glap::v1::result
 {
     using Input = std::string_view;
     struct Argument {
         std::string_view name;
         std::string_view value;
-        const glap::config::Argument& argument_parser;
+        const glap::v1::config::Argument& argument_parser;
     };
     struct Flag {
         std::string_view name;
         uint32_t occurrence;
-        const glap::config::Flag& flag_parser;
+        const glap::v1::config::Flag& flag_parser;
     };
     using Parameter = std::variant<Argument, Flag, Input>;
     struct Command {
@@ -25,7 +25,7 @@ namespace glap::result
         std::vector<Parameter> parameters;
         bool help;
 
-        Flag& add_flag(const glap::config::Flag& flag) {
+        Flag& add_flag(const glap::v1::config::Flag& flag) {
             auto found = std::find_if(parameters.begin(), parameters.end(), [name=flag.longname](const auto& parameter) {
                 return std::holds_alternative<Flag>(parameter) && std::get<Flag>(parameter).name == name;
             });
