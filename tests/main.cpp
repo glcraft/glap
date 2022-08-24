@@ -1,4 +1,5 @@
 #include "glap/v2/parser.h"
+#include <ranges>
 #include <charconv>
 
 struct Param1 {
@@ -31,7 +32,7 @@ int main(int argc, char** argv)
             glap::v2::Inputs<>
     >> parser;
     
-    // auto result = parser.parse(std::span{argv, argv+argc});
+    auto result = parser.parse(std::span{argv, argv+argc} | std::views::transform([](auto arg) {return std::string_view{arg};}));
 
     // if (result) {
     //     fmt::print("{}\n", result.value().program);
