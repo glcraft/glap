@@ -287,11 +287,11 @@ namespace glap::v2
     };
 
     template <class T>
-    concept Parameter = requires {
+    concept IsParameter = requires {
         std::same_as<std::remove_cvref_t<decltype(T::type)>, ParameterType>;
     };
     
-    template <class CommandNames, Parameter... P>
+    template <class CommandNames, IsParameter... P>
     class Command : public CommandNames {
         using NameCheck = NameChecker<P...>;
         static_assert(!NameCheck::has_duplicate_longname, "parameters has duplicate long name");
