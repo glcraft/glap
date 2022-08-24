@@ -4,6 +4,7 @@
 #include "../common/error.h"
 #include "../common/utils.h"
 #include "../common/utf8.h"
+#include <utility>
 #include <algorithm>
 #include <cstddef>
 #include <limits>
@@ -378,10 +379,30 @@ namespace glap::v2
                 return make_unexpected(found_command.error());
             }
             program.command = found_command.value();
+            this->find_and_parse_command(std::make_index_sequence<sizeof...(Commands)>{}, program.command, args);
             
             return program;
         }
     private:
+        template <size_t... I>
+        constexpr auto find_and_parse_command(std::index_sequence<I...>, std::variant<Commands...>& cmd, std::span<std::string_view> args) const {
+            ([&] {
+                if (cmd.index() == I) {
+                    this->parse_command(std::get<I>(cmd), args);
+                    return true;
+                }
+                return false;
+            }() || ...);
+        }
+        template <class ...P>
+        constexpr auto parse_command(Command<P...>& cmd, utils::Iterable<std::string_view> auto args) const {
+
+        }
+        // template <class C>
+        // constexpr auto parse_command(C& cmd) {
+
+        // }
+
         template <class Current, class ...Others>
         constexpr auto find_by_name(std::string_view cmd_name) const noexcept -> PosExpected<std::variant<Commands...>> {
             if (cmd_name == Current::Longname) {
