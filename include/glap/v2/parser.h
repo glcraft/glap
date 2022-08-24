@@ -334,6 +334,10 @@ namespace glap::v2
         static_assert(!NameCheck::has_duplicate_longname, "commands has duplicate long name");
         static_assert(!NameCheck::has_duplicate_shortname, "commands has duplicate short name");
     public:
+        template <class C>
+        struct ParseItem {
+            constexpr auto operator()(utils::Iterable<std::string_view> auto args) const -> PosExpected<C>;
+        };
         constexpr auto parse(utils::Iterable<std::string_view> auto args) const -> PosExpected<Program<Commands...>> {
             if (args.size() == 0) 
                 return make_unexpected(PositionnedError{
@@ -374,35 +378,157 @@ namespace glap::v2
                     .position = 1
                 });
             }
-            auto found_command = this->find_by_name<Commands...>(arg);
+            auto found_command = find_and_parse<decltype(program.command)>(args);
             if (!found_command) {
                 return make_unexpected(found_command.error());
             }
             program.command = found_command.value();
-            this->find_and_parse_command(std::make_index_sequence<sizeof...(Commands)>{}, program.command, args);
             
             return program;
         }
     private:
-        template <size_t... I>
-        constexpr auto find_and_parse_command(std::index_sequence<I...>, std::variant<Commands...>& cmd, utils::Iterable<std::string_view> auto args) const -> PosExpected<std::variant<Commands...>> {
-            std::optional<std::variant<Commands...>> result = std::nullopt;
-            ([&] {
-                if (cmd.index() == I) {
-                    result = this->parse_command(std::get<I>(cmd), args);
-                    return true;
+        template <HasNames Ty>
+        static constexpr auto find_longname(std::string_view name) -> bool {
+            return name == Ty::Longname;
+        }
+        template <HasNames Ty>
+        static constexpr auto find_shortname(std::string_view name) -> Expected<bool> {
+            auto exp_codepoint = glap::utils::uni::codepoint(name);
+            if (!exp_codepoint) {
+                return glap::make_unexpected(Error {
+                    .argument = name,
+                    .value = std::nullopt,
+                    .type = Error::Type::Command,
+                    .code = Error::Code::BadString
+                });
+            }
+            auto codepoint = exp_codepoint.value();
+            return codepoint == Ty::Shortname;
+        }
+        template <HasNames Ty>
+        static constexpr auto find_name(std::string_view name) -> Expected<bool> {
+            if (auto value = find_longname<Ty>(name); value)
+                return value;
+            return find_shortname<Ty>(name);
+        }
+        template <class T>
+        struct FindAndParse {
+            constexpr auto operator()(utils::Iterable<std::string_view> auto args) const -> PosExpected<T>;
+        };
+        template <HasNames ...T>
+        struct FindAndParse<std::variant<T...>> {
+            constexpr auto operator()(utils::Iterable<std::string_view> auto args) const -> PosExpected<std::variant<T...>> {
+                std::optional<PosExpected<std::variant<T...>>> result = std::nullopt;
+                auto cmd_name = *args.begin();
+                ([&] {
+                    auto exp_found = find_name<T>(cmd_name);
+                    if (!exp_found) 
+                        result = make_unexpected(PositionnedError {
+                            .error = std::move(exp_found.error()),
+                            .position = 0
+                        });
+                    else if (*exp_found) 
+                        result = parse_item<T>(args);
+                    return !exp_found || *exp_found;
+                }() || ...);
+
+                if (result.has_value()) {
+                    return make_unexpected(PositionnedError {
+                        .error = Error {
+                            .argument = cmd_name,
+                            .value = std::nullopt,
+                            .type = Error::Type::Command,
+                            .code = Error::Code::BadCommand
+                        },
+                        .position = 0
+                    });
                 }
-                return false;
-            }() || ...);
-        }
+                return result.value();
+            }
+        };
+        template <class ...T>
+            requires (std::same_as<decltype(T::type), ParameterType> && ...)
+        struct FindAndParse<std::tuple<T...>> 
+        {
+            using tuple_type = std::tuple<T...>;
+            constexpr auto operator()(utils::Iterable<std::string_view> auto args) const -> PosExpected<tuple_type> {
+                PosExpected<tuple_type> result;
+
+                for (auto itarg = args.begin(); itarg != args.end() && result;) {
+                    bool maybe_flag = false, maybe_arg = false;
+                    auto arg = *itarg;
+                    std::string_view name;
+                    std::optional<std::string_view> value;
+
+                    if (arg.starts_with("---")) {
+                        result = make_unexpected(PositionnedError {
+                            .error = Error{
+                                *itarg,
+                                std::nullopt,
+                                Error::Type::None,
+                                Error::Code::SyntaxError
+                            },
+                            .position = std::distance(args.begin(), itarg)
+                        });
+                        break;
+                    } else if (arg.starts_with("--")) {
+                        auto pos_equal = arg.find('=', 2);
+                        name = arg.substr(2, pos_equal);
+                        if (pos_equal != std::string_view::npos)
+                            value = arg.substr(pos_equal+1);
+                        maybe_arg = value.has_value();
+                        maybe_flag = !maybe_arg;
+                    } else if (arg.starts_with("-")) {
+                        name = arg.substr(1);
+                        maybe_arg = maybe_flag = true;
+                    } else {
+                        //is input
+
+                    }
+
+                    ([&] {
+                        Expected<bool> exp_found;
+                        if (maybe_arg && maybe_flag) { // == is short
+                            exp_found = find_shortname<T>(name);
+                        }
+                        else if (maybe_flag) {
+                            if constexpr(T::type == ParameterType::Flag) {
+                                exp_found = find_longname<T>(name);
+                            }
+                        }
+                        else if (maybe_arg) {
+                            if constexpr(T::type == ParameterType::Argument) {
+                                exp_found = find_longname<T>(name);
+                            }
+                        }
+                        if (!exp_found) 
+                            result = make_unexpected(PositionnedError {
+                                .error = std::move(exp_found.error()),
+                                .position = std::distance(args.begin(), itarg)
+                            });
+                        else if (*exp_found) {
+                            // std::get<T>(result) = parse_item<T>(args);
+                        }
+                        return !result // is error
+                            || *exp_found; // is found or not
+                    }() || ...);
+                    itarg++;
+                }
+
+                return result;
+            }
+        };
+        template <class C>
+        static constexpr auto find_and_parse = FindAndParse<C>{};
+        
         template <class ...P>
-        constexpr auto parse_command(Command<P...>& cmd, utils::Iterable<std::string_view> auto args) const {
+        struct ParseItem<Command<P...>> {
+            constexpr auto operator()(utils::Iterable<std::string_view> auto args) const -> PosExpected<Command<P...>> {
 
-        }
-        // template <class C>
-        // constexpr auto parse_command(C& cmd) {
-
-        // }
+            }
+        };
+        template <class C>
+        static constexpr auto parse_item = ParseItem<C>{};
 
         template <class Current, class ...Others>
         constexpr auto find_by_name(std::string_view cmd_name) const noexcept -> PosExpected<std::variant<Commands...>> {
