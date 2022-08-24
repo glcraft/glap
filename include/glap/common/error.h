@@ -49,7 +49,8 @@ namespace glap
     };
     template<class T>
     using PosExpected = expected<T, PositionnedError>;
-    constexpr auto make_unexpected(PositionnedError error) {
-        return unexpected<PositionnedError>(error);
+    template <class Err>
+    constexpr auto make_unexpected(Err error) {
+        return unexpected<Err>(error);
     }
 }
