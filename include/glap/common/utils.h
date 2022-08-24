@@ -7,7 +7,7 @@ namespace glap
 {
     namespace utils {
         template <typename T, typename V>
-        concept IterableStringView = requires(T t) {
+        concept Iterable = requires(T t) {
             {*t.begin()} -> std::same_as<V>;
             {*t.end()} -> std::same_as<V>;
         };

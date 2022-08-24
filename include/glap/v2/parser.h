@@ -334,7 +334,7 @@ namespace glap::v2
         static_assert(!NameCheck::has_duplicate_longname, "commands has duplicate long name");
         static_assert(!NameCheck::has_duplicate_shortname, "commands has duplicate short name");
     public:
-        constexpr auto parse(utils::IterableStringView<std::string_view> auto args) const -> PosExpected<Program<Commands...>> {
+        constexpr auto parse(utils::Iterable<std::string_view> auto args) const -> PosExpected<Program<Commands...>> {
             if (args.size() == 0) 
                 return make_unexpected(PositionnedError{
                     .error = Error{
@@ -385,7 +385,7 @@ namespace glap::v2
         }
     private:
         template <size_t... I>
-        constexpr auto find_and_parse_command(std::index_sequence<I...>, std::variant<Commands...>& cmd, utils::IterableStringView<std::string_view> auto args) const -> PosExpected<std::variant<Commands...>> {
+        constexpr auto find_and_parse_command(std::index_sequence<I...>, std::variant<Commands...>& cmd, utils::Iterable<std::string_view> auto args) const -> PosExpected<std::variant<Commands...>> {
             std::optional<std::variant<Commands...>> result = std::nullopt;
             ([&] {
                 if (cmd.index() == I) {
@@ -396,7 +396,7 @@ namespace glap::v2
             }() || ...);
         }
         template <class ...P>
-        constexpr auto parse_command(Command<P...>& cmd, utils::IterableStringView<std::string_view> auto args) const {
+        constexpr auto parse_command(Command<P...>& cmd, utils::Iterable<std::string_view> auto args) const {
 
         }
         // template <class C>
