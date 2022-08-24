@@ -385,10 +385,11 @@ namespace glap::v2
         }
     private:
         template <size_t... I>
-        constexpr auto find_and_parse_command(std::index_sequence<I...>, std::variant<Commands...>& cmd, utils::IterableStringView<std::string_view> auto args) const {
+        constexpr auto find_and_parse_command(std::index_sequence<I...>, std::variant<Commands...>& cmd, utils::IterableStringView<std::string_view> auto args) const -> PosExpected<std::variant<Commands...>> {
+            std::optional<std::variant<Commands...>> result = std::nullopt;
             ([&] {
                 if (cmd.index() == I) {
-                    this->parse_command(std::get<I>(cmd), args);
+                    result = this->parse_command(std::get<I>(cmd), args);
                     return true;
                 }
                 return false;
