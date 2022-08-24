@@ -414,7 +414,7 @@ namespace glap::v2
                     .position = 0
                 });
             } else {
-                return find_command<Others...>(cmd_name);
+                return find_by_name<Others...>(cmd_name);
             }
         }
     };
