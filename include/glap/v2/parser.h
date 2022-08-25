@@ -448,7 +448,7 @@ namespace glap::v2
                     return !exp_found || *exp_found;
                 }() || ...);
 
-                if (result.has_value()) {
+                if (!result.has_value()) {
                     return make_unexpected(PositionnedError {
                         .error = Error {
                             .argument = cmd_name,
@@ -463,7 +463,7 @@ namespace glap::v2
             }
         };
         template <class ...T>
-            requires (std::same_as<decltype(T::type), ParameterType> && ...)
+            requires (std::same_as<std::decay_t<decltype(T::type)>, ParameterType> && ...)
         struct FindAndParse<std::tuple<T...>> 
         {
             using tuple_type = std::tuple<T...>;
@@ -490,7 +490,7 @@ namespace glap::v2
                         break;
                     } else if (arg.starts_with("--")) {
                         auto pos_equal = arg.find('=', 2);
-                        name = arg.substr(2, pos_equal);
+                        name = arg.substr(2, pos_equal-2);
                         if (pos_equal != std::string_view::npos)
                             value = arg.substr(pos_equal+1);
                         maybe_arg = value.has_value();
