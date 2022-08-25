@@ -337,9 +337,14 @@ namespace glap::v2
         };
         template <class T>
         BiIterator(T,T) -> BiIterator<T>;
+        template <class P>
+        struct ParseParameter {
+            constexpr auto operator()(P&, std::optional<std::string_view> value) const -> PosExpected<P>;
+        };
         template <class C>
-        struct ParseItem {
-            constexpr auto operator()(utils::Iterable<std::string_view> auto args) const -> PosExpected<C>;
+        struct ParseCommand {
+            template <class Iter>
+            constexpr auto operator()(C&, BiIterator<Iter> args) const -> PosExpected<C>;
         };
         constexpr auto parse(utils::Iterable<std::string_view> auto args) const -> PosExpected<Program<Commands...>> {
             if (args.size() == 0) 
@@ -531,7 +536,7 @@ namespace glap::v2
             }
         };
         template <class C>
-        static constexpr auto parse_item = ParseItem<C>{};
+        static constexpr auto parse_parameter = ParseParameter<C>{};
 
         template <class Current, class ...Others>
         constexpr auto find_by_name(std::string_view cmd_name) const noexcept -> PosExpected<std::variant<Commands...>> {
