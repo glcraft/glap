@@ -30,24 +30,40 @@ template <class Names, auto... T>
 struct Print<glap::v2::Argument<Names, T...>> {
     using value_type= glap::v2::Argument<Names, T...>;
     void operator()(const value_type& v) const {
-        fmt::print("    --{}: \"{}\"\n", v.Longname, v.value);
+        fmt::print("    --{}: ", v.Longname);
+        if (v.value) {
+            fmt::print("\"{}\"\n", v.value.value());
+        } else {
+            fmt::print("none\n");
+        }
     }
 };
 template <class ...P>
 struct Print<glap::v2::Flag<P...>> {
     using value_type= glap::v2::Flag<P...>;
-    void operator()(value_type& v) const {
+    void operator()(const value_type& v) const {
         fmt::print("    --{}: {}x\n", v.Longname, v.occurences);
+    }
+};
+template <auto ...Args>
+struct Print<glap::v2::Inputs<Args...>> {
+    using value_type= glap::v2::Inputs<Args...>;
+    void operator()(const value_type& v) const {
+        fmt::print("    inputs: ");
+        auto nb=0;
+        for (auto& val : v.values)
+            fmt::print("{}\"{}\"", nb++>0 ? ", " : "", val.value.value_or("none"));
+        fmt::print("\n ");
     }
 };
 template <class Names, auto N, auto ...Args>
 struct Print<glap::v2::Arguments<Names, N, Args...>> {
     using value_type= glap::v2::Arguments<Names, N  , Args...>;
-    void operator()(value_type& v) const {
+    void operator()(const value_type& v) const {
         fmt::print("    --{}: ", v.Longname);
         auto nb=0;
         for (auto& val : v.values)
-            fmt::print("{}\"{}\"", nb++>0 ? ", " : "", val.value);
+            fmt::print("{}\"{}\"", nb++>0 ? ", " : "", val.value.value_or("none"));
         fmt::print("\n ");
     }
 };
@@ -74,11 +90,12 @@ int main(int argc, char** argv)
     //         glap::v2::Argument<glap::v2::Names<"integer", 'g'>, to_int>
     //         glap::v2::Inputs<>
     // >> parser;
-    Parser<
+    Parser<glap::v2::Command<glap::v2::Names<"othercommand", 't'>, glap::v2::Flag<glap::v2::Names<"flag", 'f'>>>,
         glap::v2::Command<glap::v2::Names<"command", glap::v2::discard>, 
             glap::v2::Flag<glap::v2::Names<"flag", 'f'>>,
             glap::v2::Argument<glap::v2::Names<"arg", 'a'>>,
-            glap::v2::Arguments<glap::v2::Names<"args", 'b'>>
+            glap::v2::Arguments<glap::v2::Names<"args", 'b'>>,
+            Inputs<>
         >
     > parser;
     
