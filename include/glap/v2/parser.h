@@ -474,8 +474,8 @@ namespace glap::v2
                 for (auto itarg = args.begin; itarg != args.end && result;) {
                     bool maybe_flag = false, maybe_arg = false;
                     auto arg = *itarg;
-                    std::string_view name;
-                    std::optional<std::string_view> value;
+                    std::optional<std::string_view> name = std::nullopt;
+                    std::optional<std::string_view> value = std::nullopt;
 
                     if (arg.starts_with("---")) {
                         result = make_unexpected(PositionnedError {
@@ -505,18 +505,18 @@ namespace glap::v2
 
                     auto found = ([&] {
                         Expected<bool> exp_found;
-                        if (maybe_arg && maybe_flag) { // == is short
-                            exp_found = find_shortname<T>(name);
-                        }
-                        else if (maybe_flag) {
-                            if constexpr(T::type == ParameterType::Flag) {
-                                exp_found = find_longname<T>(name);
+                            if (maybe_arg && maybe_flag) { // == is short
+                                exp_found = find_shortname<T>(name.value());
                             }
-                        }
-                        else if (maybe_arg) {
-                            if constexpr(T::type == ParameterType::Argument) {
-                                exp_found = find_longname<T>(name);
+                            else if (maybe_flag) {
+                                if constexpr(T::type == ParameterType::Flag) {
+                                    exp_found = find_longname<T>(name.value());
+                                }
                             }
+                            else if (maybe_arg) {
+                                if constexpr(T::type == ParameterType::Argument) {
+                                    exp_found = find_longname<T>(name.value());
+                                }
                         }
                         if (!exp_found) 
                             result = make_unexpected(PositionnedError {
