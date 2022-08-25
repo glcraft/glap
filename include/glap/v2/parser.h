@@ -261,26 +261,22 @@ namespace glap::v2
     };
     
     template <class ArgNames, auto N = discard, auto Resolver = discard, auto Validator = discard>
-    class Arguments : public ArgNames, public Container<Argument<ArgNames, Resolver, Validator>, N> {
-    public:
+    struct Arguments : public ArgNames, public Container<Argument<ArgNames, Resolver, Validator>, N> {
         static constexpr auto resolver = Resolver;
         static constexpr auto validator = Validator;
         static constexpr auto type = ParameterType::Argument;
     };
     template <class ArgNames>
-    class Flag : public ArgNames {
-    public:
+    struct Flag : public ArgNames {
         size_t occurences = 0;
         static constexpr auto type = ParameterType::Flag;
     };
     template <auto Resolver = discard, auto Validator = discard>
-    class Input : public Value<Resolver, Validator> {
-    public:
+    struct Input : public Value<Resolver, Validator> {
         static constexpr auto type = ParameterType::Input;
     };
     template <auto N = discard, auto Resolver = discard, auto Validator = discard>
-    class Inputs : public Container<Input<Resolver, Validator>, N> {
-    public:
+    struct Inputs : public Container<Input<Resolver, Validator>, N> {
         static constexpr auto resolver = Resolver;
         static constexpr auto validator = Validator;
         static constexpr auto type = ParameterType::Input;
