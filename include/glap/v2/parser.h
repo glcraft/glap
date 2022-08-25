@@ -238,14 +238,14 @@ namespace glap::v2
         static constexpr auto resolver = Resolver;
         static constexpr auto validator = Validator;
 
-        std::string_view value;
+        std::optional<std::string_view> value;
         [[nodiscard]]constexpr auto resolve() const requires (!std::same_as<decltype(Resolver), Discard>) {
             static_assert(std::invocable<decltype(Resolver), std::string_view>, "Resolver must be callable with std::string_view");
-            return Resolver(value);
+            return value ? Resolver(value.value()) : std::nullopt;
         }
         [[nodiscard]]constexpr auto validate() const requires (!std::same_as<decltype(Validator), Discard>) {
             static_assert(std::invocable<decltype(Validator), std::string_view>, "Validator must be callable with std::string_view");
-            return Validator(value);
+            return value ? Validator(value.value()) : false;
         }
     };
 
@@ -350,7 +350,7 @@ namespace glap::v2
         };
         template <class C>
         static constexpr auto parse_command = ParseCommand<C>{};
-        
+
         constexpr auto parse(utils::Iterable<std::string_view> auto args) const -> PosExpected<Program<Commands...>> {
             if (args.size() == 0) [[unlikely]] {
                 return make_unexpected(PositionnedError{
