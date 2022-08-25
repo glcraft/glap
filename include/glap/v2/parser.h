@@ -503,7 +503,7 @@ namespace glap::v2
 
                     }
 
-                    ([&] {
+                    auto found = ([&] {
                         Expected<bool> exp_found;
                         if (maybe_arg && maybe_flag) { // == is short
                             exp_found = find_shortname<T>(name);
@@ -535,9 +535,9 @@ namespace glap::v2
                                                 Error::Code::SyntaxError
                                             },
                                             .position = std::distance(args.begin, itarg)
-                            });
+                                        });
                                         return true;
-                        }
+                                    }
                                     value = *itarg;
                                 }
                             }
@@ -547,6 +547,17 @@ namespace glap::v2
                         return !result // quit if is error...
                             || *exp_found; // or is found.
                     }() || ...);
+                    if (!found) {
+                        return make_unexpected(PositionnedError {
+                            .error = Error{
+                                *itarg,
+                                std::nullopt,
+                                Error::Type::None,
+                                Error::Code::UnknownParameter
+                            },
+                            .position = std::distance(args.begin, itarg)
+                        });
+                    }
                     itarg++;
                 }
 
@@ -555,7 +566,7 @@ namespace glap::v2
         };
         template <class C>
         static constexpr auto find_and_parse = FindAndParse<C>{};
-        
+
         template <class ...Args>
         struct ParseCommand<Command<Args...>> {
             using item_type = Command<Args...>;
