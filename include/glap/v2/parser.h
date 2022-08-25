@@ -536,7 +536,7 @@ namespace glap::v2
                                     exp_found = find_longname<T>(param_info.name.value());
                                 }
                             }
-                        } else {
+                        } else { // we admit this is has to be an input type
                             exp_found = (!param_info.maybe_arg && !param_info.maybe_flag) && (T::type == ParameterType::Input);
                         }
                         if (!exp_found) 
@@ -553,7 +553,7 @@ namespace glap::v2
                                                 *itarg,
                                                 std::nullopt,
                                                 Error::Type::None,
-                                                Error::Code::SyntaxError
+                                                Error::Code::MissingValue
                                             },
                                             .position = std::distance(args.begin, itarg)
                                         });
