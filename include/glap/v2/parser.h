@@ -499,12 +499,12 @@ namespace glap::v2
                         name = arg.substr(1);
                         maybe_arg = maybe_flag = true;
                     } else {
-                        //is input
-
+                        value = arg;
                     }
 
                     auto found = ([&] {
                         Expected<bool> exp_found;
+                        if constexpr (HasNames<T>) {
                             if (maybe_arg && maybe_flag) { // == is short
                                 exp_found = find_shortname<T>(name.value());
                             }
@@ -517,13 +517,16 @@ namespace glap::v2
                                 if constexpr(T::type == ParameterType::Argument) {
                                     exp_found = find_longname<T>(name.value());
                                 }
+                            }
+                        } else {
+                            exp_found = (!maybe_arg && !maybe_flag) && (T::type == ParameterType::Input);
                         }
                         if (!exp_found) 
                             result = make_unexpected(PositionnedError {
                                 .error = std::move(exp_found.error()),
                                 .position = std::distance(args.begin, itarg)
                             });
-                        else if (*exp_found || !maybe_arg && !maybe_flag) {
+                        else if (*exp_found) {
                             if constexpr(T::type == ParameterType::Argument) {
                                 if (maybe_arg && maybe_flag) {
                                     if (++itarg == args.end) {
@@ -594,6 +597,14 @@ namespace glap::v2
         template <class _Names, auto N, auto... Args>
         struct ParseParameter<Arguments<_Names, N, Args...>> {
             using item_type = Arguments<_Names, Args...>;
+            constexpr auto operator()(item_type& arg, std::optional<std::string_view> value) const -> PosExpected<bool> {
+                arg.values.emplace_back().value = value.value();
+                return true;
+            }
+        };
+        template <auto... Args>
+        struct ParseParameter<Inputs<Args...>> {
+            using item_type = Inputs<Args...>;
             constexpr auto operator()(item_type& arg, std::optional<std::string_view> value) const -> PosExpected<bool> {
                 arg.values.emplace_back().value = value.value();
                 return true;
