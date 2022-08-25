@@ -386,7 +386,7 @@ namespace glap::v2
                     .position = 1
                 });
             }
-            auto found_command = find_and_parse<decltype(program.command)>(args);
+            auto found_command = find_and_parse<decltype(program.command)>(BiIterator{itarg, args.end()});
             if (!found_command) {
                 return make_unexpected(found_command.error());
             }
@@ -421,13 +421,15 @@ namespace glap::v2
         }
         template <class T>
         struct FindAndParse {
-            constexpr auto operator()(utils::Iterable<std::string_view> auto args) const -> PosExpected<T>;
+            template <class Iter>
+            constexpr auto operator()(BiIterator<Iter> args) const -> PosExpected<T>;
         };
         template <HasNames ...T>
         struct FindAndParse<std::variant<T...>> {
-            constexpr auto operator()(utils::Iterable<std::string_view> auto args) const -> PosExpected<std::variant<T...>> {
+            template <class Iter>
+            constexpr auto operator()(BiIterator<Iter> args) const -> PosExpected<std::variant<T...>> {
                 std::optional<PosExpected<std::variant<T...>>> result = std::nullopt;
-                auto cmd_name = *args.begin();
+                auto cmd_name = *args.begin;
                 ([&] {
                     auto exp_found = find_name<T>(cmd_name);
                     if (!exp_found) 
@@ -465,10 +467,11 @@ namespace glap::v2
         struct FindAndParse<std::tuple<T...>> 
         {
             using tuple_type = std::tuple<T...>;
-            constexpr auto operator()(utils::Iterable<std::string_view> auto args) const -> PosExpected<tuple_type> {
+            template <class Iter>
+            constexpr auto operator()(BiIterator<Iter> args) const -> PosExpected<tuple_type> {
                 PosExpected<tuple_type> result;
 
-                for (auto itarg = args.begin(); itarg != args.end() && result;) {
+                for (auto itarg = args.begin; itarg != args.end && result;) {
                     bool maybe_flag = false, maybe_arg = false;
                     auto arg = *itarg;
                     std::string_view name;
@@ -482,7 +485,7 @@ namespace glap::v2
                                 Error::Type::None,
                                 Error::Code::SyntaxError
                             },
-                            .position = std::distance(args.begin(), itarg)
+                            .position = std::distance(args.begin, itarg)
                         });
                         break;
                     } else if (arg.starts_with("--")) {
@@ -518,6 +521,8 @@ namespace glap::v2
                         if (!exp_found) 
                             result = make_unexpected(PositionnedError {
                                 .error = std::move(exp_found.error()),
+                                .position = std::distance(args.begin, itarg)
+                            });
                         else if (*exp_found || !maybe_arg && !maybe_flag) {
                             if constexpr(T::type == ParameterType::Argument) {
                                 if (maybe_arg && maybe_flag) {
