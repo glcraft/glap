@@ -529,10 +529,44 @@ namespace glap::v2
         template <class C>
         static constexpr auto find_and_parse = FindAndParse<C>{};
         
-        template <class ...P>
-        struct ParseItem<Command<P...>> {
-            constexpr auto operator()(utils::Iterable<std::string_view> auto args) const -> PosExpected<Command<P...>> {
+        template <class ...Args>
+        struct ParseCommand<Command<Args...>> {
+            using item_type = Command<Args...>;
+            template <class Iter>
+            constexpr auto operator()(item_type& command, BiIterator<Iter> args) const -> PosExpected<bool> {
+                auto parsed = find_and_parse<decltype(command.params)>(args);
+                if (!parsed) {
+                    return make_unexpected(parsed.error());
+                }
+                command.params = *parsed;
+                return true;
+            }
+        };
+        template <class C>
+        static constexpr auto parse_command = ParseCommand<C>{};
 
+        template <class _Names, auto... Args>
+        struct ParseParameter<Argument<_Names, Args...>> {
+            using item_type = Argument<_Names, Args...>;
+            constexpr auto operator()(item_type& arg, std::optional<std::string_view> value) const -> PosExpected<bool> {
+                arg.value = value.value();
+                return true;
+            }
+        };
+        template <class _Names, auto N, auto... Args>
+        struct ParseParameter<Arguments<_Names, N, Args...>> {
+            using item_type = Arguments<_Names, Args...>;
+            constexpr auto operator()(item_type& arg, std::optional<std::string_view> value) const -> PosExpected<bool> {
+                arg.values.emplace_back().value = value.value();
+                return true;
+            }
+        };
+        template <class ...Args>
+        struct ParseParameter<Flag<Args...>> {
+            using item_type = Flag<Args...>;
+            constexpr auto operator()(item_type& arg, std::optional<std::string_view> value) const -> PosExpected<bool> {
+                arg.occurences += 1;
+                return true;
             }
         };
         template <class C>
