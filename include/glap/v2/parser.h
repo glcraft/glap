@@ -347,7 +347,7 @@ namespace glap::v2
             constexpr auto operator()(C&, BiIterator<Iter> args) const -> PosExpected<C>;
         };
         constexpr auto parse(utils::Iterable<std::string_view> auto args) const -> PosExpected<Program<Commands...>> {
-            if (args.size() == 0) 
+            if (args.size() == 0) [[unlikely]] {
                 return make_unexpected(PositionnedError{
                     .error = Error{
                         .argument = "",
@@ -357,13 +357,14 @@ namespace glap::v2
                     },
                     .position = 0
                 });
+            }
             auto itarg = args.begin();
             Program<Commands...> program;
             program.program = *itarg++;
             
             //TODO: implement global command
 
-            if (itarg == args.end()) {
+            if (itarg == args.end()) [[unlikely]] {
                 return make_unexpected(PositionnedError{
                     .error = Error{
                         .argument = "",
@@ -375,7 +376,7 @@ namespace glap::v2
                 });
             }
             auto arg = std::string_view{*itarg};
-            if (arg.starts_with("-")) {
+            if (arg.starts_with("-")) [[unlikely]] {
                 return make_unexpected(PositionnedError{
                     .error = Error{
                         .argument = arg,
@@ -387,7 +388,7 @@ namespace glap::v2
                 });
             }
             auto found_command = find_and_parse<decltype(program.command)>(BiIterator{itarg, args.end()});
-            if (!found_command) {
+            if (!found_command) [[unlikely]] {
                 return make_unexpected(found_command.error());
             }
             program.command = found_command.value();
@@ -402,7 +403,7 @@ namespace glap::v2
         template <HasNames Ty>
         static constexpr auto find_shortname(std::string_view name) -> Expected<bool> {
             auto exp_codepoint = glap::utils::uni::codepoint(name);
-            if (!exp_codepoint) {
+            if (!exp_codepoint) [[unlikely]] {
                 return glap::make_unexpected(Error {
                     .argument = name,
                     .value = std::nullopt,
@@ -432,7 +433,7 @@ namespace glap::v2
                 auto cmd_name = *args.begin;
                 ([&] {
                     auto exp_found = find_name<T>(cmd_name);
-                    if (!exp_found) 
+                    if (!exp_found) [[unlikely]] 
                         result = make_unexpected(PositionnedError {
                             .error = std::move(exp_found.error()),
                             .position = 0
@@ -440,7 +441,7 @@ namespace glap::v2
                     else if (*exp_found) {
                         result.emplace(T{});
                         auto res = parse_command<T>(std::get<T>(result.value().value()), BiIterator{std::next(args.begin), args.end});
-                        if (!res) {
+                        if (!res) [[unlikely]] {
                             result = make_unexpected(res.error());
                             return true;
                         }
@@ -448,7 +449,7 @@ namespace glap::v2
                     return !exp_found || *exp_found;
                 }() || ...);
 
-                if (!result.has_value()) {
+                if (!result.has_value()) [[unlikely]] {
                     return make_unexpected(PositionnedError {
                         .error = Error {
                             .argument = cmd_name,
@@ -474,7 +475,7 @@ namespace glap::v2
                 ParamInfo() = default;
                 static constexpr auto Parse(std::string_view arg) -> Expected<ParamInfo> {
                     ParamInfo result;
-                    if (auto exp_res = result.parse(arg); !exp_res) {
+                    if (auto exp_res = result.parse(arg); !exp_res) [[unlikely]] {
                         return make_unexpected(exp_res.error());
                     }
                     return result;
@@ -513,7 +514,7 @@ namespace glap::v2
                     auto arg = *itarg;
                     
                     auto exp_param_info = ParamInfo::Parse(arg);
-                    if (!exp_param_info) {
+                    if (!exp_param_info) [[unlikely]] {
                         return make_unexpected(PositionnedError {
                             .error = exp_param_info.error(),
                             .position = std::distance(args.begin, itarg)
@@ -539,7 +540,7 @@ namespace glap::v2
                         } else { // we admit this is has to be an input type
                             exp_found = (!param_info.maybe_arg && !param_info.maybe_flag) && (T::type == ParameterType::Input);
                         }
-                        if (!exp_found) {
+                        if (!exp_found) [[unlikely]] {
                             result = make_unexpected(PositionnedError {
                                 .error = std::move(exp_found.error()),
                                 .position = std::distance(args.begin, itarg)
@@ -549,7 +550,7 @@ namespace glap::v2
                         else if (*exp_found) {
                             if constexpr(T::type == ParameterType::Argument) {
                                 if (param_info.maybe_arg && param_info.maybe_flag) {
-                                    if (++itarg == args.end) {
+                                    if (++itarg == args.end) [[unlikely]] {
                                         result = make_unexpected(PositionnedError {
                                             .error = Error{
                                                 *itarg,
@@ -565,7 +566,7 @@ namespace glap::v2
                                 }
                             }
                             auto exp_res = parse_parameter<T>(std::get<T>(result.value()), param_info.value);
-                            if (!exp_res) {
+                            if (!exp_res) [[unlikely]] {
                                 result = make_unexpected(PositionnedError {
                                     .error = exp_res.error(),
                                     .position = std::distance(args.begin, itarg)
