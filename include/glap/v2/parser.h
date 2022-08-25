@@ -602,7 +602,7 @@ namespace glap::v2
             template <class Iter>
             constexpr auto operator()(item_type& command, BiIterator<Iter> args) const -> PosExpected<bool> {
                 auto parsed = find_and_parse<decltype(command.params)>(args);
-                if (!parsed) {
+                if (!parsed) [[unlikely]] {
                     return make_unexpected(parsed.error());
                 }
                 command.params = *parsed;
