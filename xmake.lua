@@ -1,3 +1,4 @@
+add_rules("mode.debug", "mode.release")
 add_requires("fmt", {optional = true})
 add_requires("tl_expected", {optional = true})
 target("glap")
