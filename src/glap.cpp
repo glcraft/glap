@@ -26,6 +26,7 @@ namespace glap
             "unknown parameter",
             "invalid value",
             "missing value",
+            "already set",
             "flag with value",
             "flag number exceeded",
             "flag number too low",

@@ -27,6 +27,7 @@ namespace glap
             UnknownParameter,
             InvalidValue,
             MissingValue,
+            AlreadySet,
             FlagWithValue,
             TooManyFlags,
             NotEnoughFlags,
