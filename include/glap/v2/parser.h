@@ -339,7 +339,7 @@ namespace glap::v2
         BiIterator(T,T) -> BiIterator<T>;
         template <class P>
         struct ParseParameter {
-            constexpr auto operator()(P&, std::optional<std::string_view> value) const -> PosExpected<P>;
+            constexpr auto operator()(P&, std::optional<std::string_view> value) const -> Expected<void>;
         };
         template <class C>
         struct ParseCommand {
@@ -539,11 +539,13 @@ namespace glap::v2
                         } else { // we admit this is has to be an input type
                             exp_found = (!param_info.maybe_arg && !param_info.maybe_flag) && (T::type == ParameterType::Input);
                         }
-                        if (!exp_found) 
+                        if (!exp_found) {
                             result = make_unexpected(PositionnedError {
                                 .error = std::move(exp_found.error()),
                                 .position = std::distance(args.begin, itarg)
                             });
+                            return true;
+                        }
                         else if (*exp_found) {
                             if constexpr(T::type == ParameterType::Argument) {
                                 if (param_info.maybe_arg && param_info.maybe_flag) {
@@ -562,8 +564,13 @@ namespace glap::v2
                                     param_info.value = *itarg;
                                 }
                             }
-                            if (result)
-                                parse_parameter<T>(std::get<T>(result.value()), param_info.value);
+                            auto exp_res = parse_parameter<T>(std::get<T>(result.value()), param_info.value);
+                            if (!exp_res) {
+                                result = make_unexpected(PositionnedError {
+                                    .error = exp_res.error(),
+                                    .position = std::distance(args.begin, itarg)
+                                });
+                            }
                         }
                         return !result // quit if is error...
                             || *exp_found; // or is found.
@@ -607,33 +614,33 @@ namespace glap::v2
         template <class _Names, auto... Args>
         struct ParseParameter<Argument<_Names, Args...>> {
             using item_type = Argument<_Names, Args...>;
-            constexpr auto operator()(item_type& arg, std::optional<std::string_view> value) const -> PosExpected<bool> {
+            constexpr auto operator()(item_type& arg, std::optional<std::string_view> value) const -> Expected<void> {
                 arg.value = value.value();
-                return true;
+                return {};
             }
         };
         template <class _Names, auto N, auto... Args>
         struct ParseParameter<Arguments<_Names, N, Args...>> {
             using item_type = Arguments<_Names, Args...>;
-            constexpr auto operator()(item_type& arg, std::optional<std::string_view> value) const -> PosExpected<bool> {
+            constexpr auto operator()(item_type& arg, std::optional<std::string_view> value) const -> Expected<void> {
                 arg.values.emplace_back().value = value.value();
-                return true;
+                return {};
             }
         };
         template <auto... Args>
         struct ParseParameter<Inputs<Args...>> {
             using item_type = Inputs<Args...>;
-            constexpr auto operator()(item_type& arg, std::optional<std::string_view> value) const -> PosExpected<bool> {
+            constexpr auto operator()(item_type& arg, std::optional<std::string_view> value) const -> Expected<void> {
                 arg.values.emplace_back().value = value.value();
-                return true;
+                return {};
             }
         };
         template <class ...Args>
         struct ParseParameter<Flag<Args...>> {
             using item_type = Flag<Args...>;
-            constexpr auto operator()(item_type& arg, std::optional<std::string_view> value) const -> PosExpected<bool> {
+            constexpr auto operator()(item_type& arg, std::optional<std::string_view> value) const -> Expected<void> {
                 arg.occurences += 1;
-                return true;
+                return {};
             }
         };
         template <class C>
