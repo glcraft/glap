@@ -467,27 +467,27 @@ namespace glap::v2
         struct FindAndParse<std::tuple<T...>> 
         {
             using tuple_type = std::tuple<T...>;
-            template <class Iter>
-            constexpr auto operator()(BiIterator<Iter> args) const -> PosExpected<tuple_type> {
-                PosExpected<tuple_type> result;
+            struct ParamInfo {
+                bool maybe_flag = false, maybe_arg = false;
+                std::optional<std::string_view> name = std::nullopt;
+                std::optional<std::string_view> value = std::nullopt;
+                ParamInfo() = default;
+                static constexpr auto Parse(std::string_view arg) -> Expected<ParamInfo> {
+                    ParamInfo result;
+                    if (auto exp_res = result.parse(arg); !exp_res) {
+                        return make_unexpected(exp_res.error());
+                    }
+                    return result;
+                }
 
-                for (auto itarg = args.begin; itarg != args.end && result;) {
-                    bool maybe_flag = false, maybe_arg = false;
-                    auto arg = *itarg;
-                    std::optional<std::string_view> name = std::nullopt;
-                    std::optional<std::string_view> value = std::nullopt;
-
+                auto parse(std::string_view arg) -> Expected<void> {
                     if (arg.starts_with("---")) {
-                        result = make_unexpected(PositionnedError {
-                            .error = Error{
-                                *itarg,
-                                std::nullopt,
-                                Error::Type::None,
-                                Error::Code::SyntaxError
-                            },
-                            .position = std::distance(args.begin, itarg)
+                        return make_unexpected(Error{
+                            arg,
+                            std::nullopt,
+                            Error::Type::None,
+                            Error::Code::SyntaxError
                         });
-                        break;
                     } else if (arg.starts_with("--")) {
                         auto pos_equal = arg.find('=', 2);
                         name = arg.substr(2, pos_equal-2);
@@ -501,25 +501,43 @@ namespace glap::v2
                     } else {
                         value = arg;
                     }
+                    return {};
+                }
+            };
 
+            template <class Iter>
+            constexpr auto operator()(BiIterator<Iter> args) const -> PosExpected<tuple_type> {
+                PosExpected<tuple_type> result;
+
+                for (auto itarg = args.begin; itarg != args.end && result;) {
+                    auto arg = *itarg;
+                    
+                    auto exp_param_info = ParamInfo::Parse(arg);
+                    if (!exp_param_info) {
+                        return make_unexpected(PositionnedError {
+                            .error = exp_param_info.error(),
+                            .position = std::distance(args.begin, itarg)
+                        });
+                    }
+                    auto param_info = std::move(exp_param_info.value());
                     auto found = ([&] {
                         Expected<bool> exp_found;
                         if constexpr (HasNames<T>) {
-                            if (maybe_arg && maybe_flag) { // == is short
-                                exp_found = find_shortname<T>(name.value());
+                            if (param_info.maybe_arg && param_info.maybe_flag) { // == is short
+                                exp_found = find_shortname<T>(param_info.name.value());
                             }
-                            else if (maybe_flag) {
+                            else if (param_info.maybe_flag) {
                                 if constexpr(T::type == ParameterType::Flag) {
-                                    exp_found = find_longname<T>(name.value());
+                                    exp_found = find_longname<T>(param_info.name.value());
                                 }
                             }
-                            else if (maybe_arg) {
+                            else if (param_info.maybe_arg) {
                                 if constexpr(T::type == ParameterType::Argument) {
-                                    exp_found = find_longname<T>(name.value());
+                                    exp_found = find_longname<T>(param_info.name.value());
                                 }
                             }
                         } else {
-                            exp_found = (!maybe_arg && !maybe_flag) && (T::type == ParameterType::Input);
+                            exp_found = (!param_info.maybe_arg && !param_info.maybe_flag) && (T::type == ParameterType::Input);
                         }
                         if (!exp_found) 
                             result = make_unexpected(PositionnedError {
@@ -528,7 +546,7 @@ namespace glap::v2
                             });
                         else if (*exp_found) {
                             if constexpr(T::type == ParameterType::Argument) {
-                                if (maybe_arg && maybe_flag) {
+                                if (param_info.maybe_arg && param_info.maybe_flag) {
                                     if (++itarg == args.end) {
                                         result = make_unexpected(PositionnedError {
                                             .error = Error{
@@ -541,11 +559,11 @@ namespace glap::v2
                                         });
                                         return true;
                                     }
-                                    value = *itarg;
+                                    param_info.value = *itarg;
                                 }
                             }
                             if (result)
-                                parse_parameter<T>(std::get<T>(result.value()), value);
+                                parse_parameter<T>(std::get<T>(result.value()), param_info.value);
                         }
                         return !result // quit if is error...
                             || *exp_found; // or is found.
