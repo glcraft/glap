@@ -330,6 +330,13 @@ namespace glap::v2
         static_assert(!NameCheck::has_duplicate_longname, "commands has duplicate long name");
         static_assert(!NameCheck::has_duplicate_shortname, "commands has duplicate short name");
     public:
+        template <utils::Iterator<std::string_view> T>
+        struct BiIterator {
+            T begin;
+            T end;
+        };
+        template <class T>
+        BiIterator(T,T) -> BiIterator<T>;
         template <class C>
         struct ParseItem {
             constexpr auto operator()(utils::Iterable<std::string_view> auto args) const -> PosExpected<C>;
