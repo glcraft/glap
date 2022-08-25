@@ -4,6 +4,8 @@
 #include "../common/error.h"
 #include "../common/utils.h"
 #include "../common/utf8.h"
+#include <__concepts/derived_from.h>
+#include <__concepts/same_as.h>
 #include <utility>
 #include <algorithm>
 #include <cstddef>
@@ -614,26 +616,31 @@ namespace glap::v2
                 return true;
             }
         };
-
-        template <class _Names, auto... Args>
-        struct ParseParameter<Argument<_Names, Args...>> {
-            using item_type = Argument<_Names, Args...>;
+        template <class Valued>
+            requires requires(Valued a) {
+                {a.value} -> std::convertible_to<std::optional<std::string_view>>;
+            }
+        struct ParseParameter<Valued> {
+            using item_type = Valued;
             constexpr auto operator()(item_type& arg, std::optional<std::string_view> value) const -> Expected<void> {
+                if (arg.value) {
+                    return make_unexpected(Error{
+                        std::string_view{},
+                        value,
+                        Error::Type::None,
+                        Error::Code::AlreadySet
+                    });
+                }
                 arg.value = value.value();
                 return {};
             }
         };
-        template <class _Names, auto N, auto... Args>
-        struct ParseParameter<Arguments<_Names, N, Args...>> {
-            using item_type = Arguments<_Names, Args...>;
-            constexpr auto operator()(item_type& arg, std::optional<std::string_view> value) const -> Expected<void> {
-                arg.values.emplace_back().value = value.value();
-                return {};
+        template <class Contained>
+            requires requires (Contained a) {
+                {a.values.emplace_back().value} -> std::convertible_to<std::optional<std::string_view>>;
             }
-        };
-        template <auto... Args>
-        struct ParseParameter<Inputs<Args...>> {
-            using item_type = Inputs<Args...>;
+        struct ParseParameter<Contained> {
+            using item_type = Contained;
             constexpr auto operator()(item_type& arg, std::optional<std::string_view> value) const -> Expected<void> {
                 arg.values.emplace_back().value = value.value();
                 return {};
