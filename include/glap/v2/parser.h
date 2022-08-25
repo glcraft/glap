@@ -342,10 +342,15 @@ namespace glap::v2
             constexpr auto operator()(P&, std::optional<std::string_view> value) const -> Expected<void>;
         };
         template <class C>
+        static constexpr auto parse_parameter = ParseParameter<C>{};
+        template <class C>
         struct ParseCommand {
             template <class Iter>
             constexpr auto operator()(C&, BiIterator<Iter> args) const -> PosExpected<C>;
         };
+        template <class C>
+        static constexpr auto parse_command = ParseCommand<C>{};
+        
         constexpr auto parse(utils::Iterable<std::string_view> auto args) const -> PosExpected<Program<Commands...>> {
             if (args.size() == 0) [[unlikely]] {
                 return make_unexpected(PositionnedError{
@@ -609,8 +614,6 @@ namespace glap::v2
                 return true;
             }
         };
-        template <class C>
-        static constexpr auto parse_command = ParseCommand<C>{};
 
         template <class _Names, auto... Args>
         struct ParseParameter<Argument<_Names, Args...>> {
@@ -644,7 +647,5 @@ namespace glap::v2
                 return {};
             }
         };
-        template <class C>
-        static constexpr auto parse_parameter = ParseParameter<C>{};
     };
 }
