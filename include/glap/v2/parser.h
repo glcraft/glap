@@ -646,41 +646,5 @@ namespace glap::v2
         };
         template <class C>
         static constexpr auto parse_parameter = ParseParameter<C>{};
-
-        template <class Current, class ...Others>
-        constexpr auto find_by_name(std::string_view cmd_name) const noexcept -> PosExpected<std::variant<Commands...>> {
-            if (cmd_name == Current::Longname) {
-                return Current{};
-            } 
-            auto exp_codepoint = glap::utils::uni::codepoint(cmd_name);
-            if (!exp_codepoint) {
-                return make_unexpected(PositionnedError{
-                    .error = Error{
-                        .argument = cmd_name,
-                        .value = std::nullopt,
-                        .type = Error::Type::Command,
-                        .code = Error::Code::BadString
-                    },
-                    .position = 0
-                });
-            }
-            auto codepoint = exp_codepoint.value();
-            if (codepoint == Current::Shortname) {
-                return Current{};
-            }
-            if constexpr(sizeof...(Others) == 0) {
-                return make_unexpected(PositionnedError{
-                    .error = Error{
-                        .argument = cmd_name,
-                        .value = std::nullopt,
-                        .type = Error::Type::Command,
-                        .code = Error::Code::BadCommand
-                    },
-                    .position = 0
-                });
-            } else {
-                return find_by_name<Others...>(cmd_name);
-            }
-        }
     };
 }
