@@ -435,8 +435,14 @@ namespace glap::v2
                             .error = std::move(exp_found.error()),
                             .position = 0
                         });
-                    else if (*exp_found) 
-                        result = parse_item<T>(args);
+                    else if (*exp_found) {
+                        result.emplace(T{});
+                        auto res = parse_command<T>(std::get<T>(result.value().value()), BiIterator{std::next(args.begin), args.end});
+                        if (!res) {
+                            result = make_unexpected(res.error());
+                            return true;
+                        }
+                    }
                     return !exp_found || *exp_found;
                 }() || ...);
 
@@ -512,13 +518,29 @@ namespace glap::v2
                         if (!exp_found) 
                             result = make_unexpected(PositionnedError {
                                 .error = std::move(exp_found.error()),
-                                .position = std::distance(args.begin(), itarg)
+                        else if (*exp_found || !maybe_arg && !maybe_flag) {
+                            if constexpr(T::type == ParameterType::Argument) {
+                                if (maybe_arg && maybe_flag) {
+                                    if (++itarg == args.end) {
+                                        result = make_unexpected(PositionnedError {
+                                            .error = Error{
+                                                *itarg,
+                                                std::nullopt,
+                                                Error::Type::None,
+                                                Error::Code::SyntaxError
+                                            },
+                                            .position = std::distance(args.begin, itarg)
                             });
-                        else if (*exp_found) {
-                            // std::get<T>(result) = parse_item<T>(args);
+                                        return true;
                         }
-                        return !result // is error
-                            || *exp_found; // is found or not
+                                    value = *itarg;
+                                }
+                            }
+                            if (result)
+                                parse_parameter<T>(std::get<T>(result.value()), value);
+                        }
+                        return !result // quit if is error...
+                            || *exp_found; // or is found.
                     }() || ...);
                     itarg++;
                 }
