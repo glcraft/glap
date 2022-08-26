@@ -4,8 +4,6 @@
 #include "../common/error.h"
 #include "../common/utils.h"
 #include "../common/utf8.h"
-#include <__concepts/derived_from.h>
-#include <__concepts/same_as.h>
 #include <utility>
 #include <algorithm>
 #include <cstddef>
@@ -622,13 +620,28 @@ namespace glap::v2
             }
         struct ParseParameter<Valued> {
             using item_type = Valued;
+            static constexpr auto error_type = (Valued::type == ParameterType::Input) ? Error::Type::Input : Error::Type::Argument;
+            static constexpr auto validate(std::string_view value) requires std::invocable<decltype(Valued::validator), std::string_view> {
+                return Valued::validator(value);
+            }
+            static constexpr auto validate(std::string_view value) {
+                return true;
+            }
             constexpr auto operator()(item_type& arg, std::optional<std::string_view> value) const -> Expected<void> {
                 if (arg.value) {
                     return make_unexpected(Error{
                         std::string_view{},
                         value,
-                        Error::Type::None,
+                        error_type,
                         Error::Code::AlreadySet
+                    });
+                }
+                if (!ParseParameter::validate(value.value())) [[unlikely]] {
+                    return make_unexpected(Error{
+                        std::string_view{},
+                        value,
+                        error_type,
+                        Error::Code::InvalidValue
                     });
                 }
                 arg.value = value.value();
@@ -641,7 +654,22 @@ namespace glap::v2
             }
         struct ParseParameter<Contained> {
             using item_type = Contained;
+            static constexpr auto error_type = (Contained::type == ParameterType::Input) ? Error::Type::Input : Error::Type::Argument;
+            static constexpr auto validate(std::string_view value) requires std::invocable<decltype(Contained::validator), std::string_view> {
+                return Contained::validator(value);
+            }
+            static constexpr auto validate(std::string_view value) {
+                return true;
+            }
             constexpr auto operator()(item_type& arg, std::optional<std::string_view> value) const -> Expected<void> {
+                if (!ParseParameter::validate(value.value())) [[unlikely]] {
+                    return make_unexpected(Error{
+                        std::string_view{},
+                        value,
+                        error_type,
+                        Error::Code::InvalidValue
+                    });
+                }
                 arg.values.emplace_back().value = value.value();
                 return {};
             }
