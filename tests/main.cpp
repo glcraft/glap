@@ -62,9 +62,13 @@ struct Print<glap::v2::Arguments<Names, N, Args...>> {
     void operator()(const value_type& v) const {
         fmt::print("    --{}: ", v.Longname);
         auto nb=0;
+        if (v.values.empty()) {
+            fmt::print("none\n");
+            return;
+        }
         for (auto& val : v.values)
             fmt::print("{}\"{}\"", nb++>0 ? ", " : "", val.value.value_or("none"));
-        fmt::print("\n ");
+        fmt::print("\n");
     }
 };
 template <class T>
@@ -77,6 +81,9 @@ auto print_command(glap::v2::Command<Names, P...>& command) {
         print<P>(std::get<P>(command.params));
     }(), ...);
     
+}
+bool is_hello_world(std::string_view v) {
+    return v == "hello" || v == "world";
 }
 
 int main(int argc, char** argv)
@@ -93,7 +100,7 @@ int main(int argc, char** argv)
     Parser<glap::v2::Command<glap::v2::Names<"othercommand", 't'>, glap::v2::Flag<glap::v2::Names<"flag", 'f'>>>,
         glap::v2::Command<glap::v2::Names<"command", glap::v2::discard>, 
             glap::v2::Flag<glap::v2::Names<"flag", 'f'>>,
-            glap::v2::Argument<glap::v2::Names<"arg", 'a'>>,
+            glap::v2::Argument<glap::v2::Names<"arg", 'a'>, discard, is_hello_world>,
             glap::v2::Arguments<glap::v2::Names<"args", 'b'>>,
             Inputs<>
         >
