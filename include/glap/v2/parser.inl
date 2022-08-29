@@ -321,7 +321,7 @@ namespace glap::v2
         model::Program<Commands...> program;
         program.program = *itarg++;
 
-        auto default_command = [&] {
+        auto default_command = [&] () mutable {
             if (itarg == args.end()) {
                 return true;
             }
@@ -331,6 +331,15 @@ namespace glap::v2
             }
             return false;
         }();
+        auto call_command = [&] <class T> () -> PosExpected<model::Program<Commands...>> {
+            auto found_command = impl::find_and_parse<T>(utils::BiIterator{itarg, args.end()});
+            if (!found_command) [[unlikely]] {
+                found_command.error().position += std::distance(args.begin(), itarg);
+                return make_unexpected(found_command.error());
+            }
+            program.command = found_command.value();
+            return program;
+        };
         if (default_command) {
             if constexpr (def_cmd == DefaultCommand::None) {
                 return make_unexpected(PositionnedError{
@@ -343,23 +352,10 @@ namespace glap::v2
                     .position = 0
                 });
             } else {
-                // do default command
-                auto found_command = impl::find_and_parse<default_command_type>(utils::BiIterator{itarg, args.end()});
-                if (!found_command) [[unlikely]] {
-                    found_command.error().position += std::distance(args.begin(), itarg);
-                    return make_unexpected(found_command.error());
-                }
-                program.command = found_command.value();
+                return call_command.template operator()<default_command_type>();
             }
         } else {
-            auto found_command = impl::find_and_parse<decltype(program.command)>(utils::BiIterator{itarg, args.end()});
-            if (!found_command) [[unlikely]] {
-                found_command.error().position += std::distance(args.begin(), itarg);
-                return make_unexpected(found_command.error());
-            }
-            program.command = found_command.value();
+            return call_command.template operator()<decltype(program.command)>();
         }
-        
-        return program;
     }
 }
