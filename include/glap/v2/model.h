@@ -63,6 +63,15 @@ namespace glap::v2::model
                 return _get_parameter_id<i + 1, lit>();
             }
         }
+        template <size_t i>
+        static consteval size_t _get_input_id() noexcept {
+            static_assert((i < NbParams), "No input in command parameters");
+            if constexpr (Param<i>::type == ParameterType::Input) {
+                return i;
+            } else {
+                return _get_input_id<i + 1>();
+            }
+        }
     public:
         Params params;
         template <StringLiteral lit>
@@ -73,6 +82,10 @@ namespace glap::v2::model
         constexpr const auto& get_parameter() const noexcept requires (NbParams > 0) {
             return std::get<_get_parameter_id<0, lit>()>(params);
         }
+        constexpr const auto& get_inputs() const noexcept requires (NbParams > 0) {
+            return std::get<_get_input_id<0>()>(params);
+        }
+
     };
     template<class... Commands>
     struct Program {
