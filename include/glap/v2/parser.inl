@@ -96,7 +96,6 @@ namespace glap::v2
     };
     namespace impl 
     {
-
         template <HasNames Ty>
         constexpr auto find_longname(std::string_view name) -> bool {
             return name == Ty::Longname;
@@ -151,7 +150,8 @@ namespace glap::v2
                         result.emplace(T{});
                         auto res = parse_command<T>(std::get<T>(result.value().value()), utils::BiIterator{std::next(args.begin), args.end});
                         if (!res) [[unlikely]] {
-                            result = make_unexpected(res.error());
+                            res.error().position+=1;
+                            result = make_unexpected(std::move(res.error()));
                             return true;
                         }
                     }
