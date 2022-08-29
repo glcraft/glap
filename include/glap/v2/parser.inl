@@ -127,7 +127,7 @@ namespace glap::v2
             template <class Iter>
             constexpr auto operator()(utils::BiIterator<Iter> args) const -> PosExpected<Com> {
                 Com result;
-                auto res = parse_command<Com>(result, utils::BiIterator{std::next(args.begin), args.end});
+                auto res = parse_command<Com>(result, args);
                 if (!res) [[unlikely]] {
                     return make_unexpected(res.error());
                 }
@@ -320,9 +320,19 @@ namespace glap::v2
         auto itarg = args.begin();
         model::Program<Commands...> program;
         program.program = *itarg++;
-        
-        if constexpr (def_cmd == DefaultCommand::None) {
-            if (itarg == args.end()) [[unlikely]] {
+
+        auto default_command = [&] {
+            if (itarg == args.end()) {
+                return true;
+            }
+            auto arg = std::string_view{*itarg};
+            if (arg.starts_with("-")) {
+                return true;
+            }
+            return false;
+        }();
+        if (default_command) {
+            if constexpr (def_cmd == DefaultCommand::None) {
                 return make_unexpected(PositionnedError{
                     .error = Error{
                         .argument = "",
@@ -332,34 +342,22 @@ namespace glap::v2
                     },
                     .position = 0
                 });
+            } else {
+                // do default command
+                auto found_command = impl::find_and_parse<default_command_type>(utils::BiIterator{itarg, args.end()});
+                if (!found_command) [[unlikely]] {
+                    found_command.error().position += std::distance(args.begin(), itarg);
+                    return make_unexpected(found_command.error());
+                }
+                program.command = found_command.value();
             }
-        
-
-            auto arg = std::string_view{*itarg};
-            if (arg.starts_with("-")) [[unlikely]] {
-                return make_unexpected(PositionnedError{
-                    .error = Error{
-                        .argument = arg,
-                        .value = std::nullopt,
-                        .type = Error::Type::None,
-                        .code = Error::Code::NoGlobalCommand
-                    },
-                    .position = 1
-                });
-            }
+        } else {
             auto found_command = impl::find_and_parse<decltype(program.command)>(utils::BiIterator{itarg, args.end()});
             if (!found_command) [[unlikely]] {
                 found_command.error().position += std::distance(args.begin(), itarg);
                 return make_unexpected(found_command.error());
             }
             program.command = found_command.value();
-        } else {
-            // auto found_command = impl::find_and_parse<decltype(program.command)>(utils::BiIterator{itarg, args.end()});
-            // if (!found_command) [[unlikely]] {
-            //     found_command.error().position += std::distance(args.begin(), itarg);
-            //     return make_unexpected(found_command.error());
-            // }
-            // program.command = found_command.value();
         }
         
         return program;
