@@ -17,13 +17,13 @@ namespace glap::v2
     struct ParseCommand<model::Command<Args...>> {
         using item_type = model::Command<Args...>;
         template <class Iter>
-        constexpr auto operator()(item_type& command, utils::BiIterator<Iter> args) const -> PosExpected<bool> {
+        constexpr auto operator()(item_type& command, utils::BiIterator<Iter> args) const -> PosExpected<void> {
             auto parsed = impl::find_and_parse<decltype(command.params)>(args);
             if (!parsed) [[unlikely]] {
                 return make_unexpected(parsed.error());
             }
             command.params = *parsed;
-            return true;
+            return {};
         }
     };
     template <class Valued>
@@ -98,11 +98,11 @@ namespace glap::v2
     {
 
         template <HasNames Ty>
-        static constexpr auto find_longname(std::string_view name) -> bool {
+        constexpr auto find_longname(std::string_view name) -> bool {
             return name == Ty::Longname;
         }
         template <HasNames Ty>
-        static constexpr auto find_shortname(std::string_view name) -> Expected<bool> {
+        constexpr auto find_shortname(std::string_view name) -> Expected<bool> {
             auto exp_codepoint = glap::utils::uni::codepoint(name);
             if (!exp_codepoint) [[unlikely]] {
                 return glap::make_unexpected(Error {
@@ -116,12 +116,24 @@ namespace glap::v2
             return codepoint == Ty::Shortname;
         }
         template <HasNames Ty>
-        static constexpr auto find_name(std::string_view name) -> Expected<bool> {
+        constexpr auto find_name(std::string_view name) -> Expected<bool> {
             if (auto value = find_longname<Ty>(name); value)
                 return value;
             return find_shortname<Ty>(name);
         }
         
+        template <HasNames Com>
+        struct FindAndParse<Com> {
+            template <class Iter>
+            constexpr auto operator()(utils::BiIterator<Iter> args) const -> PosExpected<Com> {
+                Com result;
+                auto res = parse_command<Com>(result, utils::BiIterator{std::next(args.begin), args.end});
+                if (!res) [[unlikely]] {
+                    return make_unexpected(res.error());
+                }
+                return result;
+            }
+        };
         template <HasNames ...T>
         struct FindAndParse<std::variant<T...>> {
             template <class Iter>
@@ -292,8 +304,8 @@ namespace glap::v2
         };
         
     }
-    template<class... Commands>
-    constexpr auto Parser<Commands...>::parse(glap::utils::Iterable<std::string_view> auto args) const -> PosExpected<model::Program<Commands...>> {
+    template<DefaultCommand def_cmd, class... Commands>
+    constexpr auto Parser<def_cmd, Commands...>::parse(glap::utils::Iterable<std::string_view> auto args) const -> PosExpected<model::Program<Commands...>> {
         if (args.size() == 0) [[unlikely]] {
             return make_unexpected(PositionnedError{
                 .error = Error{
@@ -309,37 +321,46 @@ namespace glap::v2
         model::Program<Commands...> program;
         program.program = *itarg++;
         
-        //TODO: implement global command
+        if constexpr (def_cmd == DefaultCommand::None) {
+            if (itarg == args.end()) [[unlikely]] {
+                return make_unexpected(PositionnedError{
+                    .error = Error{
+                        .argument = "",
+                        .value = std::nullopt,
+                        .type = Error::Type::None,
+                        .code = Error::Code::NoGlobalCommand
+                    },
+                    .position = 0
+                });
+            }
+        
 
-        if (itarg == args.end()) [[unlikely]] {
-            return make_unexpected(PositionnedError{
-                .error = Error{
-                    .argument = "",
-                    .value = std::nullopt,
-                    .type = Error::Type::None,
-                    .code = Error::Code::NoGlobalCommand
-                },
-                .position = 0
-            });
+            auto arg = std::string_view{*itarg};
+            if (arg.starts_with("-")) [[unlikely]] {
+                return make_unexpected(PositionnedError{
+                    .error = Error{
+                        .argument = arg,
+                        .value = std::nullopt,
+                        .type = Error::Type::None,
+                        .code = Error::Code::NoGlobalCommand
+                    },
+                    .position = 1
+                });
+            }
+            auto found_command = impl::find_and_parse<decltype(program.command)>(utils::BiIterator{itarg, args.end()});
+            if (!found_command) [[unlikely]] {
+                found_command.error().position += std::distance(args.begin(), itarg);
+                return make_unexpected(found_command.error());
+            }
+            program.command = found_command.value();
+        } else {
+            // auto found_command = impl::find_and_parse<decltype(program.command)>(utils::BiIterator{itarg, args.end()});
+            // if (!found_command) [[unlikely]] {
+            //     found_command.error().position += std::distance(args.begin(), itarg);
+            //     return make_unexpected(found_command.error());
+            // }
+            // program.command = found_command.value();
         }
-        auto arg = std::string_view{*itarg};
-        if (arg.starts_with("-")) [[unlikely]] {
-            return make_unexpected(PositionnedError{
-                .error = Error{
-                    .argument = arg,
-                    .value = std::nullopt,
-                    .type = Error::Type::None,
-                    .code = Error::Code::NoGlobalCommand
-                },
-                .position = 1
-            });
-        }
-        auto found_command = impl::find_and_parse<decltype(program.command)>(utils::BiIterator{itarg, args.end()});
-        if (!found_command) [[unlikely]] {
-            found_command.error().position += std::distance(args.begin(), itarg);
-            return make_unexpected(found_command.error());
-        }
-        program.command = found_command.value();
         
         return program;
     }
