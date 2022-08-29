@@ -1,7 +1,9 @@
 #include "glap/v2/parser.h"
+#include "glap/common/utils.h"
 #include <ranges>
 #include <charconv>
 #include <fmt/format.h>
+#include <type_traits>
 #include <variant>
 
 struct Param1 {
@@ -22,7 +24,7 @@ auto to_int(std::string_view str) -> tl::expected<int, std::errc> {
     }
 }
 
-template <class ...P>
+template <class P>
 struct Print 
 {};
 
@@ -45,9 +47,13 @@ struct Print<glap::v2::Flag<P...>> {
         fmt::print("    --{}: {}x\n", v.Longname, v.occurences);
     }
 };
-template <auto ...Args>
-struct Print<glap::v2::Inputs<Args...>> {
-    using value_type= glap::v2::Inputs<Args...>;
+template <class T> 
+    requires  requires (T a){
+        a.values;
+        T::type == glap::v2::ParameterType::Input;
+    }
+struct Print<T> {
+    using value_type= T;
     void operator()(const value_type& v) const {
         fmt::print("    inputs: ");
         auto nb=0;
