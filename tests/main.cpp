@@ -96,16 +96,8 @@ int main(int argc, char** argv)
 {
     using namespace glap::v2::model;
     using glap::v2::discard;
-    // Parser<
-    //     glap::v2::Command<glap::v2::Names<"commands", glap::v2::discard>, Param1>,
-    //     glap::v2::Command<glap::v2::Names<"command", 'c'>, 
-    //         glap::v2::Flag<glap::v2::Names<"flag", 'f'>>,
-    //         glap::v2::Arguments<glap::v2::Names<"flags", 'a'>, 4>,
-    //         glap::v2::Argument<glap::v2::Names<"integer", 'g'>, to_int>
-    //         glap::v2::Inputs<>
-    // >> parser;
     glap::v2::Parser<Command<glap::v2::Names<"othercommand", 't'>, Flag<glap::v2::Names<"flag", 'f'>>>,
-        Command<glap::v2::Names<"command", glap::v2::discard>, 
+        Command<glap::v2::Names<"command", discard>, 
             Flag<glap::v2::Names<"flag", 'f'>>,
             Argument<glap::v2::Names<"arg", 'a'>, discard, is_hello_world>,
             Arguments<glap::v2::Names<"args", 'b'>>,
