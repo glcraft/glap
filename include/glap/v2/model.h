@@ -13,6 +13,9 @@ namespace glap::v2::model
 
     template <class ArgNames, auto Resolver = discard, auto Validator = discard>
     struct Argument : public ArgNames, public Value<Resolver, Validator> {
+        constexpr Argument() = default;
+        constexpr Argument(std::string_view v) : Value<Resolver, Validator>(v)
+        {}
         static constexpr auto type = ParameterType::Argument;
     };
     
@@ -29,6 +32,9 @@ namespace glap::v2::model
     };
     template <auto Resolver = discard, auto Validator = discard>
     struct Input : public Value<Resolver, Validator> {
+        constexpr Input() = default;
+        constexpr Input(std::string_view v) : Value<Resolver, Validator>(v)
+        {}
         static constexpr auto type = ParameterType::Input;
     };
     template <auto N = discard, auto Resolver = discard, auto Validator = discard>

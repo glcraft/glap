@@ -100,6 +100,10 @@ namespace glap::v2
     };
     template <auto Resolver = discard, auto Validator = discard>
     struct Value {
+        constexpr Value() = default;
+        constexpr Value(std::string_view v) : value(v)
+        {}
+        
         static constexpr auto resolver = Resolver;
         static constexpr auto validator = Validator;
 
