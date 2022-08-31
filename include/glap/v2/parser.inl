@@ -1,5 +1,11 @@
 #pragma once
+#include "glap/common/utf8.h"
+#include "glap/v2/model.h"
 #include "parser.h" // for lsp
+#include <optional>
+#include <string_view>
+#include <type_traits>
+#include <variant>
 
 namespace glap::v2
 {
@@ -61,11 +67,11 @@ namespace glap::v2
         }
     };
     template <class Contained>
-        requires requires (Contained a) {
-            {a.values.emplace_back().value} -> std::convertible_to<std::optional<std::string_view>>;
+        requires std::constructible_from<Contained, std::string_view> && requires (Contained a, typename Contained::value_type v) {
+            {a.values.push_back(v)};
         }
     struct ParseParameter<Contained> {
-        using item_type = Contained;
+        using container_type = Contained;
         static constexpr auto error_type = (Contained::type == model::ParameterType::Input) ? Error::Type::Input : Error::Type::Argument;
         static constexpr auto validate(std::string_view value) requires std::invocable<decltype(Contained::validator), std::string_view> {
             return Contained::validator(value);
@@ -73,7 +79,7 @@ namespace glap::v2
         static constexpr auto validate(std::string_view value) {
             return true;
         }
-        constexpr auto operator()(item_type& arg, std::optional<std::string_view> value) const -> Expected<void> {
+        constexpr auto operator()(container_type& arg, std::optional<std::string_view> value) const -> Expected<void> {
             if (!ParseParameter::validate(value.value())) [[unlikely]] {
                 return make_unexpected(Error{
                     std::string_view{},
@@ -82,7 +88,7 @@ namespace glap::v2
                     Error::Code::InvalidValue
                 });
             }
-            arg.values.emplace_back().value = value.value();
+            arg.values.push_back(typename container_type::value_type(value.value()));
             return {};
         }
     };
@@ -174,13 +180,58 @@ namespace glap::v2
         };
         template <class ...T>
             requires (std::same_as<std::decay_t<decltype(T::type)>, model::ParameterType> && ...)
-        struct FindAndParse<std::tuple<T...>> 
+        class FindAndParse<std::tuple<T...>> 
         {
             using tuple_type = std::tuple<T...>;
             struct ParamInfo {
-                bool maybe_flag = false, maybe_arg = false;
-                std::optional<std::string_view> name = std::nullopt;
+                struct Long {
+                    struct Iterator {
+                        std::string_view name;
+                        constexpr auto operator*() noexcept -> std::optional<std::string_view> {
+                            if (name.empty())
+                                return std::nullopt;
+                            auto result = name;
+                            name = std::string_view();
+                            return result;
+                        }
+                    };
+
+                    std::string_view name;
+
+                    constexpr auto iter() noexcept -> Iterator {
+                        return Iterator{name};
+                    }
+                    constexpr auto iter() const noexcept -> Iterator {
+                        return Iterator{name};
+                    }
+                };
+                struct Short {
+                    struct Iterator {
+                        std::string_view shortnames;
+                        constexpr auto operator*() noexcept -> std::optional<char32_t> {
+                            if (shortnames.empty())
+                                return std::nullopt;
+                            auto len = glap::utils::uni::utf8_char_length(shortnames);
+                            auto result = glap::utils::uni::codepoint(shortnames);
+                            if (!result || !len)
+                                return std::nullopt;
+                            shortnames = std::string_view(shortnames.begin()+len.value(), shortnames.end());
+                            return result.value();
+                        }
+                    };
+                    std::string_view names;
+
+                    constexpr auto iter() noexcept -> Iterator {
+                        return Iterator{names};
+                    }
+                    constexpr auto iter() const noexcept -> Iterator {
+                        return Iterator{names};
+                    }
+                };
+                
+                std::optional<std::variant<Long, Short>> name = std::nullopt;
                 std::optional<std::string_view> value = std::nullopt;
+
                 ParamInfo() = default;
                 static constexpr auto Parse(std::string_view arg) -> Expected<ParamInfo> {
                     ParamInfo result;
@@ -190,7 +241,7 @@ namespace glap::v2
                     return result;
                 }
 
-                auto parse(std::string_view arg) -> Expected<void> {
+                constexpr auto parse(std::string_view arg) -> Expected<void> {
                     if (arg.starts_with("---")) {
                         return make_unexpected(Error{
                             arg,
@@ -200,21 +251,93 @@ namespace glap::v2
                         });
                     } else if (arg.starts_with("--")) {
                         auto pos_equal = arg.find('=', 2);
-                        name = arg.substr(2, pos_equal-2);
-                        if (pos_equal != std::string_view::npos)
+                        if (pos_equal != std::string_view::npos) {
                             value = arg.substr(pos_equal+1);
-                        maybe_arg = value.has_value();
-                        maybe_flag = !maybe_arg;
+                            name = Long{arg.substr(2, pos_equal-2)};
+                        } else {
+                            name = Long{arg.substr(2)};
+                        }
                     } else if (arg.starts_with("-")) {
-                        name = arg.substr(1);
-                        maybe_arg = maybe_flag = true;
+                        name = Short{arg.substr(1)};
                     } else {
                         value = arg;
                     }
                     return {};
                 }
             };
-
+            constexpr auto find_parse_longname(tuple_type& parameters, std::string_view longname, std::optional<std::string_view> value) const -> Expected<void> {
+                auto result = Expected<void>{};
+                auto found = ([&] {
+                    if constexpr(!HasNames<T>)
+                        return false;
+                    else {
+                        if constexpr(!std::same_as<std::decay_t<decltype(T::Longname)>, std::string_view>)
+                            return false;
+                        if (T::Longname != longname)
+                            return false;
+                    }
+                    result = parse_parameter<T>(std::get<T>(parameters), value);
+                    return true;
+                }() || ...);
+                if (!found)
+                    return make_unexpected(Error{
+                        longname,
+                        std::nullopt,
+                        Error::Type::None,
+                        Error::Code::UnknownParameter
+                    });
+                return result;
+            }
+            template <class Iter>
+            constexpr auto find_parse_shortname(tuple_type& parameters, Iter& itarg, Iter itend, char32_t shortname) const -> Expected<void> {
+                auto result = Expected<void>{};
+                auto found = ([&] {
+                    if constexpr(!HasNames<T>)
+                        return false;
+                    else {
+                        if constexpr(!std::same_as<std::decay_t<decltype(T::Shortname)>, std::optional<char32_t>>)
+                            return false;
+                        if constexpr(!T::Shortname.has_value())
+                            return false;
+                        if (T::Shortname.value() != shortname)
+                            return false;
+                    }
+                    std::optional<std::string_view> value = std::nullopt;
+                    if constexpr(T::type == model::ParameterType::Argument) {
+                        if (++itarg == itend) [[unlikely]] {
+                            result = make_unexpected(Error{
+                                std::string_view{},
+                                std::nullopt,
+                                Error::Type::Argument,
+                                Error::Code::MissingValue
+                            });
+                            return true;
+                        }
+                        value = *itarg;
+                    }
+                    result = parse_parameter<T>(std::get<T>(parameters), value);
+                    return true;
+                }() || ...);
+                if (!found)
+                    return make_unexpected(Error{
+                        *itarg,
+                        std::nullopt,
+                        Error::Type::None,
+                        Error::Code::UnknownParameter
+                    });
+                return result;
+            }
+            constexpr auto find_parse_input(tuple_type& parameters, std::optional<std::string_view> value) const -> Expected<void> {
+                auto result = Expected<void>{};
+                ([&] {
+                    if constexpr(T::type != model::ParameterType::Input)
+                        return false;
+                    result = parse_parameter<T>(std::get<T>(parameters), value);
+                    return true;
+                }() || ...);
+                return result;
+            }
+        public:
             template <class Iter>
             constexpr auto operator()(utils::BiIterator<Iter> args) const -> PosExpected<tuple_type> {
                 PosExpected<tuple_type> result;
@@ -230,69 +353,30 @@ namespace glap::v2
                         });
                     }
                     auto param_info = std::move(exp_param_info.value());
-                    auto found = ([&] {
-                        Expected<bool> exp_found;
-                        if constexpr (HasNames<T>) {
-                            if (param_info.maybe_arg && param_info.maybe_flag) { // == is short
-                                exp_found = find_shortname<T>(param_info.name.value());
-                            }
-                            else if (param_info.maybe_flag) {
-                                if constexpr(T::type == model::ParameterType::Flag) {
-                                    exp_found = find_longname<T>(param_info.name.value());
-                                }
-                            }
-                            else if (param_info.maybe_arg) {
-                                if constexpr(T::type == model::ParameterType::Argument) {
-                                    exp_found = find_longname<T>(param_info.name.value());
-                                }
-                            }
-                        } else { // we admit this is has to be an input type
-                            exp_found = (!param_info.maybe_arg && !param_info.maybe_flag) && (T::type == model::ParameterType::Input);
-                        }
-                        if (!exp_found) [[unlikely]] {
-                            result = make_unexpected(PositionnedError {
-                                .error = std::move(exp_found.error()),
-                                .position = std::distance(args.begin, itarg)
-                            });
-                            return true;
-                        }
-                        else if (*exp_found) {
-                            if constexpr(T::type == model::ParameterType::Argument) {
-                                if (param_info.maybe_arg && param_info.maybe_flag) {
-                                    if (++itarg == args.end) [[unlikely]] {
-                                        result = make_unexpected(PositionnedError {
-                                            .error = Error{
-                                                *itarg,
-                                                std::nullopt,
-                                                Error::Type::None,
-                                                Error::Code::MissingValue
-                                            },
-                                            .position = std::distance(args.begin, itarg)
-                                        });
-                                        return true;
+                    auto exp_ok = [&] {
+                        if (param_info.name) {
+                            // std::variant<ParamInfo::Long, ParamInfo::Short>& 
+                            if (std::holds_alternative<typename ParamInfo::Long>(*param_info.name)) {
+                                return find_parse_longname(result.value(), std::get<typename ParamInfo::Long>(param_info.name.value()).name, param_info.value);
+                            } else {
+                                auto& shortnames= std::get<typename ParamInfo::Short>(param_info.name.value());
+                                auto itshorts = shortnames.iter();
+                                while (auto name = *itshorts) {
+                                    auto exp_short = find_parse_shortname(result.value(), itarg, args.end, *name);
+                                    if (!exp_short) {
+                                        exp_short.error().argument = shortnames.names;
+                                        return exp_short;
                                     }
-                                    param_info.value = *itarg;
                                 }
                             }
-                            auto exp_res = parse_parameter<T>(std::get<T>(result.value()), param_info.value);
-                            if (!exp_res) [[unlikely]] {
-                                result = make_unexpected(PositionnedError {
-                                    .error = exp_res.error(),
-                                    .position = std::distance(args.begin, itarg)
-                                });
-                            }
+                        } else if (param_info.value) {
+                            return find_parse_input(result.value(), param_info.value);
                         }
-                        return !result // quit if is error...
-                            || *exp_found; // or is found.
-                    }() || ...);
-                    if (!found) {
+                        return Expected<void>{};
+                    }();
+                    if (!exp_ok) {
                         return make_unexpected(PositionnedError {
-                            .error = Error{
-                                *itarg,
-                                std::nullopt,
-                                Error::Type::None,
-                                Error::Code::UnknownParameter
-                            },
+                            .error = exp_ok.error(),
                             .position = std::distance(args.begin, itarg)
                         });
                     }
