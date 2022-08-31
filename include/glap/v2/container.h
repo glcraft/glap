@@ -1,5 +1,6 @@
 #pragma once
 #include "utils.h"
+#include <cstddef>
 namespace glap::v2
 {
     template<typename T, size_t N>
@@ -30,7 +31,11 @@ namespace glap::v2
     public:
         using iterator = _iterator<T>;
         using const_iterator = _iterator<const T>;
-        ~FixedVector() requires std::destructible<T> {
+        using value_type = T;
+        using size_type = size_t;
+        using difference_type = ptrdiff_t;
+
+        constexpr ~FixedVector() requires std::destructible<T> {
             if constexpr (!std::is_trivially_destructible_v<T>) {
                 for (size_t i = 0; i < m_size; ++i) {
                     m_data[i].~T();
@@ -75,6 +80,19 @@ namespace glap::v2
         [[nodiscard]] constexpr auto capacity() const noexcept {
             return N;
         }
+        [[nodiscard]] constexpr auto& first() noexcept {
+            return m_data[0];
+        }
+        [[nodiscard]] constexpr const auto& first() const noexcept {
+            return m_data[0];
+        }
+        [[nodiscard]] constexpr auto& last() noexcept {
+            return m_data[m_size-1];
+        }
+        [[nodiscard]] constexpr const auto& last() const noexcept {
+            return m_data[m_size-1];
+        }
+
         [[nodiscard]] constexpr auto begin() noexcept -> iterator {
             return iterator(*this);
         }
