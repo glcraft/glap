@@ -44,22 +44,25 @@ namespace glap::v2
     template <class Ty, auto I, size_t V>
     constexpr bool is_value_v = is_value<Ty, I, V>::value;
 
-    template <StringLiteral LongName, auto ShortName = discard>
-    struct Names {
-    private:
+    namespace impl {
         template <auto SN>
-        struct _short_name {
+        struct ShortnameValue {
             static constexpr auto value = std::optional<char32_t>{SN};
         };
-        template<> struct _short_name<discard> {
+        template<> 
+        struct ShortnameValue<discard> {
             static constexpr auto value = std::optional<char32_t>{};
         };
-        template<> struct _short_name<0> {
+        template<> 
+        struct ShortnameValue<0> {
             static constexpr auto value = std::optional<char32_t>{};
         };
-    public:
+    }
+
+    template <StringLiteral LongName, auto ShortName = discard>
+    struct Names {
         static constexpr std::string_view Longname = LongName;
-        static constexpr std::optional<char32_t> Shortname = _short_name<ShortName>::value;
+        static constexpr std::optional<char32_t> Shortname = impl::ShortnameValue<ShortName>::value;
 
         constexpr auto longname() const noexcept {
             return Longname;

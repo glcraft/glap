@@ -1,4 +1,3 @@
-#include <__concepts/arithmetic.h>
 #include <charconv>
 #include <glap/v2/parser.h>
 #include <glap/v2/model.h>
@@ -8,7 +7,7 @@
 
 namespace gl2 = glap::v2;
 
-bool is_hello_world(std::string_view v) {
+bool test_is_hello_world(std::string_view v) {
     return v == "hello" || v == "world";
 }
 
@@ -39,7 +38,7 @@ gl2::Parser<glap::v2::DefaultCommand::FirstDefined,
     >,
     gl2::model::Command<glap::v2::Names<"command2", gl2::discard>, 
         gl2::model::Flag<glap::v2::Names<"flag", 'f'>>,
-        gl2::model::Argument<glap::v2::Names<"arg", 'a'>, gl2::discard, is_hello_world>,
+        gl2::model::Argument<glap::v2::Names<"arg", 'a'>, gl2::discard, test_is_hello_world>,
         gl2::model::Arguments<glap::v2::Names<"args", 'b'>>,
         gl2::model::Inputs<>
     >,
