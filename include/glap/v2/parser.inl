@@ -67,7 +67,7 @@ namespace glap::v2
         }
     };
     template <class Contained>
-        requires std::constructible_from<Contained, std::string_view> && requires (Contained a, typename Contained::value_type v) {
+        requires std::constructible_from<typename Contained::value_type, std::string_view> && requires (Contained a, typename Contained::value_type v) {
             {a.values.push_back(v)};
         }
     struct ParseParameter<Contained> {
