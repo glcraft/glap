@@ -1,3 +1,5 @@
+#include "glap/common/error.h"
+#include "glap/v2/model.h"
 #include "glap/v2/parser.h"
 #include "glap/common/utils.h"
 #include <ranges>
@@ -97,7 +99,7 @@ int main(int argc, char** argv)
     using namespace glap::v2::model;
     using glap::v2::discard;
     glap::v2::Parser<glap::v2::DefaultCommand::FirstDefined, Command<glap::v2::Names<"othercommand", 't'>, Flag<glap::v2::Names<"flag", 'f'>>>,
-        Command<glap::v2::Names<"command", discard>, 
+        Command<glap::v2::Names<"command", 'c'>, 
             Flag<glap::v2::Names<"flag", 'f'>>,
             Argument<glap::v2::Names<"arg", 'a'>, discard, is_hello_world>,
             Arguments<glap::v2::Names<"args", 'b'>>,
