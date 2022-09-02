@@ -1,6 +1,7 @@
 add_rules("mode.debug", "mode.release")
-add_requires("fmt", {optional = true})
-add_requires("tl_expected", {optional = true})
+add_requires("fmt", {optional = true}) -- required only if stl has not std::format
+add_requires("tl_expected", {optional = true}) -- required only if stl has not std::expected
+add_requires("gtest 1.12", {optional = true}) -- required only for glap-tests
 target("glap")
     set_kind("$(kind)")
     set_languages("cxx20")
@@ -25,5 +26,13 @@ target("glap-example")
     set_default(false)
     add_deps("glap")
     add_files("tests/example.cpp")
+    add_includedirs("include")
 
+target("glap-tests")
+    set_kind("binary")
+    set_languages("cxx20")
+    set_default(false)
+    add_deps("glap")
+    add_packages("gtest")
+    add_files("tests/tests.cpp")
     add_includedirs("include")
