@@ -57,7 +57,7 @@ namespace glap::v1
         }
         if (!current_command.has_value()) {
             return make_unexpected(PositionnedError{
-                    .error = Error{
+                .error = Error{
                     .argument = "",
                     .value = std::nullopt,
                     .type = Error::Type::Command,
