@@ -111,9 +111,10 @@ namespace glap::v2
         static constexpr auto validator = Validator;
 
         std::optional<std::string_view> value;
+
         [[nodiscard]]constexpr auto resolve() const requires (!std::same_as<decltype(Resolver), Discard>) {
             static_assert(std::invocable<decltype(Resolver), std::string_view>, "Resolver must be callable with std::string_view");
-            return value ? Resolver(value.value()) : std::nullopt;
+            return value ? Resolver(value.value()) : std::optional<decltype(Resolver(std::string_view{}))>{};
         }
         [[nodiscard]]constexpr auto validate() const requires (!std::same_as<decltype(Validator), Discard>) {
             static_assert(std::invocable<decltype(Validator), std::string_view>, "Validator must be callable with std::string_view");
