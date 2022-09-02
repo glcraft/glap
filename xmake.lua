@@ -19,10 +19,11 @@ target("glap")
         end
     end)
 
-target("glap-test")
+target("glap-example")
     set_kind("binary")
     set_languages("cxx20")
     set_default(false)
     add_deps("glap")
-    add_files("tests/*.cpp")
+    add_files("tests/example.cpp")
+
     add_includedirs("include")
