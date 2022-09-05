@@ -44,7 +44,7 @@ namespace glap::v2
         };
         template <class Ty, auto I, size_t V>
         static constexpr bool is_value_v = is_value<Ty, I, V>::value;
-        
+
         template <class T, auto SN>
         struct OptionalValue {
             static constexpr auto value = std::optional<T>{SN};
@@ -56,6 +56,11 @@ namespace glap::v2
         template<> 
         struct OptionalValue<char32_t, 0> {
             static constexpr auto value = std::optional<char32_t>{};
+        };
+        template<auto V> 
+            requires std::convertible_to<decltype(V), std::string_view> && (std::string_view(V).size() == 0)
+        struct OptionalValue<std::string_view, V> {
+            static constexpr auto value = std::optional<std::string_view>{};
         };
         template <class T, auto SN>
         static constexpr auto optional_value = OptionalValue<T, SN>::value;
