@@ -36,3 +36,6 @@ target("glap-tests")
     add_packages("gtest")
     add_files("tests/tests.cpp")
     add_includedirs("include")
+    if (is_plat("windows")) then
+        add_ldflags("/SUBSYSTEM:CONSOLE")
+    end
