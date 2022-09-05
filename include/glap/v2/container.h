@@ -113,9 +113,9 @@ namespace glap::v2
     private:
         using n_type = std::remove_cvref_t<decltype(N)>;
         static constexpr auto is_n_discard = std::is_same_v<n_type, Discard>;
-        static constexpr auto is_n_zero = is_value_v<n_type, N, 0>;
+        static constexpr auto is_n_zero = impl::is_value_v<n_type, N, 0>;
         using dynamic_vector = std::vector<value_type>;
-        using fixed_vector = FixedVector<value_type, value_or_v<N, 0>>;
+        using fixed_vector = FixedVector<value_type, impl::value_or_v<N, 0>>;
     public:
         using container_type = std::conditional_t<is_n_discard || is_n_zero, dynamic_vector, fixed_vector>;
         container_type values;
@@ -131,11 +131,11 @@ namespace glap::v2
             return this->values[i];
         }
         template <size_t I>
-        [[nodiscard]]constexpr auto& get() noexcept requires (I < value_or<N, std::numeric_limits<size_t>::max()>::value) {
+        [[nodiscard]]constexpr auto& get() noexcept requires (I < impl::value_or<N, std::numeric_limits<size_t>::max()>::value) {
             return this->values[I];
         }
         template <size_t I>
-        [[nodiscard]]constexpr const auto& get() const noexcept requires (I < value_or<N, std::numeric_limits<size_t>::max()>::value) {
+        [[nodiscard]]constexpr const auto& get() const noexcept requires (I < impl::value_or<N, std::numeric_limits<size_t>::max()>::value) {
             return this->values[I];
         }
     };

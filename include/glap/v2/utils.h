@@ -18,33 +18,33 @@ namespace glap::v2
         
         char value[N];
     };
-
-    template <auto Value, size_t Default>
-    struct value_or {
-        static constexpr auto value = Default;
-    };
-    template <auto Value, size_t Default>
-        requires std::convertible_to<decltype(Value), size_t>
-    struct value_or<Value, Default> {
-        static constexpr size_t value = Value;
-    };
-    template <auto Value, size_t Default>
-    constexpr auto value_or_v = value_or<Value, Default>::value;
-
-    template <class Ty, auto I, size_t V>
-    struct is_value
-    {
-        static constexpr bool value = false;
-    };
-    template <class Ty, size_t V>
-    struct is_value<Ty, V, V>
-    {
-        static constexpr bool value = true;
-    };
-    template <class Ty, auto I, size_t V>
-    constexpr bool is_value_v = is_value<Ty, I, V>::value;
-
     namespace impl {
+
+        template <auto Value, size_t Default>
+        struct value_or {
+            static constexpr auto value = Default;
+        };
+        template <auto Value, size_t Default>
+            requires std::convertible_to<decltype(Value), size_t>
+        struct value_or<Value, Default> {
+            static constexpr size_t value = Value;
+        };
+        template <auto Value, size_t Default>
+        static constexpr auto value_or_v = value_or<Value, Default>::value;
+
+        template <class Ty, auto I, size_t V>
+        struct is_value
+        {
+            static constexpr bool value = false;
+        };
+        template <class Ty, size_t V>
+        struct is_value<Ty, V, V>
+        {
+            static constexpr bool value = true;
+        };
+        template <class Ty, auto I, size_t V>
+        static constexpr bool is_value_v = is_value<Ty, I, V>::value;
+        
         template <class T, auto SN>
         struct OptionalValue {
             static constexpr auto value = std::optional<T>{SN};
