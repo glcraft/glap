@@ -2,6 +2,7 @@
 #include "glap/v2/model.h"
 #include "glap/v2/parser.h"
 #include "glap/common/utils.h"
+#include "glap/v2/help.h"
 #include <ranges>
 #include <charconv>
 #include <fmt/format.h>
@@ -106,6 +107,10 @@ int main(int argc, char** argv)
             Inputs<>
         >
     > parser;
+
+    static constexpr auto test = glap::v2::help::description<"StringLiteral Short", "StringLiteral Long">;
+    auto test2 = glap::v2::help::short_description<"StringLiteral Short">;
+    auto test3 = glap::v2::help::CommandDescription<"command", test>{};
     
     auto result = parser.parse(std::span{argv, argv+argc} | std::views::transform([](auto arg) {return std::string_view{arg};}) );
 
