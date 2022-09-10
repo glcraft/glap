@@ -108,19 +108,22 @@ int main(int argc, char** argv)
         >
     > parser;
 
-    glap::v2::help::model::Program<glap::v2::help::model::Description<"example program">, 
+    using help = glap::v2::help::model::Program<"glap-example",
+        glap::v2::help::model::FullDescription<"example program", "This is an exemple of the program description">, 
         glap::v2::help::model::Command<"othercommand", glap::v2::help::model::Description<"first defined command">>
-    > help;
-    
-    auto result = parser.parse(std::span{argv, argv+argc} | std::views::transform([](auto arg) {return std::string_view{arg};}) );
+    >;
 
-    if (result) {
-        auto& v = *result;
-        fmt::print("program: {}\n", v.program);
-        std::visit([](auto& command){ print_command (command); }, v.command);
-    } else {
-        fmt::print("{}\n", result.error().to_string());
-        return 1;
-    }
+    auto help_str = glap::v2::Help<help>::get_help<decltype(parser)>();
+    fmt::print("{}\n", help_str);
+    // auto result = parser.parse(std::span{argv, argv+argc} | std::views::transform([](auto arg) {return std::string_view{arg};}) );
+
+    // if (result) {
+    //     auto& v = *result;
+    //     fmt::print("program: {}\n", v.program);
+    //     std::visit([](auto& command){ print_command (command); }, v.command);
+    // } else {
+    //     fmt::print("{}\n", result.error().to_string());
+    //     return 1;
+    // }
     return 0;
 }
