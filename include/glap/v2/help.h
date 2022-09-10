@@ -3,25 +3,45 @@
 #include "utils.h"
 #include <optional>
 #include <string_view>
+#include <type_traits>
 namespace glap::v2 {
     namespace help {
-
-        template<auto Short, auto Long>
-        struct Description {
-            static constexpr std::optional<std::string_view> long_description = impl::optional_value<std::string_view, Long>;
-            static constexpr std::string_view short_description = Short;
-        };
-        template <StringLiteral Short, StringLiteral Long>
-        static constexpr auto description = Description<Long, Short>{};
-        template <StringLiteral Short>
-        static constexpr auto short_description = Description<Short, discard>{};
-
-        template<StringLiteral Name, Description Desc> 
-        struct CommandDescription
+        namespace model 
         {
-            static constexpr auto name = Name;
-            static constexpr auto description = Desc;
-        };
+            template <class T>
+            concept IsDescription = requires (T a) {
+                {a.short_description} -> std::convertible_to<std::string_view>;
+            };
+            template <class T>
+            concept IsFullDescription = IsDescription<T> && requires (T a) {
+                {a.long_description} -> std::convertible_to<std::string_view>;
+            };
+
+            template<StringLiteral Short, auto Long = discard>
+            struct Description 
+            {};
+            template<StringLiteral Short, StringLiteral Long>
+            struct Description<Short, Long> {
+                static constexpr std::string_view long_description = Long;
+                static constexpr std::string_view short_description = Short;
+            };
+            template<StringLiteral Short>
+            struct Description<Short, discard> {
+                static constexpr std::string_view short_description = Short;
+            };
+
+            template<StringLiteral Name, IsDescription Desc> 
+            struct Parameter : Desc {
+                static constexpr std::string_view name = Name;
+            };
+            template<StringLiteral Name, IsDescription Desc, Parameter ...Params>
+            struct Command : Desc {
+                static constexpr auto name = Name;
+            };
+            template<IsDescription Desc, class ...Commands>
+            struct Program : Desc
+            {};
+        }
     }
 
     template<class ...> 

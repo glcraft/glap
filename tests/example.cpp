@@ -108,9 +108,9 @@ int main(int argc, char** argv)
         >
     > parser;
 
-    static constexpr auto test = glap::v2::help::description<"StringLiteral Short", "StringLiteral Long">;
-    auto test2 = glap::v2::help::short_description<"StringLiteral Short">;
-    auto test3 = glap::v2::help::CommandDescription<"command", test>{};
+    glap::v2::help::model::Program<glap::v2::help::model::Description<"example program">, 
+        glap::v2::help::model::Command<"othercommand", glap::v2::help::model::Description<"first defined command">>
+    > help;
     
     auto result = parser.parse(std::span{argv, argv+argc} | std::views::transform([](auto arg) {return std::string_view{arg};}) );
 
