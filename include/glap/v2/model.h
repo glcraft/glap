@@ -45,9 +45,7 @@ namespace glap::v2::model
     };
 
     template <class T>
-    concept IsParameter = requires {
-        std::same_as<std::remove_cvref_t<decltype(T::type)>, ParameterType>;
-    };
+    concept IsParameter = std::same_as<std::remove_cvref_t<decltype(T::type)>, ParameterType>;
     
     template <class CommandNames, IsParameter... P>
     class Command : public CommandNames {

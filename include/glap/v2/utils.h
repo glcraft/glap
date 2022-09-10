@@ -79,10 +79,8 @@ namespace glap::v2
         }
     };
     template <typename T>
-    concept HasNames = requires {
-        std::same_as<std::remove_cvref_t<decltype(T::Longname)>, std::string_view>;
-        std::same_as<std::remove_cvref_t<decltype(T::Shortname)>, std::optional<char32_t>>;
-    };
+    concept HasNames = std::same_as<std::remove_cvref_t<decltype(T::Longname)>, std::string_view> 
+        && std::same_as<std::remove_cvref_t<decltype(T::Shortname)>, std::optional<char32_t>>;
    
     template <class ...ArgN>
     struct NameChecker 
