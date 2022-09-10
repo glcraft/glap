@@ -46,13 +46,7 @@ namespace glap::v2 {
         }
     }
 
-    template<class ...> 
+    template<class> 
     class Help 
     {};
-
-    template<class Parser, class ...CommandDesc> 
-    class Help <Parser, CommandDesc...>
-    {
-
-    };
 }
