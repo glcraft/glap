@@ -50,3 +50,4 @@ namespace glap::v2 {
     class Help 
     {};
 }
+#include "help.inl"
