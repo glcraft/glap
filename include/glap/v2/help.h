@@ -40,7 +40,7 @@ namespace glap::v2 {
             struct Command : Desc {
                 static constexpr auto name = Name;
             };
-            template<IsDescription Desc, class ...Commands>
+            template<StringLiteral Name, IsDescription Desc, class ...Commands>
             struct Program : Desc
             {};
         }
