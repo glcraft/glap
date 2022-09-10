@@ -29,6 +29,8 @@ namespace glap::v2 {
             struct Description<Short, discard> {
                 static constexpr std::string_view short_description = Short;
             };
+            template<StringLiteral Short, StringLiteral Long>
+            using FullDescription = Description<Short, Long>;
 
             template<StringLiteral Name, IsDescription Desc> 
             struct Parameter : Desc {
