@@ -1,5 +1,5 @@
 add_rules("mode.debug", "mode.release")
-add_requires("fmt 9.1.0", {optional = true}) -- required only if stl has not std::format
+add_requires("fmt 9.0.0", {optional = true}) -- required only if stl has not std::format
 add_requires("tl_expected", {optional = true}) -- required only if stl has not std::expected
 add_requires("gtest 1.12", {optional = true}) -- required only for glap-tests
 target("glap")
@@ -10,11 +10,8 @@ target("glap")
     add_includedirs("include", {public = true})
     on_load(function (target)
         import("lib.detect.check_cxxsnippets")
-        local has_std_format = check_cxxsnippets("#ifndef __cpp_lib_format\nstatic_assert(false);\n#else\nstatic_assert(__cpp_lib_format >= 201907L)\n#endif")
         local has_std_expected = check_cxxsnippets("#ifndef __cpp_lib_expected\nstatic_assert(false);\n#else\nstatic_assert(__cpp_lib_expected)\n#endif")
-        if not has_std_format then
             target:add("packages", "fmt", {public = true})
-        end
         if not has_std_expected then
             target:add("packages", "tl_expected", {public = true})
         end
