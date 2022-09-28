@@ -111,6 +111,7 @@ int main(int argc, char** argv)
     using help = glap::v2::help::model::Program<"glap-example",
         glap::v2::help::model::FullDescription<"example program", "This is an exemple of the program description">, 
         glap::v2::help::model::Command<"othercommand", glap::v2::help::model::Description<"first defined command">>
+        // glap::v2::help::model::Command<"command", glap::v2::help::model::Description<"More complete command">>
     >;
 
     auto help_str = glap::v2::Help<help>::get_help<decltype(parser)>();
