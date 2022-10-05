@@ -7,26 +7,10 @@
 #include "model.h"
 #include "parser.h"
 #include <concepts>
+#include <cstddef>
+#include <algorithm>
 namespace glap::v2 {
     namespace impl {
-        template <class ...Others>
-        struct FindByName 
-        {};
-        template <class T1, class T2, class ...Others>
-        struct FindByName<T1, T2, Others...>
-        {
-            using type = std::conditional_t<
-                T1::name == T2::name,
-                T2,
-                typename FindByName<T1, Others...>::type
-            >;
-        };
-        template <class T1, class T2>
-        struct FindByName<T1, T2> 
-        {
-            static_assert(T1::name == T2::name, "Name not found");
-            using type = T2;
-        };
     }
 
     template<StringLiteral Name, help::model::IsDescription Desc, class ...CommandsDesc>
@@ -48,11 +32,12 @@ namespace glap::v2 {
             template <class OutputIt>
             constexpr OutputIt operator()(OutputIt it) const noexcept {
                 if constexpr(help::model::IsFullDescription<Desc>)
-                    it = glap::format_to(it, "{} - {}\n\n{}\n", Name, program_t::short_description, program_t::long_description);
+                    it = fmt::format_to(it, "{} - {}\n\n{}\n", Name, program_t::short_description, program_t::long_description);
                 else
                     it = glap::format_to(it, "{} - {}\n", Name, program_t::short_description);
                 it = glap::format_to(it, "Commands:\n");
-                it = display<EmbedArgs<Commands...>, EmbedArgs<CommandsDesc...>>(it);
+                constexpr auto max_cmd_name_length = max_length<Commands...>(2)+2;
+                it = display<EmbedArgs<Commands...>, EmbedArgs<CommandsDesc...>>(it, max_cmd_name_length);
                 return it;
             }
         private:
@@ -62,6 +47,12 @@ namespace glap::v2 {
             template <class EmbedParser, class EmbedHelp>
             struct Display
             {};
+            template <HasNames... Nameds>
+            static constexpr auto max_length(size_t spacing) -> size_t {
+                size_t max = 0;
+                (..., (max = std::max(max, Nameds::Longname.size()+(Nameds::Shortname ? 1+spacing : 0))));
+                return max;
+            }
 
             template <class EmbedParser, class EmbedHelp>
             static constexpr auto display = Display<EmbedParser, EmbedHelp>{};
@@ -70,10 +61,8 @@ namespace glap::v2 {
             struct Display<EmbedArgs<ArgsParser...>, EmbedArgs<ArgsHelp...>>
             {
                 template <class OutputIt>
-                constexpr OutputIt operator()(OutputIt it) const {
-                    ([&] {
-                        it = display<ArgsParser, EmbedArgs<ArgsHelp...>>(it);
-                    }(),...);
+                constexpr OutputIt operator()(OutputIt it, size_t width) const {
+                    ((it = display<ArgsParser, EmbedArgs<ArgsHelp...>>(it, width)),...);
                     return it;
                 }
             };
@@ -81,16 +70,16 @@ namespace glap::v2 {
             struct Display<ArgParser, EmbedArgs<ArgsHelp...>>
             {
                 template <class OutputIt>
-                constexpr OutputIt operator()(OutputIt it) const {
+                constexpr OutputIt operator()(OutputIt it, size_t width) const {
                     bool found = ([&] {
                         if constexpr (ArgParser::Longname == ArgsHelp::name){
-                            it = display<ArgParser, ArgsHelp>(it);
+                            it = display<ArgParser, ArgsHelp>(it, width);
                             return true;
                         } 
                         return false;
                     }() || ...);
                     if (!found) {
-                        return display<ArgParser, Discard>(it);
+                        return display<ArgParser, Discard>(it, width);
                     }
                     return it;
                 }
@@ -103,11 +92,12 @@ namespace glap::v2 {
             struct Display<ArgParser, ArgHelp>
             {
                 template <class OutputIt>
-                constexpr OutputIt operator()(OutputIt it) const {
+                constexpr OutputIt operator()(OutputIt it, size_t width) const {
+                    auto spacing = width - max_length<ArgParser>(2);
                     if constexpr(ArgParser::Shortname.has_value())
-                        it = glap::format_to(it, "  {}, {}", glap::utils::uni::codepoint_to_utf8(ArgParser::Shortname.value()), ArgParser::Longname);
+                        it = glap::format_to(it, "{0:>{1}}{2}, {3}", "", spacing, glap::utils::uni::codepoint_to_utf8(ArgParser::Shortname.value()), ArgParser::Longname);
                     else
-                        it = glap::format_to(it, "  {}", ArgParser::Longname);
+                        it = glap::format_to(it, "{0:>{1}}{2}", "", spacing, ArgParser::Longname);
                     return glap::format_to(it, ": {}\n", ArgHelp::short_description);
                 } 
             };
@@ -115,11 +105,12 @@ namespace glap::v2 {
             struct Display<ArgParser, Discard>
             {
                 template <class OutputIt>
-                constexpr OutputIt operator()(OutputIt it) const {
+                constexpr OutputIt operator()(OutputIt it, size_t width) const {
+                    auto spacing = width - max_length<ArgParser>(2);
                     if constexpr(ArgParser::Shortname.has_value())
-                        it = glap::format_to(it, "  {}, {}", glap::utils::uni::codepoint_to_utf8(ArgParser::Shortname.value()), ArgParser::Longname);
+                        it = glap::format_to(it, "{0:>{1}}{2}, {3}", "", spacing, glap::utils::uni::codepoint_to_utf8(ArgParser::Shortname.value()), ArgParser::Longname);
                     else
-                        it = glap::format_to(it, "  {}", ArgParser::Longname);
+                        it = glap::format_to(it, "{0:>{1}}{2}", "", spacing, ArgParser::Longname);
                     return glap::format_to(it, ": (no description)\n");
                 } 
             };
