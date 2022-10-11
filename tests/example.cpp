@@ -114,7 +114,7 @@ int main(int argc, char** argv)
         // glap::v2::help::model::Command<"command", glap::v2::help::model::Description<"More complete command">>
     >;
 
-    auto help_str = glap::v2::Help<help>::get_help<decltype(parser)>();
+    auto help_str = glap::v2::get_help<help, decltype(parser)>();
     fmt::print("{}\n", help_str);
     // auto result = parser.parse(std::span{argv, argv+argc} | std::views::transform([](auto arg) {return std::string_view{arg};}) );
 
