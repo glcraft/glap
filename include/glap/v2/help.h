@@ -45,9 +45,11 @@ namespace glap::v2 {
             {};
         }
     }
-
-    template<class> 
-    class Help 
+    template<class FromHelp, class FromParser> 
+    struct Help
     {};
+
+    template<class FromHelp, class FromParser>
+    static constexpr auto get_help = Help<FromHelp, FromParser>{};
 }
 #include "help.inl"
