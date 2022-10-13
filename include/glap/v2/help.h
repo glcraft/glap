@@ -1,6 +1,7 @@
 #pragma once
 #include "glap/v2/discard.h"
 #include "utils.h"
+#include <concepts>
 #include <optional>
 #include <string_view>
 #include <type_traits>
@@ -9,13 +10,10 @@ namespace glap::v2 {
         namespace model 
         {
             template <class T>
-            concept IsDescription = requires (T a) {
-                {a.short_description} -> std::convertible_to<std::string_view>;
-            };
+            concept IsDescription = std::same_as<std::remove_cvref_t<decltype(T::short_description)>, std::string_view>;
             template <class T>
-            concept IsFullDescription = IsDescription<T> && requires (T a) {
-                {a.long_description} -> std::convertible_to<std::string_view>;
-            };
+            concept IsFullDescription = IsDescription<T> 
+                && std::same_as<std::remove_cvref_t<decltype(T::long_description)>, std::string_view>;
 
             template<StringLiteral Short, auto Long = discard>
             struct Description 
