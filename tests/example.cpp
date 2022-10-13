@@ -99,23 +99,36 @@ int main(int argc, char** argv)
 {
     using namespace glap::v2::model;
     using glap::v2::discard;
+
+    using ParserCommand = Command<glap::v2::Names<"command", 'c'>, 
+        Flag<glap::v2::Names<"flag", 'f'>>,
+        Argument<glap::v2::Names<"arg", 'a'>, discard, is_hello_world>,
+        Arguments<glap::v2::Names<"args", 'b'>>,
+        Inputs<>
+    >;
     glap::v2::Parser<"glap", glap::v2::DefaultCommand::FirstDefined, Command<glap::v2::Names<"othercommand", 't'>, Flag<glap::v2::Names<"flag", 'f'>>>,
-        Command<glap::v2::Names<"command", 'c'>, 
-            Flag<glap::v2::Names<"flag", 'f'>>,
-            Argument<glap::v2::Names<"arg", 'a'>, discard, is_hello_world>,
-            Arguments<glap::v2::Names<"args", 'b'>>,
-            Inputs<>
-        >
+        ParserCommand
     > parser;
 
-    using help = glap::v2::help::model::Program<"glap-example",
-        glap::v2::help::model::FullDescription<"example program", "This is an exemple of the program description">, 
-        glap::v2::help::model::Command<"othercommand", glap::v2::help::model::Description<"first defined command">>
-        // glap::v2::help::model::Command<"command", glap::v2::help::model::Description<"More complete command">>
+
+    using HelpCommand = glap::v2::help::model::Command<"command", glap::v2::help::model::Description<"first defined command">,
+        glap::v2::help::model::Parameter<"flag", glap::v2::help::model::Description<"first defined flag">>,
+        glap::v2::help::model::Parameter<"arg", glap::v2::help::model::Description<"first defined argument">>,
+        glap::v2::help::model::Parameter<"args", glap::v2::help::model::Description<"first defined arguments">>
     >;
 
-    auto help_str = glap::v2::get_help<help, decltype(parser)>();
-    fmt::print("{}\n", help_str);
+    using HelpProgram = glap::v2::help::model::Program<"glap-example",
+        glap::v2::help::model::FullDescription<"example program", "This is an exemple of the program description">, 
+        HelpCommand
+    >;
+    {
+        auto help_str = glap::v2::get_help<HelpProgram, decltype(parser)>();
+        fmt::print("{}\n\n", help_str);
+    }
+    {
+        auto help_str = glap::v2::get_help<HelpCommand, ParserCommand>();
+        fmt::print("{}\n\n", help_str);
+    }
     // auto result = parser.parse(std::span{argv, argv+argc} | std::views::transform([](auto arg) {return std::string_view{arg};}) );
 
     // if (result) {
