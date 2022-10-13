@@ -22,7 +22,7 @@ namespace glap::v2 {
             using type = T;
         };
         template <class Named, class T, class ...Others>
-            requires (Named::longname != T::name)
+            requires (!HasLongName<Named> || Named::longname != T::name)
         struct FindByName<Named, T, Others...> : FindByName<Named, Others...>
         {};
         template <class Named>
@@ -36,6 +36,10 @@ namespace glap::v2 {
             size_t max = 0;
             (..., (max = std::max(max, Nameds::longname.size()+(Nameds::shortname ? 1+padding : 0))));
             return max;
+        }
+        template <class... Nameds>
+        constexpr auto max_length(size_t padding) -> size_t {
+            return 0;
         }
         template <class>
         static constexpr bool always_false_v = false;
