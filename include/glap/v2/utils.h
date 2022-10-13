@@ -68,20 +68,17 @@ namespace glap::v2
 
     template <StringLiteral LongName, auto ShortName = discard>
     struct Names {
-        static constexpr std::string_view Longname = LongName;
-        static constexpr std::optional<char32_t> Shortname = impl::optional_value<char32_t, ShortName>;
-
-        constexpr auto longname() const noexcept {
-            return Longname;
-        }
-        constexpr auto shortname() const noexcept {
-            return Shortname;
-        }
+        static constexpr std::string_view longname = LongName;
+        static constexpr std::optional<char32_t> shortname = impl::optional_value<char32_t, ShortName>;
     };
     template <typename T>
-    concept HasNames = std::same_as<std::remove_cvref_t<decltype(T::Longname)>, std::string_view> 
-        && std::same_as<std::remove_cvref_t<decltype(T::Shortname)>, std::optional<char32_t>>;
-   
+    concept HasLongName = std::same_as<std::remove_cvref_t<decltype(T::longname)>, std::string_view>;
+    template <typename T>
+    concept HasNames = HasLongName<T>
+        && std::same_as<std::remove_cvref_t<decltype(T::shortname)>, std::optional<char32_t>>;
+    template <typename T>
+    concept HasShortName = HasNames<T> && T::shortname.has_value();
+
     template <class ...ArgN>
     struct NameChecker 
     {
@@ -91,8 +88,8 @@ namespace glap::v2
     template <HasNames Arg1, HasNames Arg2, class ...ArgN>
     struct NameChecker<Arg1, Arg2, ArgN...> 
     {
-        static constexpr bool has_duplicate_longname = Arg1::Longname == Arg2::Longname || NameChecker<Arg1, ArgN...>::has_duplicate_longname || NameChecker<Arg2, ArgN...>::has_duplicate_longname;
-        static constexpr bool has_duplicate_shortname = Arg1::Shortname.has_value() && Arg2::Shortname.has_value() && Arg1::Shortname.value() == Arg2::Shortname.value() || NameChecker<Arg1, ArgN...>::has_duplicate_shortname || NameChecker<Arg2, ArgN...>::has_duplicate_shortname;
+        static constexpr bool has_duplicate_longname = Arg1::longname == Arg2::longname || NameChecker<Arg1, ArgN...>::has_duplicate_longname || NameChecker<Arg2, ArgN...>::has_duplicate_longname;
+        static constexpr bool has_duplicate_shortname = Arg1::shortname.has_value() && Arg2::shortname.has_value() && Arg1::shortname.value() == Arg2::shortname.value() || NameChecker<Arg1, ArgN...>::has_duplicate_shortname || NameChecker<Arg2, ArgN...>::has_duplicate_shortname;
     };
     template <typename Arg1, typename Arg2, class ...ArgN>
         requires HasNames<Arg1> && (!HasNames<Arg2>)

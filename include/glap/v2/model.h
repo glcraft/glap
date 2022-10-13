@@ -61,7 +61,7 @@ namespace glap::v2::model
         template <size_t i, StringLiteral lit>
         static consteval size_t _get_parameter_id() noexcept {
             static_assert((i < NbParams), "Parameter not found");
-            if constexpr (Param<i>::Longname == lit) {
+            if constexpr (Param<i>::longname == lit) {
                 return i;
             } else {
                 return _get_parameter_id<i + 1, lit>();

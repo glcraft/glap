@@ -35,7 +35,7 @@ template <class Names, auto... T>
 struct Print<glap::v2::model::Argument<Names, T...>> {
     using value_type= glap::v2::model::Argument<Names, T...>;
     void operator()(const value_type& v) const {
-        fmt::print("    --{}: ", v.Longname);
+        fmt::print("    --{}: ", v.longname);
         if (v.value) {
             fmt::print("\"{}\"\n", v.value.value());
         } else {
@@ -47,7 +47,7 @@ template <class ...P>
 struct Print<glap::v2::model::Flag<P...>> {
     using value_type= glap::v2::model::Flag<P...>;
     void operator()(const value_type& v) const {
-        fmt::print("    --{}: {}x\n", v.Longname, v.occurences);
+        fmt::print("    --{}: {}x\n", v.longname, v.occurences);
     }
 };
 template <class T> 
@@ -69,7 +69,7 @@ template <class Names, auto N, auto ...Args>
 struct Print<glap::v2::model::Arguments<Names, N, Args...>> {
     using value_type= glap::v2::model::Arguments<Names, N  , Args...>;
     void operator()(const value_type& v) const {
-        fmt::print("    --{}: ", v.Longname);
+        fmt::print("    --{}: ", v.longname);
         auto nb=0;
         if (v.values.empty()) {
             fmt::print("none\n");
@@ -85,7 +85,7 @@ static constexpr auto print = Print<T>{};
 
 template <class Names, class ...P>
 auto print_command(glap::v2::model::Command<Names, P...>& command) {
-    fmt::print("command: {}\n", command.Longname);
+    fmt::print("command: {}\n", command.longname);
     ([&] {
         print<P>(std::get<P>(command.params));
     }(), ...);
@@ -99,7 +99,7 @@ int main(int argc, char** argv)
 {
     using namespace glap::v2::model;
     using glap::v2::discard;
-    glap::v2::Parser<glap::v2::DefaultCommand::FirstDefined, Command<glap::v2::Names<"othercommand", 't'>, Flag<glap::v2::Names<"flag", 'f'>>>,
+    glap::v2::Parser<"glap", glap::v2::DefaultCommand::FirstDefined, Command<glap::v2::Names<"othercommand", 't'>, Flag<glap::v2::Names<"flag", 'f'>>>,
         Command<glap::v2::Names<"command", 'c'>, 
             Flag<glap::v2::Names<"flag", 'f'>>,
             Argument<glap::v2::Names<"arg", 'a'>, discard, is_hello_world>,

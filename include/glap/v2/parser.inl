@@ -104,7 +104,7 @@ namespace glap::v2
     {
         template <HasNames Ty>
         constexpr auto find_longname(std::string_view name) -> bool {
-            return name == Ty::Longname;
+            return name == Ty::longname;
         }
         template <HasNames Ty>
         constexpr auto find_shortname(std::string_view name) -> Expected<bool> {
@@ -118,7 +118,7 @@ namespace glap::v2
                 });
             }
             auto codepoint = exp_codepoint.value();
-            return codepoint == Ty::Shortname;
+            return codepoint == Ty::shortname;
         }
         template <HasNames Ty>
         constexpr auto find_name(std::string_view name) -> Expected<bool> {
@@ -271,9 +271,9 @@ namespace glap::v2
                     if constexpr(!HasNames<T>)
                         return false;
                     else {
-                        if constexpr(!std::same_as<std::decay_t<decltype(T::Longname)>, std::string_view>)
+                        if constexpr(!std::same_as<std::decay_t<decltype(T::longname)>, std::string_view>)
                             return false;
-                        if (T::Longname != longname)
+                        if (T::longname != longname)
                             return false;
                     }
                     result = parse_parameter<T>(std::get<T>(parameters), value);
@@ -295,11 +295,11 @@ namespace glap::v2
                     if constexpr(!HasNames<T>)
                         return false;
                     else {
-                        if constexpr(!std::same_as<std::decay_t<decltype(T::Shortname)>, std::optional<char32_t>>)
+                        if constexpr(!std::same_as<std::decay_t<decltype(T::shortname)>, std::optional<char32_t>>)
                             return false;
-                        if constexpr(!T::Shortname.has_value())
+                        if constexpr(!T::shortname.has_value())
                             return false;
-                        if (T::Shortname.value() != shortname)
+                        if (T::shortname.value() != shortname)
                             return false;
                     }
                     std::optional<std::string_view> value = std::nullopt;
@@ -388,8 +388,8 @@ namespace glap::v2
         };
         
     }
-    template<DefaultCommand def_cmd, class... Commands>
-    constexpr auto Parser<def_cmd, Commands...>::parse(glap::utils::Iterable<std::string_view> auto args) const -> PosExpected<model::Program<Commands...>> {
+    template<StringLiteral Name, DefaultCommand def_cmd, class... Commands>
+    constexpr auto Parser<Name, def_cmd, Commands...>::parse(glap::utils::Iterable<std::string_view> auto args) const -> PosExpected<model::Program<Commands...>> {
         if (args.size() == 0) [[unlikely]] {
             return make_unexpected(PositionnedError{
                 .error = Error{

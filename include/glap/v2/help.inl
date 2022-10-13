@@ -15,14 +15,14 @@ namespace glap::v2 {
         struct FindByName 
         {};
         template <class Named, class T, class ...Others>
-            requires (Named::Longname == T::name)
+            requires (Named::longname == T::name)
         struct FindByName<Named, T, Others...>
         {
         public:
             using type = T;
         };
         template <class Named, class T, class ...Others>
-            requires (Named::Longname != T::name)
+            requires (Named::longname != T::name)
         struct FindByName<Named, T, Others...> : FindByName<Named, Others...>
         {};
         template <class Named>
@@ -34,7 +34,7 @@ namespace glap::v2 {
         template <HasNames... Nameds>
         constexpr auto max_length(size_t spacing) -> size_t {
             size_t max = 0;
-            (..., (max = std::max(max, Nameds::Longname.size()+(Nameds::Shortname ? 1+spacing : 0))));
+            (..., (max = std::max(max, Nameds::longname.size()+(Nameds::shortname ? 1+padding : 0))));
             return max;
         }
     }
