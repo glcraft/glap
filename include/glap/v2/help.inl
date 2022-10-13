@@ -120,4 +120,30 @@ namespace glap::v2 {
         }
     private:
     };
+
+    template<StringLiteral Name, help::model::IsDescription Desc, help::model::Parameter ...ParamsHelp, class CommandNames, model::IsParameter... ParamsParser>
+    struct Help<help::model::Command<Name, Desc, ParamsHelp...>, model::Command<CommandNames, ParamsParser...>> : impl::BasicHelp<help::model::Command<Name, Desc, ParamsHelp...>, model::Command<CommandNames, ParamsParser...>> {
+        using CommandHelp = help::model::Command<Name, Desc, ParamsHelp...>;
+        using CommandParser = model::Command<CommandNames, ParamsParser...>;
+        [[nodiscard]] constexpr std::string operator()() const noexcept {
+            std::string result;
+            this->operator()(std::back_inserter(result));
+            return result;
+        }
+        template <class OutputIt>
+        constexpr OutputIt operator()(OutputIt it) const noexcept {
+            it = this->template identity<OutputIt, false, false>(it);
+            it = glap::format_to(it, "\n\n");
+            it = glap::format_to(it, "Commands:\n");
+            constexpr auto max_cmd_name_length = impl::max_length<ParamsParser...>(2)+2;
+            ([&] {
+                constexpr auto basic_help = impl::basic_help<typename impl::FindByName<ParamsParser, ParamsHelp...>::type, ParamsParser>;
+                constexpr auto spacing = max_cmd_name_length - impl::max_length<ParamsParser>(2);
+                it = glap::format_to(it, "{0:>{1}}", "", spacing);
+                it = basic_help.template identity<OutputIt, true, false>(it);
+                it = glap::format_to(it, "\n");
+            }(), ...);
+            return it;
+        }
+    };
 }
