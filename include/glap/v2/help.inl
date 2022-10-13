@@ -121,7 +121,7 @@ namespace glap::v2 {
     private:
     };
 
-    template<StringLiteral Name, help::model::IsDescription Desc, help::model::Parameter ...ParamsHelp, class CommandNames, model::IsParameter... ParamsParser>
+    template<StringLiteral Name, help::model::IsDescription Desc, class ...ParamsHelp, class CommandNames, model::IsParameter... ParamsParser>
     struct Help<help::model::Command<Name, Desc, ParamsHelp...>, model::Command<CommandNames, ParamsParser...>> : impl::BasicHelp<help::model::Command<Name, Desc, ParamsHelp...>, model::Command<CommandNames, ParamsParser...>> {
         using CommandHelp = help::model::Command<Name, Desc, ParamsHelp...>;
         using CommandParser = model::Command<CommandNames, ParamsParser...>;

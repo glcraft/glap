@@ -34,7 +34,7 @@ namespace glap::v2 {
             struct Parameter : Desc {
                 static constexpr std::string_view name = Name;
             };
-            template<StringLiteral Name, IsDescription Desc, Parameter ...Params>
+            template<StringLiteral Name, IsDescription Desc, class ...Params>
             struct Command : Desc {
                 static constexpr auto name = Name;
             };
