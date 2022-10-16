@@ -133,9 +133,10 @@ namespace glap::v2 {
     }
 
     template<StringLiteral NameHelp, help::model::IsDescription Desc, class ...CommandsHelp, StringLiteral NameParser, DefaultCommand def_cmd, class... CommandsParser>
-    struct Help<help::model::Program<NameHelp, Desc, CommandsHelp...>, Parser<NameParser, def_cmd, CommandsParser...>> : impl::BasicHelp<help::model::Program<NameHelp, Desc, CommandsHelp...>, Parser<NameParser, def_cmd, CommandsParser...>> {
+    struct Help<help::model::Program<NameHelp, Desc, CommandsHelp...>, Parser<NameParser, def_cmd, CommandsParser...>> {
         using ProgramHelp = help::model::Program<NameHelp, Desc, CommandsHelp...>;
         using ProgramParser = Parser<NameParser, def_cmd, CommandsParser...>;
+        
         [[nodiscard]] constexpr std::string operator()() const noexcept {
             std::string result;
             this->operator()(std::back_inserter(result));
@@ -143,24 +144,26 @@ namespace glap::v2 {
         }
         template <class OutputIt>
         constexpr OutputIt operator()(OutputIt it) const noexcept {
-            it = this->template identity<OutputIt, false, false>(it);
+            it = this_basic_help.template identity<OutputIt, false, false>(it);
             it = glap::format_to(it, "\n\n");
             it = glap::format_to(it, "Command{}:\n", sizeof...(CommandsParser) > 1 ? "s" : "");
-            constexpr auto max_cmd_name_length = impl::max_length<CommandsParser...>(2)+2;
+            // constexpr auto max_cmd_name_length = impl::max_length<CommandsParser...>(2)+2;
             ([&] {
-                constexpr auto basic_help = impl::basic_help<typename impl::FindByName<CommandsParser, CommandsHelp...>::type, CommandsParser>;
-                constexpr auto spacing = max_cmd_name_length - impl::max_length<CommandsParser>(2);
+                constexpr auto cmd_basic_help = impl::basic_help<typename impl::FindByName<CommandsParser, CommandsHelp...>::type, CommandsParser>;
+                constexpr auto spacing = cmd_name_max_length - impl::max_length<CommandsParser>(2);
                 it = glap::format_to(it, "{0:>{1}}", "", spacing);
-                it = basic_help.template identity<OutputIt, true, false>(it);
+                it = cmd_basic_help.template identity<OutputIt, true, false>(it);
                 it = glap::format_to(it, "\n");
             }(), ...);
             return it;
         }
     private:
+        static constexpr auto cmd_name_max_length = impl::max_length<CommandsParser...>(2)+help::model::PADDING;
+        static constexpr auto this_basic_help = impl::basic_help<ProgramHelp, ProgramParser>;
     };
 
     template<StringLiteral Name, help::model::IsDescription Desc, class ...ParamsHelp, class CommandNames, model::IsParameter... ParamsParser>
-    struct Help<help::model::Command<Name, Desc, ParamsHelp...>, model::Command<CommandNames, ParamsParser...>> : impl::BasicHelp<help::model::Command<Name, Desc, ParamsHelp...>, model::Command<CommandNames, ParamsParser...>> {
+    struct Help<help::model::Command<Name, Desc, ParamsHelp...>, model::Command<CommandNames, ParamsParser...>> {
         using CommandHelp = help::model::Command<Name, Desc, ParamsHelp...>;
         using CommandParser = model::Command<CommandNames, ParamsParser...>;
         [[nodiscard]] constexpr std::string operator()() const noexcept {
@@ -170,18 +173,21 @@ namespace glap::v2 {
         }
         template <class OutputIt>
         constexpr OutputIt operator()(OutputIt it) const noexcept {
-            it = this->template identity<OutputIt, false, false>(it);
+            it = this_basic_help.template identity<OutputIt, false, false>(it);
             it = glap::format_to(it, "\n\n");
             it = glap::format_to(it, "Parameter{}:\n", sizeof...(ParamsParser) > 1 ? "s" : "");
             constexpr auto max_cmd_name_length = impl::max_length<ParamsParser...>(2)+2;
             ([&] {
-                constexpr auto basic_help = impl::basic_help<typename impl::FindByName<ParamsParser, ParamsHelp...>::type, ParamsParser>;
+                constexpr auto param_basic_help = impl::basic_help<typename impl::FindByName<ParamsParser, ParamsHelp...>::type, ParamsParser>;
                 constexpr auto spacing = max_cmd_name_length - impl::max_length<ParamsParser>(2);
                 it = glap::format_to(it, "{0:>{1}}", "", spacing);
-                it = basic_help.template identity<OutputIt, true, false>(it);
+                it = param_basic_help.template identity<OutputIt, true, false>(it);
                 it = glap::format_to(it, "\n");
             }(), ...);
             return it;
         }
+        private:
+            static constexpr auto param_name_max_length = impl::max_length<ParamsParser...>(2)+help::model::PADDING;
+            static constexpr auto this_basic_help = impl::basic_help<CommandHelp, CommandParser>;
     };
 }
