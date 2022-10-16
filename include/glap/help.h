@@ -1,6 +1,6 @@
 #pragma once
-#include "glap/v2/discard.h"
-#include "utils.h"
+#include "core/discard.h"
+#include "core/utils.h"
 #include <concepts>
 #include <optional>
 #include <string_view>

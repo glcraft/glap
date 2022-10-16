@@ -1,12 +1,25 @@
-#pragma once
-#include <algorithm>
-#include <vector>
+#pragma once 
+#include <concepts>
 #include <string_view>
-#include <optional>
+#include <algorithm>
 #include "discard.h"
+#include "expected.h"
+#include "utf8.h"
 
 namespace glap
 {
+    namespace utils {
+        template <typename T, typename V>
+        concept Iterable = requires(T t) {
+            {*t.begin()} -> std::convertible_to<V>;
+            {*t.end()} -> std::convertible_to<V>;
+        };
+        template <typename T, typename V>
+        concept Iterator = requires(T t) {
+            {*t} -> std::convertible_to<V>;
+            {++t} -> std::same_as<T&>;
+        };
+    }
     template<size_t N>
     struct StringLiteral {
         constexpr StringLiteral(const char (&str)[N]) {

@@ -1,9 +1,7 @@
-#include <glap.h>
-#include <fmt/format.h>
 #include <string_view>
 #include <array>
-#include <glap/common/fmt.h>
-#include <glap/common/error.h>
+#include <glap/core/fmt.h>
+#include <glap/core/error.h>
 
 
 namespace glap 
@@ -36,8 +34,8 @@ namespace glap
         };
         auto value = std::string{};
         if (this->value) {
-            value = fmt::format(" (={})", *this->value);
+            value = glap::format(" (={})", *this->value);
         }
-        return fmt::format("\"{}\"{}{} : {}", this->argument, value, types[static_cast<std::size_t>(this->type)], codes_text[static_cast<std::size_t>(this->code)]);
+        return glap::format("\"{}\"{}{} : {}", this->argument, value, types[static_cast<std::size_t>(this->type)], codes_text[static_cast<std::size_t>(this->code)]);
     }
 }

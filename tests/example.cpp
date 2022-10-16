@@ -1,8 +1,4 @@
-#include "glap/common/error.h"
-#include "glap/v2/model.h"
-#include "glap/v2/parser.h"
-#include "glap/common/utils.h"
-#include "glap/v2/help.h"
+#include <glap/glap.h>
 #include <ranges>
 #include <charconv>
 #include <fmt/format.h>

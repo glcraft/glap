@@ -1,5 +1,5 @@
 #pragma once
-#include "../common/utils.h"
+#include "utils.h"
 #include <string_view>
 namespace glap::utils 
 {

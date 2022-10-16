@@ -1,7 +1,7 @@
 #pragma once
-#include "discard.h"
-#include "utils.h"
-#include "container.h"
+#include "core/discard.h"
+#include "core/utils.h"
+#include "core/container.h"
 #include <variant>
 namespace glap::model
 {

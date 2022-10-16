@@ -1,7 +1,7 @@
 #pragma once
-#include "glap/common/utf8.h"
-#include "glap/v2/discard.h"
-#include "glap/v2/utils.h"
+#include "core/utf8.h"
+#include "core/discard.h"
+#include "core/utils.h"
 #include "help.h"
 
 #include "model.h"

@@ -1,6 +1,6 @@
 #pragma once
-#include "glap/common/utf8.h"
-#include "glap/v2/model.h"
+#include "glap/core/utf8.h"
+#include "model.h"
 #include "parser.h" // for lsp
 #include <optional>
 #include <string_view>
