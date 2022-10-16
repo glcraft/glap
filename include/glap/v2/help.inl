@@ -195,10 +195,9 @@ namespace glap::v2 {
                 it = glap::format_to(it, "\n\n");
             }
             it = glap::format_to(it, "Parameter{}:\n", sizeof...(ParamsParser) > 1 ? "s" : "");
-            constexpr auto max_cmd_name_length = impl::max_length<ParamsParser...>(2)+2;
             ([&] {
                 constexpr auto param_basic_help = impl::basic_help<typename impl::FindByName<ParamsParser, ParamsHelp...>::type, ParamsParser>;
-                constexpr auto spacing = max_cmd_name_length - impl::max_length<ParamsParser>(2);
+                constexpr auto spacing = param_name_max_length - impl::max_length<ParamsParser>(2);
                 it = glap::format_to(it, "{0:>{1}}", "", spacing);
                 it = param_basic_help.template identity<OutputIt, true, false>(it);
                 it = glap::format_to(it, "\n");
