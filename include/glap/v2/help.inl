@@ -13,12 +13,12 @@ namespace glap::v2 {
     namespace impl {
         template <class P, class H>
         concept IsHelpInputsCompatible = requires { P::type == glap::v2::model::ParameterType::Input; } && help::model::IsInputs<H>;
-        template <class Named, class ...Others>
+        template <class FromParser, class ...Others>
         struct FindByName 
         {};
-        template <class Named, class T, class ...Others>
-            requires (Named::longname == T::name)
-        struct FindByName<Named, T, Others...>
+        template <class FromParser, class T, class ...Others>
+            requires (HasLongName<FromParser> && FromParser::longname == T::name) || IsHelpInputsCompatible<FromParser, T>
+        struct FindByName<FromParser, T, Others...>
         {
         public:
             using type = T;
@@ -27,30 +27,23 @@ namespace glap::v2 {
             requires ((!HasLongName<Named> || Named::longname != T::name) && !IsHelpInputsCompatible<Named, T>)
         struct FindByName<Named, T, Others...> : FindByName<Named, Others...> 
         {};
-        template <class Input, class T, class ...Others>
-            requires IsHelpInputsCompatible<Input, T>
-        struct FindByName<Input, T, Others...>
-        {
-        public:
-            using type = T;
-        };
-        template <class Named>
-        struct FindByName<Named> 
+        template <class FromParser>
+        struct FindByName<FromParser> 
         {
         public:
             using type = void;
         };
-        template <class... Nameds>
+        template <class... FromParser>
         constexpr auto max_length(size_t separator_length) -> size_t {
             size_t max = 0;
             ([&max, separator_length]() {
                 size_t len = 0;
-                if constexpr (HasNames<Nameds>) {
-                    len = Nameds::longname.length();
-                    if constexpr (HasShortName<Nameds>) {
+                if constexpr (HasNames<FromParser>) {
+                    len = FromParser::longname.length();
+                    if constexpr (HasShortName<FromParser>) {
                         len += 1 + separator_length;
                     }
-                } else if constexpr (glap::v2::model::IsParameterTyped<Nameds, glap::v2::model::ParameterType::Input>) {
+                } else if constexpr (glap::v2::model::IsParameterTyped<FromParser, glap::v2::model::ParameterType::Input>) {
                     len = help::model::INPUTS_NAME.length();
                 }
                 if (len > max) {
@@ -64,7 +57,7 @@ namespace glap::v2 {
         template<class T, class>
         struct BasicHelp
         {
-            static_assert(always_false_v<T>, "non instanciable");
+            static_assert(always_false_v<T>, "unable to match help for this type");
         };
         template<class FromHelp, glap::v2::model::IsParameterTyped<glap::v2::model::ParameterType::Input> InputParser>
             requires help::model::IsInputs<FromHelp>
