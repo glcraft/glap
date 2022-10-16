@@ -1,7 +1,7 @@
 #pragma once
 #include "utils.h"
 #include <cstddef>
-namespace glap::v2
+namespace glap
 {
     template<typename T, size_t N>
     class FixedVector {

@@ -1,5 +1,5 @@
 #pragma once
-namespace glap::v2
+namespace glap
 {
     struct Discard {};
     static constexpr Discard discard = {};

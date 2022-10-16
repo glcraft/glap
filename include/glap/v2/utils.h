@@ -5,7 +5,7 @@
 #include <optional>
 #include "discard.h"
 
-namespace glap::v2
+namespace glap
 {
     template<size_t N>
     struct StringLiteral {

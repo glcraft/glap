@@ -5,7 +5,7 @@
 #include <optional>
 #include <string_view>
 #include <type_traits>
-namespace glap::v2 {
+namespace glap {
     namespace help {
         static constexpr std::string_view INPUTS_NAME = "INPUTS";
         static constexpr int PADDING = 4;

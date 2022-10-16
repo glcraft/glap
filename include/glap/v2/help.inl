@@ -9,10 +9,10 @@
 #include <concepts>
 #include <cstddef>
 #include <algorithm>
-namespace glap::v2 {
+namespace glap {
     namespace impl {
         template <class P, class H>
-        concept IsHelpInputsCompatible = requires { P::type == glap::v2::model::ParameterType::Input; } && help::IsInputs<H>;
+        concept IsHelpInputsCompatible = requires { P::type == glap::model::ParameterType::Input; } && help::IsInputs<H>;
         template <class FromParser, class ...Others>
         struct FindByName 
         {};
@@ -43,7 +43,7 @@ namespace glap::v2 {
                     if constexpr (HasShortName<FromParser>) {
                         len += 1 + separator_length;
                     }
-                } else if constexpr (glap::v2::model::IsParameterTyped<FromParser, glap::v2::model::ParameterType::Input>) {
+                } else if constexpr (glap::model::IsParameterTyped<FromParser, glap::model::ParameterType::Input>) {
                     len = help::INPUTS_NAME.length();
                 }
                 if (len > max) {
@@ -59,7 +59,7 @@ namespace glap::v2 {
         {
             static_assert(always_false_v<T>, "unable to match help for this type");
         };
-        template<class FromHelp, glap::v2::model::IsParameterTyped<glap::v2::model::ParameterType::Input> InputParser>
+        template<class FromHelp, glap::model::IsParameterTyped<glap::model::ParameterType::Input> InputParser>
             requires help::IsInputs<FromHelp>
         struct BasicHelp<FromHelp, InputParser>
         {

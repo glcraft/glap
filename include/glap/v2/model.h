@@ -3,7 +3,7 @@
 #include "utils.h"
 #include "container.h"
 #include <variant>
-namespace glap::v2::model
+namespace glap::model
 {
     enum class ParameterType {
         Argument,

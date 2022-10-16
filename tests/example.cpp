@@ -12,7 +12,7 @@
 struct Param1 {
     static constexpr std::string_view longname = "param1";  
     static constexpr std::optional<char32_t> shortname = 'p';
-    static constexpr auto type = glap::v2::model::ParameterType::Argument;
+    static constexpr auto type = glap::model::ParameterType::Argument;
     using result_type = void;
 };
 
@@ -32,8 +32,8 @@ struct Print
 {};
 
 template <class Names, auto... T>
-struct Print<glap::v2::model::Argument<Names, T...>> {
-    using value_type= glap::v2::model::Argument<Names, T...>;
+struct Print<glap::model::Argument<Names, T...>> {
+    using value_type= glap::model::Argument<Names, T...>;
     void operator()(const value_type& v) const {
         fmt::print("    --{}: ", v.longname);
         if (v.value) {
@@ -44,8 +44,8 @@ struct Print<glap::v2::model::Argument<Names, T...>> {
     }
 };
 template <class ...P>
-struct Print<glap::v2::model::Flag<P...>> {
-    using value_type= glap::v2::model::Flag<P...>;
+struct Print<glap::model::Flag<P...>> {
+    using value_type= glap::model::Flag<P...>;
     void operator()(const value_type& v) const {
         fmt::print("    --{}: {}x\n", v.longname, v.occurences);
     }
@@ -53,7 +53,7 @@ struct Print<glap::v2::model::Flag<P...>> {
 template <class T> 
     requires requires (T a){
         a.values;
-        T::type == glap::v2::model::ParameterType::Input;
+        T::type == glap::model::ParameterType::Input;
     }
 struct Print<T> {
     using value_type= T;
@@ -66,8 +66,8 @@ struct Print<T> {
     }
 };
 template <class Names, auto N, auto ...Args>
-struct Print<glap::v2::model::Arguments<Names, N, Args...>> {
-    using value_type= glap::v2::model::Arguments<Names, N  , Args...>;
+struct Print<glap::model::Arguments<Names, N, Args...>> {
+    using value_type= glap::model::Arguments<Names, N  , Args...>;
     void operator()(const value_type& v) const {
         fmt::print("    --{}: ", v.longname);
         auto nb=0;
@@ -84,7 +84,7 @@ template <class T>
 static constexpr auto print = Print<T>{};
 
 template <class Names, class ...P>
-auto print_command(glap::v2::model::Command<Names, P...>& command) {
+auto print_command(glap::model::Command<Names, P...>& command) {
     fmt::print("command: {}\n", command.longname);
     ([&] {
         print<P>(std::get<P>(command.params));
@@ -97,37 +97,37 @@ bool is_hello_world(std::string_view v) {
 
 int main(int argc, char** argv)
 {
-    using namespace glap::v2::model;
-    using glap::v2::discard;
+    using namespace glap::model;
+    using glap::discard;
 
-    using ParserCommand = Command<glap::v2::Names<"command", 'c'>, 
-        Flag<glap::v2::Names<"flag", 'f'>>,
-        Argument<glap::v2::Names<"arg", 'a'>, discard, is_hello_world>,
-        Arguments<glap::v2::Names<"args", 'b'>>,
+    using ParserCommand = Command<glap::Names<"command", 'c'>, 
+        Flag<glap::Names<"flag", 'f'>>,
+        Argument<glap::Names<"arg", 'a'>, discard, is_hello_world>,
+        Arguments<glap::Names<"args", 'b'>>,
         Inputs<>
     >;
-    glap::v2::Parser<"glap", glap::v2::DefaultCommand::FirstDefined, Command<glap::v2::Names<"othercommand", 't'>, Flag<glap::v2::Names<"flag", 'f'>>>,
+    glap::Parser<"glap", glap::DefaultCommand::FirstDefined, Command<glap::Names<"othercommand", 't'>, Flag<glap::Names<"flag", 'f'>>>,
         ParserCommand
     > parser;
 
 
-    using HelpCommand = glap::v2::help::model::Command<"command", glap::v2::help::model::Description<"first defined command">,
-        glap::v2::help::model::Parameter<"flag", glap::v2::help::model::Description<"first defined flag">>,
-        glap::v2::help::model::Parameter<"arg", glap::v2::help::model::Description<"first defined argument">>,
-        glap::v2::help::model::Parameter<"args", glap::v2::help::model::Description<"first defined arguments">>,
-        glap::v2::help::model::Parameter<"INPUTS", glap::v2::help::model::Description<"inputs description">>
+    using HelpCommand = glap::help::model::Command<"command", glap::help::model::Description<"first defined command">,
+        glap::help::model::Parameter<"flag", glap::help::model::Description<"first defined flag">>,
+        glap::help::model::Parameter<"arg", glap::help::model::Description<"first defined argument">>,
+        glap::help::model::Parameter<"args", glap::help::model::Description<"first defined arguments">>,
+        glap::help::model::Parameter<"INPUTS", glap::help::model::Description<"inputs description">>
     >;
 
-    using HelpProgram = glap::v2::help::model::Program<"glap-example",
-        glap::v2::help::model::FullDescription<"example program", "This is an exemple of the program description">, 
+    using HelpProgram = glap::help::model::Program<"glap-example",
+        glap::help::model::FullDescription<"example program", "This is an exemple of the program description">, 
         HelpCommand
     >;
     {
-        auto help_str = glap::v2::get_help<HelpProgram, decltype(parser)>();
+        auto help_str = glap::get_help<HelpProgram, decltype(parser)>();
         fmt::print("# Help Program :\n{}\n\n", help_str);
     }
     {
-        auto help_str = glap::v2::get_help<HelpCommand, ParserCommand>();
+        auto help_str = glap::get_help<HelpCommand, ParserCommand>();
         fmt::print("# Help Command \"command\" :\n{}\n\n", help_str);
     }
     // auto result = parser.parse(std::span{argv, argv+argc} | std::views::transform([](auto arg) {return std::string_view{arg};}) );

@@ -9,7 +9,7 @@
 #include "model.h"
 #include <type_traits>
 #include <utility>
-namespace glap::v2 
+namespace glap 
 {
     template <class P>
     struct ParseParameter {

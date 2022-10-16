@@ -10,7 +10,7 @@
 #include <gtest/gtest.h>
 #include <variant>
 
-namespace gl2 = glap::v2;
+namespace gl2 = glap;
 
 bool test_is_hello_world(std::string_view v) {
     return v == "hello" || v == "world";
@@ -55,28 +55,28 @@ std::optional<Point> from_chars<std::optional<Point>>(std::string_view v) {
     return result;
 }
 
-using Command1 = gl2::model::Command<glap::v2::Names<"command1", 't'>, 
-    gl2::model::Flag<glap::v2::Names<"flag", 'f'>>,
-    gl2::model::Argument<glap::v2::Names<"arg", 'c'>>,
+using Command1 = gl2::model::Command<glap::Names<"command1", 't'>, 
+    gl2::model::Flag<glap::Names<"flag", 'f'>>,
+    gl2::model::Argument<glap::Names<"arg", 'c'>>,
     gl2::model::Input<>
 >;
 
-using Command2 = gl2::model::Command<glap::v2::Names<"command2", gl2::discard>, 
-    gl2::model::Flag<glap::v2::Names<"flag", 'f'>>,
-    gl2::model::Argument<glap::v2::Names<"arg", 'a'>, gl2::discard, test_is_hello_world>,
-    gl2::model::Arguments<glap::v2::Names<"args", 'b'>>,
+using Command2 = gl2::model::Command<glap::Names<"command2", gl2::discard>, 
+    gl2::model::Flag<glap::Names<"flag", 'f'>>,
+    gl2::model::Argument<glap::Names<"arg", 'a'>, gl2::discard, test_is_hello_world>,
+    gl2::model::Arguments<glap::Names<"args", 'b'>>,
     gl2::model::Inputs<>
 >;
 
-using Command3 = gl2::model::Command<glap::v2::Names<"command3", gl2::discard>, 
-    gl2::model::Argument<glap::v2::Names<"float", gl2::discard>, from_chars<float>>,
-    gl2::model::Argument<glap::v2::Names<"int", gl2::discard>, from_chars<int>>,
-    gl2::model::Argument<glap::v2::Names<"point", gl2::discard>, from_chars<std::optional<Point>>>,
+using Command3 = gl2::model::Command<glap::Names<"command3", gl2::discard>, 
+    gl2::model::Argument<glap::Names<"float", gl2::discard>, from_chars<float>>,
+    gl2::model::Argument<glap::Names<"int", gl2::discard>, from_chars<int>>,
+    gl2::model::Argument<glap::Names<"point", gl2::discard>, from_chars<std::optional<Point>>>,
     gl2::model::Inputs<3>
 >;
 
-gl2::Parser<glap::v2::DefaultCommand::FirstDefined, Command1, Command2, Command3> parser;
-gl2::Parser<glap::v2::DefaultCommand::None, Command1, Command2, Command3> parser_no_default;
+gl2::Parser<glap::DefaultCommand::FirstDefined, Command1, Command2, Command3> parser;
+gl2::Parser<glap::DefaultCommand::None, Command1, Command2, Command3> parser_no_default;
 
 using namespace std::literals;
 

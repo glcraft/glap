@@ -1,7 +1,7 @@
 #pragma once
 #include "../common/utils.h"
 #include <string_view>
-namespace glap::v2::utils 
+namespace glap::utils 
 {
     template <glap::utils::Iterator<std::string_view> T>
     struct BiIterator {

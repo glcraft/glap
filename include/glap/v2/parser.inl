@@ -7,7 +7,7 @@
 #include <type_traits>
 #include <variant>
 
-namespace glap::v2
+namespace glap
 {
     namespace impl
     {
