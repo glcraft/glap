@@ -13,8 +13,8 @@ namespace glap::v2::model
 
     template <class T, ParameterType PType>
     concept IsParameterTyped = requires {
-        T::type == PType;
-    };
+        T::type;
+    } && (T::type == PType);
 
     template <class ArgNames, auto Resolver = discard, auto Validator = discard>
     struct Argument : public ArgNames, public Value<Resolver, Validator> {
