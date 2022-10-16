@@ -12,7 +12,7 @@
 namespace glap::v2 {
     namespace impl {
         template <class P, class H>
-        concept IsHelpInputsCompatible = requires { P::type == glap::v2::model::ParameterType::Input; } && help::model::IsInputs<H>;
+        concept IsHelpInputsCompatible = requires { P::type == glap::v2::model::ParameterType::Input; } && help::IsInputs<H>;
         template <class FromParser, class ...Others>
         struct FindByName 
         {};
@@ -44,7 +44,7 @@ namespace glap::v2 {
                         len += 1 + separator_length;
                     }
                 } else if constexpr (glap::v2::model::IsParameterTyped<FromParser, glap::v2::model::ParameterType::Input>) {
-                    len = help::model::INPUTS_NAME.length();
+                    len = help::INPUTS_NAME.length();
                 }
                 if (len > max) {
                     max = len;
@@ -60,7 +60,7 @@ namespace glap::v2 {
             static_assert(always_false_v<T>, "unable to match help for this type");
         };
         template<class FromHelp, glap::v2::model::IsParameterTyped<glap::v2::model::ParameterType::Input> InputParser>
-            requires help::model::IsInputs<FromHelp>
+            requires help::IsInputs<FromHelp>
         struct BasicHelp<FromHelp, InputParser>
         {
             template <class OutputIt, bool Fullname = false>
@@ -69,7 +69,7 @@ namespace glap::v2 {
             }
             template <class OutputIt, bool FullDescription = false>
             OutputIt description(OutputIt it) const noexcept {
-                if constexpr(help::model::IsFullDescription<FromHelp>)
+                if constexpr(help::IsFullDescription<FromHelp>)
                     return glap::format_to(it, "{}\n\n{}", FromHelp::short_description, FromHelp::long_description);
                 else
                     return glap::format_to(it, "{}", FromHelp::short_description);
@@ -82,7 +82,7 @@ namespace glap::v2 {
                 return it;
             }
         };
-        template<help::model::IsDescription FromHelp, HasLongName FromParser>
+        template<help::IsDescription FromHelp, HasLongName FromParser>
         struct BasicHelp<FromHelp, FromParser>
         {
             template <class OutputIt, bool Fullname = false>
@@ -94,7 +94,7 @@ namespace glap::v2 {
             }
             template <class OutputIt, bool FullDescription = false>
             OutputIt description(OutputIt it) const noexcept {
-                if constexpr(help::model::IsFullDescription<FromHelp>)
+                if constexpr(help::IsFullDescription<FromHelp>)
                     return glap::format_to(it, "{}\n\n{}", FromHelp::short_description, FromHelp::long_description);
                 else
                     return glap::format_to(it, "{}", FromHelp::short_description);
@@ -132,7 +132,7 @@ namespace glap::v2 {
         static constexpr auto basic_help = BasicHelp<FromHelp, FromParser>{};
     }
 
-    template<StringLiteral NameHelp, help::model::IsDescription Desc, class ...CommandsHelp, StringLiteral NameParser, DefaultCommand def_cmd, class... CommandsParser>
+    template<StringLiteral NameHelp, help::IsDescription Desc, class ...CommandsHelp, StringLiteral NameParser, DefaultCommand def_cmd, class... CommandsParser>
     struct Help<help::model::Program<NameHelp, Desc, CommandsHelp...>, Parser<NameParser, def_cmd, CommandsParser...>> {
         using ProgramHelp = help::model::Program<NameHelp, Desc, CommandsHelp...>;
         using ProgramParser = Parser<NameParser, def_cmd, CommandsParser...>;
@@ -151,18 +151,17 @@ namespace glap::v2 {
             ([&] {
                 constexpr auto cmd_basic_help = impl::basic_help<typename impl::FindByName<CommandsParser, CommandsHelp...>::type, CommandsParser>;
                 constexpr auto spacing = cmd_name_max_length - impl::max_length<CommandsParser>(2);
-                it = glap::format_to(it, "{0:>{1}}", "", spacing);
+                it = glap::format_to(it, "\n{0:>{1}}", "", spacing);
                 it = cmd_basic_help.template identity<OutputIt, true, false>(it);
-                it = glap::format_to(it, "\n");
             }(), ...);
             return it;
         }
     private:
-        static constexpr auto cmd_name_max_length = impl::max_length<CommandsParser...>(2)+help::model::PADDING;
+        static constexpr auto cmd_name_max_length = impl::max_length<CommandsParser...>(2)+help::PADDING;
         static constexpr auto this_basic_help = impl::basic_help<ProgramHelp, ProgramParser>;
     };
 
-    template<StringLiteral Name, help::model::IsDescription Desc, class ...ParamsHelp, class CommandNames, model::IsParameter... ParamsParser>
+    template<StringLiteral Name, help::IsDescription Desc, class ...ParamsHelp, class CommandNames, model::IsParameter... ParamsParser>
     struct Help<help::model::Command<Name, Desc, ParamsHelp...>, model::Command<CommandNames, ParamsParser...>> {
         using CommandHelp = help::model::Command<Name, Desc, ParamsHelp...>;
         using CommandParser = model::Command<CommandNames, ParamsParser...>;
@@ -176,7 +175,7 @@ namespace glap::v2 {
             it = this_basic_help.template identity<OutputIt, false, false>(it);
             it = glap::format_to(it, "\n\n");
             if constexpr(DisplayUsage) {
-                it = glap::format_to(it, "Usage:\n{0:>{1}}" , "", help::model::PADDING);
+                it = glap::format_to(it, "Usage:\n{0:>{1}}" , "", help::PADDING);
                 it = this_basic_help.name(it);
                 ([&] {
                     constexpr auto param_basic_help = impl::basic_help<typename impl::FindByName<ParamsParser, ParamsHelp...>::type, ParamsParser>;
@@ -198,14 +197,13 @@ namespace glap::v2 {
             ([&] {
                 constexpr auto param_basic_help = impl::basic_help<typename impl::FindByName<ParamsParser, ParamsHelp...>::type, ParamsParser>;
                 constexpr auto spacing = param_name_max_length - impl::max_length<ParamsParser>(2);
-                it = glap::format_to(it, "{0:>{1}}", "", spacing);
+                it = glap::format_to(it, "\n{0:>{1}}", "", spacing);
                 it = param_basic_help.template identity<OutputIt, true, false>(it);
-                it = glap::format_to(it, "\n");
             }(), ...);
             return it;
         }
         private:
-            static constexpr auto param_name_max_length = impl::max_length<ParamsParser...>(2)+help::model::PADDING;
+            static constexpr auto param_name_max_length = impl::max_length<ParamsParser...>(2)+help::PADDING;
             static constexpr auto this_basic_help = impl::basic_help<CommandHelp, CommandParser>;
     };
 }

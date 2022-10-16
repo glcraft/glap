@@ -7,17 +7,17 @@
 #include <type_traits>
 namespace glap::v2 {
     namespace help {
+        static constexpr std::string_view INPUTS_NAME = "INPUTS";
+        static constexpr int PADDING = 4;
+        template <class T>
+        concept IsDescription = std::same_as<std::remove_cvref_t<decltype(T::short_description)>, std::string_view>;
+        template <class T>
+        concept IsFullDescription = IsDescription<T> 
+            && std::same_as<std::remove_cvref_t<decltype(T::long_description)>, std::string_view>;
+        template <class T>
+        concept IsInputs = (T::name == INPUTS_NAME);
         namespace model 
         {
-            static constexpr std::string_view INPUTS_NAME = "INPUTS";
-            static constexpr int PADDING = 4;
-            template <class T>
-            concept IsDescription = std::same_as<std::remove_cvref_t<decltype(T::short_description)>, std::string_view>;
-            template <class T>
-            concept IsFullDescription = IsDescription<T> 
-                && std::same_as<std::remove_cvref_t<decltype(T::long_description)>, std::string_view>;
-            template <class T>
-            concept IsInputs = (T::name == INPUTS_NAME);
             template<StringLiteral Short, auto Long = discard>
             struct Description 
             {};
