@@ -171,10 +171,29 @@ namespace glap::v2 {
             this->operator()(std::back_inserter(result));
             return result;
         }
-        template <class OutputIt>
+        template <class OutputIt, bool DisplayUsage = true>
         constexpr OutputIt operator()(OutputIt it) const noexcept {
             it = this_basic_help.template identity<OutputIt, false, false>(it);
             it = glap::format_to(it, "\n\n");
+            if constexpr(DisplayUsage) {
+                it = glap::format_to(it, "Usage:\n{0:>{1}}" , "", help::model::PADDING);
+                it = this_basic_help.name(it);
+                ([&] {
+                    constexpr auto param_basic_help = impl::basic_help<typename impl::FindByName<ParamsParser, ParamsHelp...>::type, ParamsParser>;
+                    if constexpr(model::IsParameterTyped<ParamsParser, model::ParameterType::Argument>) {
+                        it = glap::format_to(it, " [--");
+                        it = param_basic_help.template name<OutputIt>(it);
+                        it = glap::format_to(it, " VALUE]");
+                    } else if constexpr(model::IsParameterTyped<ParamsParser, model::ParameterType::Flag>) {
+                        it = glap::format_to(it, " [--");
+                        it = param_basic_help.template name<OutputIt>(it);
+                        it = glap::format_to(it, "]");
+                    } else if constexpr(model::IsParameterTyped<ParamsParser, model::ParameterType::Input>) {
+                        it = glap::format_to(it, " <INPUTS>");
+                    }
+                }(), ...);
+                it = glap::format_to(it, "\n\n");
+            }
             it = glap::format_to(it, "Parameter{}:\n", sizeof...(ParamsParser) > 1 ? "s" : "");
             constexpr auto max_cmd_name_length = impl::max_length<ParamsParser...>(2)+2;
             ([&] {
