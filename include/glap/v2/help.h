@@ -10,6 +10,7 @@ namespace glap::v2 {
         namespace model 
         {
             static constexpr std::string_view INPUTS_NAME = "INPUTS";
+            static constexpr int PADDING = 4;
             template <class T>
             concept IsDescription = std::same_as<std::remove_cvref_t<decltype(T::short_description)>, std::string_view>;
             template <class T>
