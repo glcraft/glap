@@ -11,6 +11,11 @@ namespace glap::v2::model
         Input
     };
 
+    template <class T, ParameterType PType>
+    concept IsParameterTyped = requires {
+        T::type == PType;
+    };
+
     template <class ArgNames, auto Resolver = discard, auto Validator = discard>
     struct Argument : public ArgNames, public Value<Resolver, Validator> {
         constexpr Argument() = default;
