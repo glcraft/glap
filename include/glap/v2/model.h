@@ -11,6 +11,11 @@ namespace glap::v2::model
         Input
     };
 
+    template <class T, ParameterType PType>
+    concept IsParameterTyped = requires {
+        T::type;
+    } && (T::type == PType);
+
     template <class ArgNames, auto Resolver = discard, auto Validator = discard>
     struct Argument : public ArgNames, public Value<Resolver, Validator> {
         constexpr Argument() = default;
@@ -45,9 +50,7 @@ namespace glap::v2::model
     };
 
     template <class T>
-    concept IsParameter = requires {
-        std::same_as<std::remove_cvref_t<decltype(T::type)>, ParameterType>;
-    };
+    concept IsParameter = std::same_as<std::remove_cvref_t<decltype(T::type)>, ParameterType>;
     
     template <class CommandNames, IsParameter... P>
     class Command : public CommandNames {
@@ -63,7 +66,7 @@ namespace glap::v2::model
         template <size_t i, StringLiteral lit>
         static consteval size_t _get_parameter_id() noexcept {
             static_assert((i < NbParams), "Parameter not found");
-            if constexpr (Param<i>::Longname == lit) {
+            if constexpr (Param<i>::longname == lit) {
                 return i;
             } else {
                 return _get_parameter_id<i + 1, lit>();

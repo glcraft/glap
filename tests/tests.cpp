@@ -1,4 +1,5 @@
 #include "glap/common/error.h"
+#include <array>
 #include <charconv>
 #include <glap/v2/parser.h>
 #include <glap/v2/model.h>

@@ -2,6 +2,7 @@
 #include "glap/v2/model.h"
 #include "glap/v2/parser.h"
 #include "glap/common/utils.h"
+#include "glap/v2/help.h"
 #include <ranges>
 #include <charconv>
 #include <fmt/format.h>
@@ -34,7 +35,7 @@ template <class Names, auto... T>
 struct Print<glap::v2::model::Argument<Names, T...>> {
     using value_type= glap::v2::model::Argument<Names, T...>;
     void operator()(const value_type& v) const {
-        fmt::print("    --{}: ", v.Longname);
+        fmt::print("    --{}: ", v.longname);
         if (v.value) {
             fmt::print("\"{}\"\n", v.value.value());
         } else {
@@ -46,7 +47,7 @@ template <class ...P>
 struct Print<glap::v2::model::Flag<P...>> {
     using value_type= glap::v2::model::Flag<P...>;
     void operator()(const value_type& v) const {
-        fmt::print("    --{}: {}x\n", v.Longname, v.occurences);
+        fmt::print("    --{}: {}x\n", v.longname, v.occurences);
     }
 };
 template <class T> 
@@ -68,7 +69,7 @@ template <class Names, auto N, auto ...Args>
 struct Print<glap::v2::model::Arguments<Names, N, Args...>> {
     using value_type= glap::v2::model::Arguments<Names, N  , Args...>;
     void operator()(const value_type& v) const {
-        fmt::print("    --{}: ", v.Longname);
+        fmt::print("    --{}: ", v.longname);
         auto nb=0;
         if (v.values.empty()) {
             fmt::print("none\n");
@@ -84,7 +85,7 @@ static constexpr auto print = Print<T>{};
 
 template <class Names, class ...P>
 auto print_command(glap::v2::model::Command<Names, P...>& command) {
-    fmt::print("command: {}\n", command.Longname);
+    fmt::print("command: {}\n", command.longname);
     ([&] {
         print<P>(std::get<P>(command.params));
     }(), ...);
@@ -98,24 +99,46 @@ int main(int argc, char** argv)
 {
     using namespace glap::v2::model;
     using glap::v2::discard;
-    glap::v2::Parser<glap::v2::DefaultCommand::FirstDefined, Command<glap::v2::Names<"othercommand", 't'>, Flag<glap::v2::Names<"flag", 'f'>>>,
-        Command<glap::v2::Names<"command", 'c'>, 
-            Flag<glap::v2::Names<"flag", 'f'>>,
-            Argument<glap::v2::Names<"arg", 'a'>, discard, is_hello_world>,
-            Arguments<glap::v2::Names<"args", 'b'>>,
-            Inputs<>
-        >
-    > parser;
-    
-    auto result = parser.parse(std::span{argv, argv+argc} | std::views::transform([](auto arg) {return std::string_view{arg};}) );
 
-    if (result) {
-        auto& v = *result;
-        fmt::print("program: {}\n", v.program);
-        std::visit([](auto& command){ print_command (command); }, v.command);
-    } else {
-        fmt::print("{}\n", result.error().to_string());
-        return 1;
+    using ParserCommand = Command<glap::v2::Names<"command", 'c'>, 
+        Flag<glap::v2::Names<"flag", 'f'>>,
+        Argument<glap::v2::Names<"arg", 'a'>, discard, is_hello_world>,
+        Arguments<glap::v2::Names<"args", 'b'>>,
+        Inputs<>
+    >;
+    glap::v2::Parser<"glap", glap::v2::DefaultCommand::FirstDefined, Command<glap::v2::Names<"othercommand", 't'>, Flag<glap::v2::Names<"flag", 'f'>>>,
+        ParserCommand
+    > parser;
+
+
+    using HelpCommand = glap::v2::help::model::Command<"command", glap::v2::help::model::Description<"first defined command">,
+        glap::v2::help::model::Parameter<"flag", glap::v2::help::model::Description<"first defined flag">>,
+        glap::v2::help::model::Parameter<"arg", glap::v2::help::model::Description<"first defined argument">>,
+        glap::v2::help::model::Parameter<"args", glap::v2::help::model::Description<"first defined arguments">>,
+        glap::v2::help::model::Parameter<"INPUTS", glap::v2::help::model::Description<"inputs description">>
+    >;
+
+    using HelpProgram = glap::v2::help::model::Program<"glap-example",
+        glap::v2::help::model::FullDescription<"example program", "This is an exemple of the program description">, 
+        HelpCommand
+    >;
+    {
+        auto help_str = glap::v2::get_help<HelpProgram, decltype(parser)>();
+        fmt::print("# Help Program :\n{}\n\n", help_str);
     }
+    {
+        auto help_str = glap::v2::get_help<HelpCommand, ParserCommand>();
+        fmt::print("# Help Command \"command\" :\n{}\n\n", help_str);
+    }
+    // auto result = parser.parse(std::span{argv, argv+argc} | std::views::transform([](auto arg) {return std::string_view{arg};}) );
+
+    // if (result) {
+    //     auto& v = *result;
+    //     fmt::print("program: {}\n", v.program);
+    //     std::visit([](auto& command){ print_command (command); }, v.command);
+    // } else {
+    //     fmt::print("{}\n", result.error().to_string());
+    //     return 1;
+    // }
     return 0;
 }
