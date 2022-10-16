@@ -11,6 +11,8 @@
 #include <algorithm>
 namespace glap::v2 {
     namespace impl {
+        template <class P, class H>
+        concept IsHelpInputsCompatible = requires { P::type == glap::v2::model::ParameterType::Input; } && help::model::IsInputs<H>;
         template <class Named, class ...Others>
         struct FindByName 
         {};
@@ -22,24 +24,40 @@ namespace glap::v2 {
             using type = T;
         };
         template <class Named, class T, class ...Others>
-            requires (!HasLongName<Named> || Named::longname != T::name)
-        struct FindByName<Named, T, Others...> : FindByName<Named, Others...>
+            requires ((!HasLongName<Named> || Named::longname != T::name) && !IsHelpInputsCompatible<Named, T>)
+        struct FindByName<Named, T, Others...> : FindByName<Named, Others...> 
         {};
+        template <class Input, class T, class ...Others>
+            requires IsHelpInputsCompatible<Input, T>
+        struct FindByName<Input, T, Others...>
+        {
+        public:
+            using type = T;
+        };
         template <class Named>
         struct FindByName<Named> 
         {
         public:
             using type = void;
         };
-        template <HasNames... Nameds>
-        constexpr auto max_length(size_t padding) -> size_t {
-            size_t max = 0;
-            (..., (max = std::max(max, Nameds::longname.size()+(Nameds::shortname ? 1+padding : 0))));
-            return max;
-        }
         template <class... Nameds>
-        constexpr auto max_length(size_t padding) -> size_t {
-            return 0;
+        constexpr auto max_length(size_t separator_length) -> size_t {
+            size_t max = 0;
+            ([&max, separator_length]() {
+                size_t len = 0;
+                if constexpr (HasNames<Nameds>) {
+                    len = Nameds::longname.length();
+                    if constexpr (HasShortName<Nameds>) {
+                        len += 1 + separator_length;
+                    }
+                } else if constexpr (glap::v2::model::IsParameterTyped<Nameds, glap::v2::model::ParameterType::Input>) {
+                    len = help::model::INPUTS_NAME.length();
+                }
+                if (len > max) {
+                    max = len;
+                }
+            }(), ...);
+            return max;
         }
         template <class>
         static constexpr bool always_false_v = false;
@@ -47,6 +65,29 @@ namespace glap::v2 {
         struct BasicHelp
         {
             static_assert(always_false_v<T>, "non instanciable");
+        };
+        template<class FromHelp, glap::v2::model::IsParameterTyped<glap::v2::model::ParameterType::Input> InputParser>
+            requires help::model::IsInputs<FromHelp>
+        struct BasicHelp<FromHelp, InputParser>
+        {
+            template <class OutputIt, bool Fullname = false>
+            OutputIt name(OutputIt it) const noexcept {
+                return glap::format_to(it, "INPUTS");
+            }
+            template <class OutputIt, bool FullDescription = false>
+            OutputIt description(OutputIt it) const noexcept {
+                if constexpr(help::model::IsFullDescription<FromHelp>)
+                    return glap::format_to(it, "{}\n\n{}", FromHelp::short_description, FromHelp::long_description);
+                else
+                    return glap::format_to(it, "{}", FromHelp::short_description);
+            }
+            template <class OutputIt, bool FullName = false, bool FullDescription = false>
+            OutputIt identity(OutputIt it) const noexcept {
+                it = name<OutputIt, FullName>(it);
+                it = glap::format_to(it, " - ");
+                it = description<OutputIt, FullDescription>(it);
+                return it;
+            }
         };
         template<help::model::IsDescription FromHelp, HasLongName FromParser>
         struct BasicHelp<FromHelp, FromParser>
@@ -111,7 +152,7 @@ namespace glap::v2 {
         constexpr OutputIt operator()(OutputIt it) const noexcept {
             it = this->template identity<OutputIt, false, false>(it);
             it = glap::format_to(it, "\n\n");
-            it = glap::format_to(it, "Commands:\n");
+            it = glap::format_to(it, "Command{}:\n", sizeof...(CommandsParser) > 1 ? "s" : "");
             constexpr auto max_cmd_name_length = impl::max_length<CommandsParser...>(2)+2;
             ([&] {
                 constexpr auto basic_help = impl::basic_help<typename impl::FindByName<CommandsParser, CommandsHelp...>::type, CommandsParser>;
@@ -138,7 +179,7 @@ namespace glap::v2 {
         constexpr OutputIt operator()(OutputIt it) const noexcept {
             it = this->template identity<OutputIt, false, false>(it);
             it = glap::format_to(it, "\n\n");
-            it = glap::format_to(it, "Commands:\n");
+            it = glap::format_to(it, "Parameter{}:\n", sizeof...(ParamsParser) > 1 ? "s" : "");
             constexpr auto max_cmd_name_length = impl::max_length<ParamsParser...>(2)+2;
             ([&] {
                 constexpr auto basic_help = impl::basic_help<typename impl::FindByName<ParamsParser, ParamsHelp...>::type, ParamsParser>;
