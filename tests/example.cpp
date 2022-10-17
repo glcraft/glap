@@ -108,9 +108,9 @@ int main(int argc, char** argv)
 
 
     using HelpCommand = glap::help::model::Command<"command", glap::help::model::Description<"first defined command">,
-        glap::help::model::Parameter<"flag", glap::help::model::Description<"first defined flag">>,
-        glap::help::model::Parameter<"arg", glap::help::model::Description<"first defined argument">>,
-        glap::help::model::Parameter<"args", glap::help::model::Description<"first defined arguments">>,
+        glap::help::model::Parameter<"flag", glap::help::model::Description<"flag example">>,
+        glap::help::model::Parameter<"arg", glap::help::model::Description<"single argument example">>,
+        glap::help::model::Parameter<"args", glap::help::model::Description<"multiple arguments example">>,
         glap::help::model::Parameter<"INPUTS", glap::help::model::Description<"inputs description">>
     >;
 
