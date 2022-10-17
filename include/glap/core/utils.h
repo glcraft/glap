@@ -1,5 +1,6 @@
 #pragma once 
 #include <concepts>
+#include <optional>
 #include <string_view>
 #include <algorithm>
 #include "discard.h"
