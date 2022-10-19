@@ -18,20 +18,14 @@ namespace glap {
         concept IsInputs = (T::name == INPUTS_NAME);
         namespace model 
         {
-            template<StringLiteral Short, auto Long = discard>
-            struct Description 
-            {};
-            template<StringLiteral Short, StringLiteral Long>
-            struct Description<Short, Long> {
-                static constexpr std::string_view long_description = Long;
-                static constexpr std::string_view short_description = Short;
-            };
             template<StringLiteral Short>
-            struct Description<Short, discard> {
+            struct Description {
                 static constexpr std::string_view short_description = Short;
             };
             template<StringLiteral Short, StringLiteral Long>
-            using FullDescription = Description<Short, Long>;
+            struct FullDescription : Description<Short> {
+                static constexpr std::string_view long_description = Long;
+            };
 
             template<StringLiteral Name, IsDescription Desc> 
             struct Parameter : Desc {
