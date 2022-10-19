@@ -1,18 +1,22 @@
 # Glap user documentation
 
+## Note before reading
+
+### Argument type
+
+In order to be understand, let's clarify something : In this documentation, *argument* means kind of input the program get, whereas *parameter* is one specific type as as described below.
+
+There are 3 types of argument possible :
+
+* **Flags**: argument named without value (e.g. `--flag`)
+* **Parameters**: argument named with a value (e.g. `--arg=value`)
+* **Inputs**: argument valued without name (e.g. `value`)
+
 ## Parser model
 
 ### Utils
 
-#### Parameter type
-```cpp
-/// In namespace glap::model
-enum class ParameterType {
-    Argument,
-    Flag,
-    Input
-};
-```
+Here is some util classes to work with the parser model.
 
 #### Names
 ```cpp
@@ -31,20 +35,20 @@ struct Program
 ### Command templated class
 ```cpp
 /// In namespace glap::model
-template <class CommandNames, IsParameter... P>
+template <class CommandNames, IsArgument... P>
 class Command;
 ```
-### Simple argument templated class
+### Simple parameter templated class
 ```cpp
 /// In namespace glap::model
 template <class ArgNames, auto Resolver = discard, auto Validator = discard>
-struct Argument;
+struct Parameter;
 ```
-### Multiple arguments templated class
+### Multiple parameters templated class
 ```cpp
 /// In namespace glap::model
 template <class ArgNames, auto N = discard, auto Resolver = discard, auto Validator = discard>
-struct Arguments;
+struct Parameters;
 ```
 ### Flag templated class
 ```cpp
@@ -96,11 +100,11 @@ struct Program;
 template<StringLiteral Name, IsDescription Desc, class ...Params>
 struct Command;
 ```
-### Parameter description class
+### Argument description class
 ```cpp
 /// In namespace glap::help::model
 template<StringLiteral Name, IsDescription Desc> 
-struct Parameter;
+struct Argument;
 ```
 ### Help generator class
 ```cpp
