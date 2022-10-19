@@ -57,21 +57,21 @@ std::optional<Point> from_chars<std::optional<Point>>(std::string_view v) {
 
 using Command1 = gl2::model::Command<glap::Names<"command1", 't'>, 
     gl2::model::Flag<glap::Names<"flag", 'f'>>,
-    gl2::model::Argument<glap::Names<"arg", 'c'>>,
+    gl2::model::Parameter<glap::Names<"arg", 'c'>>,
     gl2::model::Input<>
 >;
 
 using Command2 = gl2::model::Command<glap::Names<"command2", gl2::discard>, 
     gl2::model::Flag<glap::Names<"flag", 'f'>>,
-    gl2::model::Argument<glap::Names<"arg", 'a'>, gl2::discard, test_is_hello_world>,
-    gl2::model::Arguments<glap::Names<"args", 'b'>>,
+    gl2::model::Parameter<glap::Names<"arg", 'a'>, gl2::discard, test_is_hello_world>,
+    gl2::model::Parameters<glap::Names<"args", 'b'>>,
     gl2::model::Inputs<>
 >;
 
 using Command3 = gl2::model::Command<glap::Names<"command3", gl2::discard>, 
-    gl2::model::Argument<glap::Names<"float", gl2::discard>, from_chars<float>>,
-    gl2::model::Argument<glap::Names<"int", gl2::discard>, from_chars<int>>,
-    gl2::model::Argument<glap::Names<"point", gl2::discard>, from_chars<std::optional<Point>>>,
+    gl2::model::Parameter<glap::Names<"float", gl2::discard>, from_chars<float>>,
+    gl2::model::Parameter<glap::Names<"int", gl2::discard>, from_chars<int>>,
+    gl2::model::Parameter<glap::Names<"point", gl2::discard>, from_chars<std::optional<Point>>>,
     gl2::model::Inputs<3>
 >;
 
@@ -141,61 +141,61 @@ TEST(glap_flag, flag_long_name) {
     ASSERT_TRUE(result.has_value()) << "Parser failed: " << result.error().to_string();
     ASSERT_EQ(result.value().command.index(), 0) << "Wrong command index";
     auto command1 = std::get<Command1>(result.value().command);
-    ASSERT_EQ(command1.get_parameter<"flag">().occurences, 1);
+    ASSERT_EQ(command1.get_argument<"flag">().occurences, 1);
 }
 TEST(glap_flag, flag_long_name2) {
     auto result = parser.parse(std::array{"glap"sv, "command2"sv, "--flag"sv});
     ASSERT_TRUE(result.has_value()) << "Parser failed: " << result.error().to_string();
     ASSERT_EQ(result.value().command.index(), 1) << "Wrong command index";
     auto command1 = std::get<Command2>(result.value().command);
-    ASSERT_EQ(command1.get_parameter<"flag">().occurences, 1);
+    ASSERT_EQ(command1.get_argument<"flag">().occurences, 1);
 }
 TEST(glap_flag, flag_bad_long_name) {
     auto result = parser.parse(std::array{"glap"sv, "command1"sv, "--flag_none"sv});
     ASSERT_TRUE(!result) << "Parser successed when it should not";
     auto error = result.error();
-    ASSERT_EQ(error.error.code, glap::Error::Code::UnknownParameter);
+    ASSERT_EQ(error.error.code, glap::Error::Code::UnknownArgument);
 }
 TEST(glap_flag, flag_short_name) {
     auto result = parser.parse(std::array{"glap"sv, "command1"sv, "-f"sv});
     ASSERT_TRUE(result.has_value()) << "Parser failed: " << result.error().to_string();
     ASSERT_EQ(result.value().command.index(), 0) << "Wrong command index";
     auto command1 = std::get<Command1>(result.value().command);
-    ASSERT_EQ(command1.get_parameter<"flag">().occurences, 1);
+    ASSERT_EQ(command1.get_argument<"flag">().occurences, 1);
 }
 TEST(glap_flag, flag_bad_short_name) {
     auto result = parser.parse(std::array{"glap"sv, "command1"sv, "-a"sv});
     ASSERT_TRUE(!result) << "Parser successed when it should not";
     auto error = result.error();
-    ASSERT_EQ(error.error.code, glap::Error::Code::UnknownParameter);
+    ASSERT_EQ(error.error.code, glap::Error::Code::UnknownArgument);
 }
 TEST(glap_flag, multi_flag_longname) {
     auto result = parser.parse(std::array{"glap"sv, "command1"sv, "--flag"sv, "--flag"sv});
     ASSERT_TRUE(result.has_value()) << "Parser failed: " << result.error().to_string();
     ASSERT_EQ(result.value().command.index(), 0) << "Wrong command index";
     auto command1 = std::get<Command1>(result.value().command);
-    ASSERT_EQ(command1.get_parameter<"flag">().occurences, 2);
+    ASSERT_EQ(command1.get_argument<"flag">().occurences, 2);
 }
 TEST(glap_flag, multi_flag_shortname) {
     auto result = parser.parse(std::array{"glap"sv, "command1"sv, "-f"sv, "-f"sv});
     ASSERT_TRUE(result.has_value()) << "Parser failed: " << result.error().to_string();
     ASSERT_EQ(result.value().command.index(), 0) << "Wrong command index";
     auto command1 = std::get<Command1>(result.value().command);
-    ASSERT_EQ(command1.get_parameter<"flag">().occurences, 2);
+    ASSERT_EQ(command1.get_argument<"flag">().occurences, 2);
 }
 TEST(glap_flag, multi_flag_shortname2) {
     auto result = parser.parse(std::array{"glap"sv, "command1"sv, "-fff"sv});
     ASSERT_TRUE(result.has_value()) << "Parser failed: " << result.error().to_string();
     ASSERT_EQ(result.value().command.index(), 0) << "Wrong command index";
     auto command1 = std::get<Command1>(result.value().command);
-    ASSERT_EQ(command1.get_parameter<"flag">().occurences, 3);
+    ASSERT_EQ(command1.get_argument<"flag">().occurences, 3);
 }
 TEST(glap_flag, flag_default_command) {
     auto result = parser.parse(std::array{"glap"sv, "--flag"sv});
     ASSERT_TRUE(result.has_value()) << "Parser failed: " << result.error().to_string();
     ASSERT_EQ(result.value().command.index(), 0) << "Wrong command index";
     auto command1 = std::get<Command1>(result.value().command);
-    ASSERT_EQ(command1.get_parameter<"flag">().occurences, 1);
+    ASSERT_EQ(command1.get_argument<"flag">().occurences, 1);
 }
 TEST(glap_flag, flag_no_default_command) {
     auto result = parser_no_default.parse(std::array{"glap"sv, "--flag"sv});
@@ -205,96 +205,96 @@ TEST(glap_flag, flag_no_default_command) {
 }
 #pragma endregion
 
-#pragma region Glap argument tests
-TEST(glap_argument, argument_long_name) {
+#pragma region Glap parameter tests
+TEST(glap_parameter, parameter_long_name) {
     auto result = parser.parse(std::array{"glap"sv, "command2"sv, "--arg=hello"sv});
     ASSERT_TRUE(result.has_value()) << "Parser failed: " << result.error().to_string();
     ASSERT_EQ(result.value().command.index(), 1) << "Wrong command index";
     auto command1 = std::get<Command2>(result.value().command);
-    ASSERT_EQ(command1.get_parameter<"arg">().value, "hello");
+    ASSERT_EQ(command1.get_argument<"arg">().value, "hello");
 }
-TEST(glap_argument, argument_long_name2) {
+TEST(glap_parameter, parameter_long_name2) {
     auto result = parser.parse(std::array{"glap"sv, "command2"sv, "--args=value2"sv});
     ASSERT_TRUE(result.has_value()) << "Parser failed: " << result.error().to_string();
     ASSERT_EQ(result.value().command.index(), 1) << "Wrong command index";
     auto command1 = std::get<Command2>(result.value().command);
-    auto args = command1.get_parameter<"args">().values;
-    ASSERT_FALSE(args.empty()) << "Argument 'args' is empty";
-    ASSERT_EQ(args.size(), 1) << "Argument 'args' has more than one value";
-    ASSERT_EQ(args[0].value, "value2"sv) << "Argument 'args' has wrong value";
+    auto args = command1.get_argument<"args">().values;
+    ASSERT_FALSE(args.empty()) << "Parameter 'args' is empty";
+    ASSERT_EQ(args.size(), 1) << "Parameter 'args' has more than one value";
+    ASSERT_EQ(args[0].value, "value2"sv) << "Parameter 'args' has wrong value";
 }
-TEST(glap_argument, argument_bad_long_name) {
+TEST(glap_parameter, parameter_bad_long_name) {
     auto result = parser.parse(std::array{"glap"sv, "command2"sv, "--arg_none=hello"sv});
     ASSERT_TRUE(!result) << "Parser successed when it should not";
     auto error = result.error();
-    ASSERT_EQ(error.error.code, glap::Error::Code::UnknownParameter);
+    ASSERT_EQ(error.error.code, glap::Error::Code::UnknownArgument);
 }
-TEST(glap_argument, argument_short_name) {
+TEST(glap_parameter, parameter_short_name) {
     auto result = parser.parse(std::array{"glap"sv, "command2"sv, "-a"sv, "hello"sv});
     ASSERT_TRUE(result.has_value()) << "Parser failed: " << result.error().to_string();
     ASSERT_EQ(result.value().command.index(), 1) << "Wrong command index";
     auto command1 = std::get<Command2>(result.value().command);
-    ASSERT_EQ(command1.get_parameter<"arg">().value, "hello");
+    ASSERT_EQ(command1.get_argument<"arg">().value, "hello");
 }
-TEST(glap_argument, argument_bad_short_name) {
+TEST(glap_parameter, parameter_bad_short_name) {
     auto result = parser.parse(std::array{"glap"sv, "command2"sv, "-z"sv, "hello"sv});
     ASSERT_TRUE(!result) << "Parser successed when it should not";
     auto error = result.error();
-    ASSERT_EQ(error.error.code, glap::Error::Code::UnknownParameter);
+    ASSERT_EQ(error.error.code, glap::Error::Code::UnknownArgument);
 }
-TEST(glap_argument, argument_already_set) {
+TEST(glap_parameter, parameter_already_set) {
     auto result = parser.parse(std::array{"glap"sv, "command2"sv, "--arg=hello"sv, "--arg=world"sv});
     ASSERT_TRUE(!result) << "Parser successed when it should not";
     auto error = result.error();
     ASSERT_EQ(error.error.code, glap::Error::Code::AlreadySet);
 }
-TEST(glap_argument, multi_argument_long_name) {
+TEST(glap_parameter, multi_parameter_long_name) {
     auto result = parser.parse(std::array{"glap"sv, "command2"sv, "--args=value1"sv, "--args=value2"sv});
     ASSERT_TRUE(result.has_value()) << "Parser failed: " << result.error().to_string();
     ASSERT_EQ(result.value().command.index(), 1) << "Wrong command index";
     auto command1 = std::get<Command2>(result.value().command);
-    auto args = command1.get_parameter<"args">().values;
-    ASSERT_FALSE(args.empty()) << "Argument 'args' is empty";
-    ASSERT_EQ(args.size(), 2) << "Argument 'args' has more than two values";
-    ASSERT_EQ(args[0].value, "value1"sv) << "Argument 'args' has wrong value";
-    ASSERT_EQ(args[1].value, "value2"sv) << "Argument 'args' has wrong value";
+    auto args = command1.get_argument<"args">().values;
+    ASSERT_FALSE(args.empty()) << "Parameter 'args' is empty";
+    ASSERT_EQ(args.size(), 2) << "Parameter 'args' has more than two values";
+    ASSERT_EQ(args[0].value, "value1"sv) << "Parameter 'args' has wrong value";
+    ASSERT_EQ(args[1].value, "value2"sv) << "Parameter 'args' has wrong value";
 }
-TEST(glap_argument, multi_argument_short_name) {
+TEST(glap_parameter, multi_parameter_short_name) {
     auto result = parser.parse(std::array{"glap"sv, "command2"sv, "-b"sv, "value1"sv, "-b"sv, "value2"sv});
     ASSERT_TRUE(result.has_value()) << "Parser failed: " << result.error().to_string();
     ASSERT_EQ(result.value().command.index(), 1) << "Wrong command index";
     auto command1 = std::get<Command2>(result.value().command);
-    auto args = command1.get_parameter<"args">().values;
-    ASSERT_FALSE(args.empty()) << "Argument 'args' is empty";
-    ASSERT_EQ(args.size(), 2) << "Argument 'args' has more than two values";
-    ASSERT_EQ(args[0].value, "value1"sv) << "Argument 'args' has wrong value";
-    ASSERT_EQ(args[1].value, "value2"sv) << "Argument 'args' has wrong value";
+    auto args = command1.get_argument<"args">().values;
+    ASSERT_FALSE(args.empty()) << "Parameter 'args' is empty";
+    ASSERT_EQ(args.size(), 2) << "Parameter 'args' has more than two values";
+    ASSERT_EQ(args[0].value, "value1"sv) << "Parameter 'args' has wrong value";
+    ASSERT_EQ(args[1].value, "value2"sv) << "Parameter 'args' has wrong value";
 }
-TEST(glap_argument, multi_argument_short_name2) {
+TEST(glap_parameter, multi_parameter_short_name2) {
     auto result = parser.parse(std::array{"glap"sv, "command2"sv, "-bb"sv, "value1"sv, "value2"sv});
     ASSERT_TRUE(result.has_value()) << "Parser failed: " << result.error().to_string();
     ASSERT_EQ(result.value().command.index(), 1) << "Wrong command index";
     auto command1 = std::get<Command2>(result.value().command);
-    auto args = command1.get_parameter<"args">().values;
-    ASSERT_FALSE(args.empty()) << "Argument 'args' is empty";
-    ASSERT_EQ(args.size(), 2) << "Argument 'args' has more than two values";
-    ASSERT_EQ(args[0].value, "value1"sv) << "Argument 'args' has wrong value";
-    ASSERT_EQ(args[1].value, "value2"sv) << "Argument 'args' has wrong value";
+    auto args = command1.get_argument<"args">().values;
+    ASSERT_FALSE(args.empty()) << "Parameter 'args' is empty";
+    ASSERT_EQ(args.size(), 2) << "Parameter 'args' has more than two values";
+    ASSERT_EQ(args[0].value, "value1"sv) << "Parameter 'args' has wrong value";
+    ASSERT_EQ(args[1].value, "value2"sv) << "Parameter 'args' has wrong value";
 }
-TEST(glap_argument, argument_bad_validate) {
+TEST(glap_parameter, parameter_bad_validate) {
     auto result = parser.parse(std::array{"glap"sv, "command2"sv, "--arg=not_hello"sv});
     ASSERT_TRUE(!result) << "Parser successed when it should not";
     auto error = result.error();
     ASSERT_EQ(error.error.code, glap::Error::Code::InvalidValue);
 }
-TEST(glap_argument, argument_default_command) {
+TEST(glap_parameter, parameter_default_command) {
     auto result = parser.parse(std::array{"glap"sv, "-c"sv, "value"sv});
     ASSERT_TRUE(result.has_value()) << "Parser failed: " << result.error().to_string();
     ASSERT_EQ(result.value().command.index(), 0) << "Wrong command index";
     auto command1 = std::get<Command1>(result.value().command);
-    ASSERT_EQ(command1.get_parameter<"arg">().value, "value");
+    ASSERT_EQ(command1.get_argument<"arg">().value, "value");
 }
-TEST(glap_argument, argument_no_default_command) {
+TEST(glap_parameter, parameter_no_default_command) {
     auto result = parser_no_default.parse(std::array{"glap"sv,"--arg=value"sv});
     ASSERT_TRUE(!result) << "Parser successed when it should not";
     auto error = result.error();
@@ -302,84 +302,84 @@ TEST(glap_argument, argument_no_default_command) {
 }
 #pragma endregion
 
-#pragma region Glap argument resolve tests
-TEST(glap_resolver, integer_argument) {
+#pragma region Glap parameter resolve tests
+TEST(glap_resolver, integer_parameter) {
     auto result = parser.parse(std::array{"glap"sv, "command3"sv, "--int=123"sv});
     ASSERT_TRUE(result.has_value()) << "Parser failed: " << result.error().to_string();
     ASSERT_EQ(result.value().command.index(), 2) << "Wrong command index";
     auto command1 = std::get<Command3>(result.value().command);
-    ASSERT_EQ(command1.get_parameter<"int">().resolve(), std::optional{123});
+    ASSERT_EQ(command1.get_argument<"int">().resolve(), std::optional{123});
 }
-TEST(glap_resolver, float_argument) {
+TEST(glap_resolver, float_parameter) {
     auto result = parser.parse(std::array{"glap"sv, "command3"sv, "--float=1.5"sv});
     ASSERT_TRUE(result.has_value()) << "Parser failed: " << result.error().to_string();
     ASSERT_EQ(result.value().command.index(), 2) << "Wrong command index";
     auto command1 = std::get<Command3>(result.value().command);
-    ASSERT_EQ(command1.get_parameter<"float">().resolve(), std::optional{1.5f});
+    ASSERT_EQ(command1.get_argument<"float">().resolve(), std::optional{1.5f});
 }
-TEST(glap_resolver, point_argument) {
+TEST(glap_resolver, point_parameter) {
     auto result = parser.parse(std::array{"glap"sv, "command3"sv, "--point=12,34"sv});
     ASSERT_TRUE(result.has_value()) << "Parser failed: " << result.error().to_string();
     ASSERT_EQ(result.value().command.index(), 2) << "Wrong command index";
     auto command1 = std::get<Command3>(result.value().command);
     auto pt_test = Point{12, 34};
-    ASSERT_EQ(command1.get_parameter<"point">().resolve(), std::optional{pt_test});
+    ASSERT_EQ(command1.get_argument<"point">().resolve(), std::optional{pt_test});
 }
 #pragma endregion
 
-#pragma region Glap combined parameters tests
-TEST(glap_combined, arguments) {
+#pragma region Glap combined arguments tests
+TEST(glap_combined, parameters) {
     auto result = parser.parse(std::array{"glap"sv, "command2"sv, "--arg=hello"sv, "--args=value2"sv});
     ASSERT_TRUE(result.has_value()) << "Parser failed: " << result.error().to_string();
     ASSERT_EQ(result.value().command.index(), 1) << "Wrong command index";
     auto command = std::get<Command2>(result.value().command);
-    EXPECT_EQ(command.get_parameter<"arg">().value, "hello");
-    auto args = command.get_parameter<"args">().values;
-    ASSERT_FALSE(args.empty()) << "Argument 'args' is empty";
-    ASSERT_EQ(args.size(), 1) << "Argument 'args' has more than one value";
-    ASSERT_EQ(args[0].value, "value2"sv) << "Argument 'args' has wrong value";
+    EXPECT_EQ(command.get_argument<"arg">().value, "hello");
+    auto args = command.get_argument<"args">().values;
+    ASSERT_FALSE(args.empty()) << "Parameter 'args' is empty";
+    ASSERT_EQ(args.size(), 1) << "Parameter 'args' has more than one value";
+    ASSERT_EQ(args[0].value, "value2"sv) << "Parameter 'args' has wrong value";
 }
-TEST(glap_combined, arguments_short) {
+TEST(glap_combined, parameters_short) {
     auto result = parser.parse(std::array{"glap"sv, "command2"sv, "-a"sv, "hello"sv, "-b"sv, "value2"sv});
     ASSERT_TRUE(result.has_value()) << "Parser failed: " << result.error().to_string();
     ASSERT_EQ(result.value().command.index(), 1) << "Wrong command index";
     auto command = std::get<Command2>(result.value().command);
-    EXPECT_EQ(command.get_parameter<"arg">().value, "hello");
-    auto args = command.get_parameter<"args">().values;
-    ASSERT_FALSE(args.empty()) << "Argument 'args' is empty";
-    ASSERT_EQ(args.size(), 1) << "Argument 'args' has more than one value";
-    ASSERT_EQ(args[0].value, "value2"sv) << "Argument 'args' has wrong value";
+    EXPECT_EQ(command.get_argument<"arg">().value, "hello");
+    auto args = command.get_argument<"args">().values;
+    ASSERT_FALSE(args.empty()) << "Parameter 'args' is empty";
+    ASSERT_EQ(args.size(), 1) << "Parameter 'args' has more than one value";
+    ASSERT_EQ(args[0].value, "value2"sv) << "Parameter 'args' has wrong value";
 }
-TEST(glap_combined, arguments_short2) {
+TEST(glap_combined, parameters_short2) {
     auto result = parser.parse(std::array{"glap"sv, "command2"sv, "-ab"sv, "hello"sv, "value2"sv});
     ASSERT_TRUE(result.has_value()) << "Parser failed: " << result.error().to_string();
     ASSERT_EQ(result.value().command.index(), 1) << "Wrong command index";
     auto command = std::get<Command2>(result.value().command);
-    EXPECT_EQ(command.get_parameter<"arg">().value, "hello");
-    auto args = command.get_parameter<"args">().values;
-    ASSERT_FALSE(args.empty()) << "Argument 'args' is empty";
-    ASSERT_EQ(args.size(), 1) << "Argument 'args' has more than one value";
-    ASSERT_EQ(args[0].value, "value2"sv) << "Argument 'args' has wrong value";
+    EXPECT_EQ(command.get_argument<"arg">().value, "hello");
+    auto args = command.get_argument<"args">().values;
+    ASSERT_FALSE(args.empty()) << "Parameter 'args' is empty";
+    ASSERT_EQ(args.size(), 1) << "Parameter 'args' has more than one value";
+    ASSERT_EQ(args[0].value, "value2"sv) << "Parameter 'args' has wrong value";
 }
-TEST(glap_combined, argument_flags) {
+TEST(glap_combined, parameter_flags) {
     auto result = parser.parse(std::array{"glap"sv, "command2"sv, "-bbfbf"sv, "v1"sv, "v2"sv, "v3"sv});
     ASSERT_TRUE(result.has_value()) << "Parser failed: " << result.error().to_string();
     ASSERT_EQ(result.value().command.index(), 1) << "Wrong command index";
     auto command = std::get<Command2>(result.value().command);
-    EXPECT_EQ(command.get_parameter<"flag">().occurences, 2);
-    auto args = command.get_parameter<"args">().values;
-    ASSERT_FALSE(args.empty()) << "Argument 'args' is empty";
-    ASSERT_EQ(args.size(), 3) << "Argument 'args' has not exactly 3 values";
-    ASSERT_EQ(args[0].value, "v1"sv) << "Argument 'args' has wrong value";
-    ASSERT_EQ(args[1].value, "v2"sv) << "Argument 'args' has wrong value";
-    ASSERT_EQ(args[2].value, "v3"sv) << "Argument 'args' has wrong value";
+    EXPECT_EQ(command.get_argument<"flag">().occurences, 2);
+    auto args = command.get_argument<"args">().values;
+    ASSERT_FALSE(args.empty()) << "Parameter 'args' is empty";
+    ASSERT_EQ(args.size(), 3) << "Parameter 'args' has not exactly 3 values";
+    ASSERT_EQ(args[0].value, "v1"sv) << "Parameter 'args' has wrong value";
+    ASSERT_EQ(args[1].value, "v2"sv) << "Parameter 'args' has wrong value";
+    ASSERT_EQ(args[2].value, "v3"sv) << "Parameter 'args' has wrong value";
 }
-TEST(glap_combined, arguments_default_command) {
+TEST(glap_combined, parameters_default_command) {
     auto result = parser.parse(std::array{"glap"sv, "-c"sv, "value"sv, "--flag"sv});
     ASSERT_TRUE(result.has_value()) << "Parser failed: " << result.error().to_string();
     ASSERT_EQ(result.value().command.index(), 0) << "Wrong command index";
     auto command1 = std::get<Command1>(result.value().command);
-    ASSERT_EQ(command1.get_parameter<"arg">().value, "value");
-    ASSERT_EQ(command1.get_parameter<"flag">().occurences, 1);
+    ASSERT_EQ(command1.get_argument<"arg">().value, "value");
+    ASSERT_EQ(command1.get_argument<"flag">().occurences, 1);
 }
 #pragma endregion

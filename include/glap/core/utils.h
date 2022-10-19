@@ -115,7 +115,7 @@ namespace glap
     template <typename Arg1, class ...ArgN>
     struct NameChecker<Arg1, Arg1, ArgN...>
     {
-        static_assert(!std::is_same_v<Arg1, Arg1>, "Duplicate parameter");
+        static_assert(!std::is_same_v<Arg1, Arg1>, "Duplicate argument");
     };
     template <auto Resolver = discard, auto Validator = discard>
     struct Value {

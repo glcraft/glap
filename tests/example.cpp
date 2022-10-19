@@ -8,7 +8,7 @@
 struct Param1 {
     static constexpr std::string_view longname = "param1";  
     static constexpr std::optional<char32_t> shortname = 'p';
-    static constexpr auto type = glap::model::ParameterType::Argument;
+    static constexpr auto type = glap::model::ArgumentType::Parameter;
     using result_type = void;
 };
 
@@ -28,8 +28,8 @@ struct Print
 {};
 
 template <class Names, auto... T>
-struct Print<glap::model::Argument<Names, T...>> {
-    using value_type= glap::model::Argument<Names, T...>;
+struct Print<glap::model::Parameter<Names, T...>> {
+    using value_type= glap::model::Parameter<Names, T...>;
     void operator()(const value_type& v) const {
         fmt::print("    --{}: ", v.longname);
         if (v.value) {
@@ -49,7 +49,7 @@ struct Print<glap::model::Flag<P...>> {
 template <class T> 
     requires requires (T a){
         a.values;
-        T::type == glap::model::ParameterType::Input;
+        T::type == glap::model::ArgumentType::Input;
     }
 struct Print<T> {
     using value_type= T;
@@ -62,8 +62,8 @@ struct Print<T> {
     }
 };
 template <class Names, auto N, auto ...Args>
-struct Print<glap::model::Arguments<Names, N, Args...>> {
-    using value_type= glap::model::Arguments<Names, N  , Args...>;
+struct Print<glap::model::Parameters<Names, N, Args...>> {
+    using value_type= glap::model::Parameters<Names, N  , Args...>;
     void operator()(const value_type& v) const {
         fmt::print("    --{}: ", v.longname);
         auto nb=0;
@@ -98,8 +98,8 @@ int main(int argc, char** argv)
 
     using ParserCommand = Command<glap::Names<"command", 'c'>, 
         Flag<glap::Names<"flag", 'f'>>,
-        Argument<glap::Names<"arg", 'a'>, discard, is_hello_world>,
-        Arguments<glap::Names<"args", 'b'>>,
+        Parameter<glap::Names<"arg", 'a'>, discard, is_hello_world>,
+        Parameters<glap::Names<"args", 'b'>>,
         Inputs<>
     >;
     glap::Parser<"glap", glap::DefaultCommand::FirstDefined, Command<glap::Names<"othercommand", 't'>, Flag<glap::Names<"flag", 'f'>>>,
@@ -108,10 +108,10 @@ int main(int argc, char** argv)
 
 
     using HelpCommand = glap::help::model::Command<"command", glap::help::model::Description<"first defined command">,
-        glap::help::model::Parameter<"flag", glap::help::model::Description<"flag example">>,
-        glap::help::model::Parameter<"arg", glap::help::model::Description<"single argument example">>,
-        glap::help::model::Parameter<"args", glap::help::model::Description<"multiple arguments example">>,
-        glap::help::model::Parameter<"INPUTS", glap::help::model::Description<"inputs description">>
+        glap::help::model::Argument<"flag", glap::help::model::Description<"flag example">>,
+        glap::help::model::Argument<"arg", glap::help::model::Description<"single parameter example">>,
+        glap::help::model::Argument<"args", glap::help::model::Description<"multiple parameters example">>,
+        glap::help::model::Argument<"INPUTS", glap::help::model::Description<"inputs description">>
     >;
 
     using HelpProgram = glap::help::model::Program<"glap-example",

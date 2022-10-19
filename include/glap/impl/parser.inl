@@ -36,9 +36,9 @@ namespace glap
         requires requires(Valued a) {
             {a.value} -> std::convertible_to<std::optional<std::string_view>>;
         }
-    struct ParseParameter<Valued> {
+    struct ParseArgument<Valued> {
         using item_type = Valued;
-        static constexpr auto error_type = (Valued::type == model::ParameterType::Input) ? Error::Type::Input : Error::Type::Argument;
+        static constexpr auto error_type = (Valued::type == model::ArgumentType::Input) ? Error::Type::Input : Error::Type::Parameter;
         static constexpr auto validate(std::string_view value) requires std::invocable<decltype(Valued::validator), std::string_view> {
             return Valued::validator(value);
         }
@@ -54,7 +54,7 @@ namespace glap
                     Error::Code::AlreadySet
                 });
             }
-            if (!ParseParameter::validate(value.value())) [[unlikely]] {
+            if (!ParseArgument::validate(value.value())) [[unlikely]] {
                 return make_unexpected(Error{
                     std::string_view{},
                     value,
@@ -70,9 +70,9 @@ namespace glap
         requires std::constructible_from<typename Contained::value_type, std::string_view> && requires (Contained a, typename Contained::value_type v) {
             {a.values.push_back(v)};
         }
-    struct ParseParameter<Contained> {
+    struct ParseArgument<Contained> {
         using container_type = Contained;
-        static constexpr auto error_type = (Contained::type == model::ParameterType::Input) ? Error::Type::Input : Error::Type::Argument;
+        static constexpr auto error_type = (Contained::type == model::ArgumentType::Input) ? Error::Type::Input : Error::Type::Parameter;
         static constexpr auto validate(std::string_view value) requires std::invocable<decltype(Contained::validator), std::string_view> {
             return Contained::validator(value);
         }
@@ -80,7 +80,7 @@ namespace glap
             return true;
         }
         constexpr auto operator()(container_type& arg, std::optional<std::string_view> value) const -> Expected<void> {
-            if (!ParseParameter::validate(value.value())) [[unlikely]] {
+            if (!ParseArgument::validate(value.value())) [[unlikely]] {
                 return make_unexpected(Error{
                     std::string_view{},
                     value,
@@ -93,7 +93,7 @@ namespace glap
         }
     };
     template <class ...Args>
-    struct ParseParameter<model::Flag<Args...>> {
+    struct ParseArgument<model::Flag<Args...>> {
         using item_type = model::Flag<Args...>;
         constexpr auto operator()(item_type& arg, std::optional<std::string_view> value) const -> Expected<void> {
             arg.occurences += 1;
@@ -111,7 +111,7 @@ namespace glap
             auto exp_codepoint = glap::utils::uni::codepoint(name);
             if (!exp_codepoint) [[unlikely]] {
                 return glap::make_unexpected(Error {
-                    .argument = name,
+                    .parameter = name,
                     .value = std::nullopt,
                     .type = Error::Type::Command,
                     .code = Error::Code::BadString
@@ -167,7 +167,7 @@ namespace glap
                 if (!result.has_value()) [[unlikely]] {
                     return make_unexpected(PositionnedError {
                         .error = Error {
-                            .argument = cmd_name,
+                            .parameter = cmd_name,
                             .value = std::nullopt,
                             .type = Error::Type::Command,
                             .code = Error::Code::BadCommand
@@ -179,7 +179,7 @@ namespace glap
             }
         };
         template <class ...T>
-            requires (std::same_as<std::decay_t<decltype(T::type)>, model::ParameterType> && ...)
+            requires (std::same_as<std::decay_t<decltype(T::type)>, model::ArgumentType> && ...)
         class FindAndParse<std::tuple<T...>> 
         {
             using tuple_type = std::tuple<T...>;
@@ -265,7 +265,7 @@ namespace glap
                     return {};
                 }
             };
-            constexpr auto find_parse_longname(tuple_type& parameters, std::string_view longname, std::optional<std::string_view> value) const -> Expected<void> {
+            constexpr auto find_parse_longname(tuple_type& arguments, std::string_view longname, std::optional<std::string_view> value) const -> Expected<void> {
                 auto result = Expected<void>{};
                 auto found = ([&] {
                     if constexpr(!HasNames<T>)
@@ -276,7 +276,7 @@ namespace glap
                         if (T::longname != longname)
                             return false;
                     }
-                    result = parse_parameter<T>(std::get<T>(parameters), value);
+                    result = parse_argument<T>(std::get<T>(arguments), value);
                     return true;
                 }() || ...);
                 if (!found)
@@ -284,12 +284,12 @@ namespace glap
                         longname,
                         std::nullopt,
                         Error::Type::None,
-                        Error::Code::UnknownParameter
+                        Error::Code::UnknownArgument
                     });
                 return result;
             }
             template <class Iter>
-            constexpr auto find_parse_shortname(tuple_type& parameters, Iter& itarg, Iter itend, char32_t shortname) const -> Expected<void> {
+            constexpr auto find_parse_shortname(tuple_type& arguments, Iter& itarg, Iter itend, char32_t shortname) const -> Expected<void> {
                 auto result = Expected<void>{};
                 auto found = ([&] {
                     if constexpr(!HasNames<T>)
@@ -303,19 +303,19 @@ namespace glap
                             return false;
                     }
                     std::optional<std::string_view> value = std::nullopt;
-                    if constexpr(T::type == model::ParameterType::Argument) {
+                    if constexpr(T::type == model::ArgumentType::Parameter) {
                         if (++itarg == itend) [[unlikely]] {
                             result = make_unexpected(Error{
                                 std::string_view{},
                                 std::nullopt,
-                                Error::Type::Argument,
+                                Error::Type::Parameter,
                                 Error::Code::MissingValue
                             });
                             return true;
                         }
                         value = *itarg;
                     }
-                    result = parse_parameter<T>(std::get<T>(parameters), value);
+                    result = parse_argument<T>(std::get<T>(arguments), value);
                     return true;
                 }() || ...);
                 if (!found)
@@ -323,16 +323,16 @@ namespace glap
                         *itarg,
                         std::nullopt,
                         Error::Type::None,
-                        Error::Code::UnknownParameter
+                        Error::Code::UnknownArgument
                     });
                 return result;
             }
-            constexpr auto find_parse_input(tuple_type& parameters, std::optional<std::string_view> value) const -> Expected<void> {
+            constexpr auto find_parse_input(tuple_type& arguments, std::optional<std::string_view> value) const -> Expected<void> {
                 auto result = Expected<void>{};
                 ([&] {
-                    if constexpr(T::type != model::ParameterType::Input)
+                    if constexpr(T::type != model::ArgumentType::Input)
                         return false;
-                    result = parse_parameter<T>(std::get<T>(parameters), value);
+                    result = parse_argument<T>(std::get<T>(arguments), value);
                     return true;
                 }() || ...);
                 return result;
@@ -364,7 +364,7 @@ namespace glap
                                 while (auto name = *itshorts) {
                                     auto exp_short = find_parse_shortname(result.value(), itarg, args.end, *name);
                                     if (!exp_short) {
-                                        exp_short.error().argument = shortnames.names;
+                                        exp_short.error().parameter = shortnames.names;
                                         return exp_short;
                                     }
                                 }
@@ -393,10 +393,10 @@ namespace glap
         if (args.size() == 0) [[unlikely]] {
             return make_unexpected(PositionnedError{
                 .error = Error{
-                    .argument = "",
+                    .parameter = "",
                     .value = std::nullopt,
                     .type = Error::Type::None,
-                    .code = Error::Code::NoArgument
+                    .code = Error::Code::NoParameter
                 },
                 .position = 0
             });
@@ -428,7 +428,7 @@ namespace glap
             if constexpr (def_cmd == DefaultCommand::None) {
                 return make_unexpected(PositionnedError{
                     .error = Error{
-                        .argument = "",
+                        .parameter = "",
                         .value = std::nullopt,
                         .type = Error::Type::None,
                         .code = Error::Code::NoGlobalCommand

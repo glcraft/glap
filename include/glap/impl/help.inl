@@ -12,7 +12,7 @@
 namespace glap {
     namespace impl {
         template <class P, class H>
-        concept IsHelpInputsCompatible = requires { P::type == glap::model::ParameterType::Input; } && help::IsInputs<H>;
+        concept IsHelpInputsCompatible = requires { P::type == glap::model::ArgumentType::Input; } && help::IsInputs<H>;
         template <class FromParser, class ...Others>
         struct FindByName 
         {};
@@ -43,7 +43,7 @@ namespace glap {
                     if constexpr (HasShortName<FromParser>) {
                         len += 1 + separator_length;
                     }
-                } else if constexpr (glap::model::IsParameterTyped<FromParser, glap::model::ParameterType::Input>) {
+                } else if constexpr (glap::model::IsArgumentTyped<FromParser, glap::model::ArgumentType::Input>) {
                     len = help::INPUTS_NAME.length();
                 }
                 if (len > max) {
@@ -59,7 +59,7 @@ namespace glap {
         {
             static_assert(always_false_v<T>, "unable to match help for this type");
         };
-        template<class FromHelp, glap::model::IsParameterTyped<glap::model::ParameterType::Input> InputParser>
+        template<class FromHelp, glap::model::IsArgumentTyped<glap::model::ArgumentType::Input> InputParser>
             requires help::IsInputs<FromHelp>
         struct BasicHelp<FromHelp, InputParser>
         {
@@ -161,7 +161,7 @@ namespace glap {
         static constexpr auto this_basic_help = impl::basic_help<ProgramHelp, ProgramParser>;
     };
 
-    template<StringLiteral Name, help::IsDescription Desc, class ...ParamsHelp, class CommandNames, model::IsParameter... ParamsParser>
+    template<StringLiteral Name, help::IsDescription Desc, class ...ParamsHelp, class CommandNames, model::IsArgument... ParamsParser>
     struct Help<help::model::Command<Name, Desc, ParamsHelp...>, model::Command<CommandNames, ParamsParser...>> {
         using CommandHelp = help::model::Command<Name, Desc, ParamsHelp...>;
         using CommandParser = model::Command<CommandNames, ParamsParser...>;
@@ -179,21 +179,21 @@ namespace glap {
                 it = this_basic_help.name(it);
                 ([&] {
                     constexpr auto param_basic_help = impl::basic_help<typename impl::FindByName<ParamsParser, ParamsHelp...>::type, ParamsParser>;
-                    if constexpr(model::IsParameterTyped<ParamsParser, model::ParameterType::Argument>) {
+                    if constexpr(model::IsArgumentTyped<ParamsParser, model::ArgumentType::Parameter>) {
                         it = glap::format_to(it, " [--");
                         it = param_basic_help.template name<OutputIt>(it);
                         it = glap::format_to(it, " VALUE]");
-                    } else if constexpr(model::IsParameterTyped<ParamsParser, model::ParameterType::Flag>) {
+                    } else if constexpr(model::IsArgumentTyped<ParamsParser, model::ArgumentType::Flag>) {
                         it = glap::format_to(it, " [--");
                         it = param_basic_help.template name<OutputIt>(it);
                         it = glap::format_to(it, "]");
-                    } else if constexpr(model::IsParameterTyped<ParamsParser, model::ParameterType::Input>) {
+                    } else if constexpr(model::IsArgumentTyped<ParamsParser, model::ArgumentType::Input>) {
                         it = glap::format_to(it, " <INPUTS>");
                     }
                 }(), ...);
                 it = glap::format_to(it, "\n\n");
             }
-            it = glap::format_to(it, "Parameter{}:\n", sizeof...(ParamsParser) > 1 ? "s" : "");
+            it = glap::format_to(it, "Argument{}:\n", sizeof...(ParamsParser) > 1 ? "s" : "");
             ([&] {
                 constexpr auto param_basic_help = impl::basic_help<typename impl::FindByName<ParamsParser, ParamsHelp...>::type, ParamsParser>;
                 constexpr auto spacing = param_name_max_length - impl::max_length<ParamsParser>(2);

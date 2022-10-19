@@ -12,11 +12,11 @@
 namespace glap 
 {
     template <class P>
-    struct ParseParameter {
+    struct ParseArgument {
         constexpr auto operator()(P&, std::optional<std::string_view> value) const -> Expected<void>;
     };
     template <class C>
-    static constexpr auto parse_parameter = ParseParameter<C>{};
+    static constexpr auto parse_argument = ParseArgument<C>{};
 
     template <class C>
     struct ParseCommand {

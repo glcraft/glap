@@ -28,7 +28,7 @@ namespace glap {
             };
 
             template<StringLiteral Name, IsDescription Desc> 
-            struct Parameter : Desc {
+            struct Argument : Desc {
                 static constexpr std::string_view name = Name;
             };
             template<StringLiteral Name, IsDescription Desc, class ...Params>

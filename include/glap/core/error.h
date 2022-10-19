@@ -8,30 +8,30 @@
 namespace glap 
 {
     struct Error {
-        std::string_view argument;
+        std::string_view parameter;
         std::optional<std::string_view> value;
         enum class Type {
             Command,
-            Argument,
+            Parameter,
             Flag,
             Input,
             None,
             Unknown
         } type;
         enum class Code {
-            NoArgument,
-            MissingArgument,
+            NoParameter,
+            MissingParameter,
             MissingFlag,
             NoGlobalCommand,
             BadCommand,
-            UnknownParameter,
+            UnknownArgument,
             InvalidValue,
             MissingValue,
             AlreadySet,
             FlagWithValue,
             TooManyFlags,
             NotEnoughFlags,
-            RequiredArgument,
+            RequiredParameter,
             SyntaxError,
             BadString
         } code;
@@ -45,7 +45,7 @@ namespace glap
         Error error;
         difference_type position;
         auto to_string() const {
-            return glap::format("at argument {}: {}", position, error.to_string());
+            return glap::format("at parameter {}: {}", position, error.to_string());
         }
     };
     template<class T>
