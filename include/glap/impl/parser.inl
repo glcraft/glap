@@ -1,7 +1,7 @@
 #pragma once
 #include "glap/core/utf8.h"
-#include "model.h"
-#include "parser.h" // for lsp
+#include "../model.h"
+#include "../parser.h" // for lsp
 #include <optional>
 #include <string_view>
 #include <type_traits>
