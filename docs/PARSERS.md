@@ -45,6 +45,7 @@ The function returns a [Program](#program-templated-class) if the parse success 
 template <class CommandNames, IsArgument... P>
 class Command;
 ```
+Model to define a command for the parser
 ## Single parameter
 ```cpp
 /// In namespace glap::model
