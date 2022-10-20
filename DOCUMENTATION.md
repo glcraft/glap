@@ -14,6 +14,8 @@ You can define a default command in the parser template argument. If it is set, 
 
 Commands can optionally have short name. A short name in the library is one unicode codepoint only, so it can be a ascii letter, a number, a cyrillic letter or even an emoji. Beware that composed unicode symbol like some accented letters or doubled emojis will not work because they are multiple unicode codepoints. So for example, the command1 have a short name 'c', use `program_name c` to select command1 with its short name.
 
+It is possible to get rid of command by using [`parse_command`](#parsers)
+
 ### Arguments
 
 There are 3 types of argument possible :
@@ -30,31 +32,36 @@ Note that the library doesn't take arguments order in account because of its con
 
 ## Parser model
 
-### Utils
+### Parser
 
-Here is some util classes to work with the parser model.
-
-#### Names
 ```cpp
-// In namespace glap
-template <StringLiteral LongName, auto ShortName = discard> 
-struct Names;
+/// In namespace glap
+template<StringLiteral Name, DefaultCommand def_cmd, class... Commands>
+class Parser;
 ```
 
+#### Template arguments
 
-### Program templated class
+* **Name**: The name of the program
+* **def_cmd**: enum value which define if there is a default command of not. It can be `glap::DefaultCommand::FirstDefined` or `glap::DefaultCommand::None`
+* **Commands**: list of command classes. Use [Command templated class](#command-templated-class)
+
+#### Functions
+
 ```cpp
-/// In namespace glap::model
-template<class... Commands>
-struct Program;
+constexpr auto parse(glap::utils::Iterable<std::string_view> auto args) const -> PosExpected<model::Program<Commands...>>;
 ```
-### Command templated class
+Parse each argument using an iterable container (It can be a vector, a span, an array...).
+
+The function returns a [Program](#program-templated-class) if the parse success or an [Error](#error) if it fails.
+
+### Command
 ```cpp
 /// In namespace glap::model
 template <class CommandNames, IsArgument... P>
 class Command;
 ```
-### Simple parameter templated class
+### Single parameter
 ```cpp
 /// In namespace glap::model
 template <class ArgNames, auto Resolver = discard, auto Validator = discard>
@@ -72,24 +79,36 @@ struct Parameters;
 template <class ArgNames>
 struct Flag;
 ```
-### Single expected input templated class
+### Single expected input
 ```cpp
 /// In namespace glap::model
 template <auto Resolver = discard, auto Validator = discard>
 struct Input;
 ```
-### Multiple expected inputs templated class
+### Multiple expected inputs
 ```cpp
 /// In namespace glap::model
 template <auto N = discard, auto Resolver = discard, auto Validator = discard>
 struct Inputs;
 ```
-### Parser class
+
+### Program templated class
 ```cpp
-/// In namespace glap
-template<StringLiteral Name, DefaultCommand def_cmd, class... Commands>
-class Parser;
+/// In namespace glap::model
+template<class... Commands>
+struct Program;
 ```
+
+### Names
+
+```cpp
+// In namespace glap
+template <StringLiteral LongName, auto ShortName = discard> 
+struct Names;
+```
+
+### Error
+
 
 
 ## Help generation
