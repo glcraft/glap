@@ -1,3 +1,8 @@
+includes("xmake/**.lua")
+if (is_plat("macosx")) then
+    llvm_toolchain("LLVM15.0.0", "macosx")
+end
+
 add_rules("mode.debug", "mode.release")
 add_requires("fmt 9.1.0", {optional = true}) -- required only if stl has not std::format
 add_requires("tl_expected", {optional = true}) -- required only if stl has not std::expected
