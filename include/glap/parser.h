@@ -26,11 +26,6 @@ namespace glap
     template <class C>
     static constexpr auto parse_command = ParseCommand<C>{};
 
-    enum class DefaultCommand {
-        FirstDefined,
-        None
-    };
-
     template <class>
     class Parser
     {};

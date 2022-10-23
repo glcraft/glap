@@ -10,6 +10,10 @@ namespace glap::model
         Flag,
         Input
     };
+    enum class DefaultCommand {
+        FirstDefined,
+        None
+    };
 
     template <class T, ArgumentType PType>
     concept IsArgumentTyped = requires {
@@ -96,13 +100,14 @@ namespace glap::model
         }
 
     };
-    template<StringLiteral Name, class... Commands>
+    template<StringLiteral Name, DefaultCommand def_cmd, class... Commands>
     struct Program {
         using NameCheck = NameChecker<Commands...>;
         static_assert(!NameCheck::has_duplicate_longname, "arguments has duplicate long name");
         static_assert(!NameCheck::has_duplicate_shortname, "arguments has duplicate short name");
         
         static constexpr std::string_view name = Name;
+        static constexpr auto default_command = def_cmd;
         std::variant<Commands...> command;
     };
 }
