@@ -1,5 +1,5 @@
 add_rules("mode.debug", "mode.release")
-add_requires("fmt 9.0.0", {optional = true}) -- required only if stl has not std::format
+add_requires("fmt 9.1.0", {optional = true}) -- required only if stl has not std::format
 add_requires("tl_expected", {optional = true}) -- required only if stl has not std::expected
 add_requires("gtest 1.12", {optional = true}) -- required only for glap-tests
 target("glap")
