@@ -27,17 +27,17 @@ namespace glap
         using OutputType = model::Program<Name, Commands...>;
     public:
         template <class Iter>
-        constexpr auto operator()(OutputType&, utils::BiIterator<Iter> args) const -> PosExpected<void>
+        constexpr auto parse(OutputType& program, utils::BiIterator<Iter> args) const -> PosExpected<Iter>
         {
 
         }
     };
     template <HasLongName CommandNames, model::IsArgument... Arguments>
     class Parser<model::Command<CommandNames, Arguments...>> : public Parser<Parser<model::Command<CommandNames, Arguments...>>> {
-        using OutputType = model::Command<CommandNames, Arguments...>;
     public:
+        using OutputType = model::Command<CommandNames, Arguments...>;
         template <class Iter>
-        constexpr auto operator()(OutputType&, utils::BiIterator<Iter> args) const -> PosExpected<void>
+        constexpr auto parse(OutputType&, utils::BiIterator<Iter> args) const -> PosExpected<Iter>
         {
 
         }
@@ -47,7 +47,7 @@ namespace glap
         using OutputType = model::Flag<ArgNames>;
     public:
         template <class Iter>
-        constexpr auto operator()(OutputType&, utils::BiIterator<Iter> args) const -> PosExpected<void>
+        constexpr auto parse(OutputType&, utils::BiIterator<Iter> args) const -> PosExpected<Iter>
         {
 
         }
@@ -57,7 +57,7 @@ namespace glap
         using OutputType = model::Parameter<ArgNames, Resolver, Validator>;
     public:
         template <class Iter>
-        constexpr auto operator()(OutputType&, utils::BiIterator<Iter> args) const -> PosExpected<void>
+        constexpr auto parse(OutputType&, utils::BiIterator<Iter> args) const -> PosExpected<Iter>
         {
 
         }
@@ -67,7 +67,7 @@ namespace glap
         using OutputType = model::Parameters<ArgNames, N, Resolver, Validator>;
     public:
         template <class Iter>
-        constexpr auto operator()(OutputType&, utils::BiIterator<Iter> args) const -> PosExpected<void>
+        constexpr auto parse(OutputType&, utils::BiIterator<Iter> args) const -> PosExpected<Iter>
         {
 
         }
@@ -77,7 +77,7 @@ namespace glap
         using OutputType = model::Input<Resolver, Validator>;
     public:
         template <class Iter>
-        constexpr auto operator()(OutputType&, utils::BiIterator<Iter> args) const -> PosExpected<void>
+        constexpr auto parse(OutputType&, utils::BiIterator<Iter> args) const -> PosExpected<Iter>
         {
 
         }
@@ -87,7 +87,7 @@ namespace glap
         using OutputType = model::Inputs<N, Resolver, Validator>;
     public:
         template <class Iter>
-        constexpr auto operator()(OutputType&, utils::BiIterator<Iter> args) const -> PosExpected<void>
+        constexpr auto parse(OutputType&, utils::BiIterator<Iter> args) const -> PosExpected<Iter>
         {
 
         }
