@@ -96,9 +96,13 @@ namespace glap::model
         }
 
     };
-    template<class... Commands>
+    template<StringLiteral Name, class... Commands>
     struct Program {
-        std::string_view program;
+        using NameCheck = NameChecker<Commands...>;
+        static_assert(!NameCheck::has_duplicate_longname, "arguments has duplicate long name");
+        static_assert(!NameCheck::has_duplicate_shortname, "arguments has duplicate short name");
+        
+        static constexpr std::string_view name = Name;
         std::variant<Commands...> command;
     };
 }
