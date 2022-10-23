@@ -108,6 +108,7 @@ namespace glap::model
         
         static constexpr std::string_view name = Name;
         static constexpr auto default_command = def_cmd;
+        std::string_view program;
         std::variant<Commands...> command;
     };
 }
