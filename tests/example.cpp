@@ -2,6 +2,7 @@
 #include <ranges>
 #include <charconv>
 #include <fmt/format.h>
+#include <string_view>
 #include <type_traits>
 #include <variant>
 
@@ -102,30 +103,33 @@ int main(int argc, char** argv)
         Parameters<glap::Names<"args", 'b'>>,
         Inputs<>
     >;
-    glap::Parser<"glap", glap::DefaultCommand::FirstDefined, Command<glap::Names<"othercommand", 't'>, Flag<glap::Names<"flag", 'f'>>>,
+    glap::Parser<Program<"glap", DefaultCommand::FirstDefined, Command<glap::Names<"othercommand", 't'>, Flag<glap::Names<"flag", 'f'>>>,
         ParserCommand
-    > parser;
+    >> parser;
+
+    auto res = parser(std::vector<std::string_view>{"glap", "command", "-f", "--arg", "hello", "--args", "1", "2", "3"});
 
 
-    using HelpCommand = glap::help::model::Command<"command", glap::help::model::Description<"first defined command">,
-        glap::help::model::Argument<"flag", glap::help::model::Description<"flag example">>,
-        glap::help::model::Argument<"arg", glap::help::model::Description<"single parameter example">>,
-        glap::help::model::Argument<"args", glap::help::model::Description<"multiple parameters example">>,
-        glap::help::model::Argument<"INPUTS", glap::help::model::Description<"inputs description">>
-    >;
+    // using HelpCommand = glap::help::model::Command<"command", glap::help::model::Description<"first defined command">,
+    //     glap::help::model::Argument<"flag", glap::help::model::Description<"flag example">>,
+    //     glap::help::model::Argument<"arg", glap::help::model::Description<"single parameter example">>,
+    //     glap::help::model::Argument<"args", glap::help::model::Description<"multiple parameters example">>,
+    //     glap::help::model::Argument<"INPUTS", glap::help::model::Description<"inputs description">>
+    // >;
+    // using HelpProgram = glap::help::model::Program<"glap-example",
+    //     glap::help::model::FullDescription<"example program", "This is an exemple of the program description">, 
+    //     HelpCommand
+    // >;
+    // {
+    //     auto help_str = glap::get_help<HelpProgram, decltype(parser)>();
+    //     fmt::print("# Help Program :\n{}\n\n", help_str);
+    // }
+    // {
+    //     auto help_str = glap::get_help<HelpCommand, ParserCommand>();
+    //     fmt::print("# Help Command \"command\" :\n{}\n\n", help_str);
+    // }
 
-    using HelpProgram = glap::help::model::Program<"glap-example",
-        glap::help::model::FullDescription<"example program", "This is an exemple of the program description">, 
-        HelpCommand
-    >;
-    {
-        auto help_str = glap::get_help<HelpProgram, decltype(parser)>();
-        fmt::print("# Help Program :\n{}\n\n", help_str);
-    }
-    {
-        auto help_str = glap::get_help<HelpCommand, ParserCommand>();
-        fmt::print("# Help Command \"command\" :\n{}\n\n", help_str);
-    }
+
     // auto result = parser.parse(std::span{argv, argv+argc} | std::views::transform([](auto arg) {return std::string_view{arg};}) );
 
     // if (result) {
