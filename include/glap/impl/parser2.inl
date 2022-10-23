@@ -1,6 +1,8 @@
 #pragma once
 #include "../parser.h"
 #include "../model.h"
+#include <optional>
+#include <variant>
 
 namespace glap
 {
@@ -8,28 +10,111 @@ namespace glap
     class Parser<Parser<Model>>
     {
         using BaseType = Parser<Model>;
-        using OutputType = typename BaseType::OutputType;
+        using OutputType = Model;
     public:
         template <class Iter>
         constexpr auto operator()(utils::BiIterator<Iter> args) const -> PosExpected<OutputType>
         {
             OutputType result;
-            constexpr auto parser = Parser<Model>{};
-            auto cmd = parser.template parse<OutputType>(result, args);
+            constexpr auto parser = BaseType{};
+            auto cmd = static_cast<const BaseType*>(this)->parse(result, args);
             if (!cmd)
                 return glap::make_unexpected(cmd.error());
             else
                 return result;
         }
+        constexpr auto operator()(utils::Iterable<std::string_view> auto args) const -> PosExpected<OutputType>
+        {
+            return operator()(utils::BiIterator{args.begin(), args.end()});
+        }
     };
-    template <StringLiteral Name, class... Commands>
-    class Parser<model::Program<Name, Commands...>> : public Parser<Parser<model::Program<Name, Commands...>>> {
-        using OutputType = model::Program<Name, Commands...>;
+    template <StringLiteral Name, model::DefaultCommand def_cmd, class... Commands>
+    class Parser<model::Program<Name, def_cmd, Commands...>> : public Parser<Parser<model::Program<Name, def_cmd, Commands...>>> {
+        
+        template <class Command>
+        static constexpr bool has_name(std::string_view name, std::optional<char32_t> codepoint)
+        {
+            if (name == Command::longname)
+                return true;
+            else if (codepoint && codepoint.value() == Command::shortname.value())
+                return true;
+            else
+                return false;
+        }
     public:
+        using OutputType = model::Program<Name, def_cmd, Commands...>;
         template <class Iter>
         constexpr auto parse(OutputType& program, utils::BiIterator<Iter> args) const -> PosExpected<Iter>
         {
+            if (args.size() == 0) [[unlikely]] {
+                return make_unexpected(PositionnedError{
+                    .error = Error{
+                        .parameter = "",
+                        .value = std::nullopt,
+                        .type = Error::Type::None,
+                        .code = Error::Code::NoParameter
+                    },
+                    .position = 0
+                });
+            }
+            auto itarg = args.begin;
+            program.program = *itarg++;
+            auto default_command = [&] () {
+                if (itarg == args.end) {
+                    return true;
+                }
+                if (itarg->starts_with("-")) {
+                    return true;
+                }
+                return false;
+            }();
+            PosExpected<Iter> result;
+            if (default_command) {
+                if constexpr (def_cmd == model::DefaultCommand::None) {
+                    return make_unexpected(PositionnedError{
+                        .error = Error{
+                            .parameter = "",
+                            .value = std::nullopt,
+                            .type = Error::Type::None,
+                            .code = Error::Code::NoGlobalCommand
+                        },
+                        .position = 0
+                    });
+                }
+                program.command.template emplace<0>();
+                result = glap::parse<std::variant_alternative_t<0, decltype(program.command)>>.parse(std::get<0>(program.command), utils::BiIterator(itarg, args.end));
+            }
+            else {
+                auto name = *itarg++;
+                std::optional<char32_t> codepoint;
+                if (utils::uni::utf8_length(name) == 1) {
+                    auto res = utils::uni::codepoint(name);
+                    if (res)
+                        codepoint = res.value();
+                    else 
+                        return make_unexpected(PositionnedError{
+                            .error = Error{
+                                .parameter = "",
+                                .value = std::nullopt,
+                                .type = Error::Type::None,
+                                .code = Error::Code::BadString
+                            },
+                            .position = 0
+                        });
+                } else {
+                    codepoint = std::nullopt;
+                }
 
+                ([&]{
+                    if (has_name<Commands>(name, codepoint)) {
+                        program.command.template emplace<Commands>();
+                        result = glap::parse<Commands>.parse(std::get<Commands>(program.command), utils::BiIterator(itarg, args.end));
+                        return true;
+                    }
+                    return false;
+                }() || ...);
+            }
+            return result;
         }
     };
     template <HasLongName CommandNames, model::IsArgument... Arguments>
@@ -39,7 +124,7 @@ namespace glap
         template <class Iter>
         constexpr auto parse(OutputType&, utils::BiIterator<Iter> args) const -> PosExpected<Iter>
         {
-
+            return args.begin;
         }
     };
     template <class ArgNames>
