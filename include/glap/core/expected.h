@@ -13,5 +13,5 @@ namespace glap
     using expected = tl::expected<T, E>;
     template <class E>
     using unexpected = tl::unexpected<E>;
-    #endif
 }
+#endif
