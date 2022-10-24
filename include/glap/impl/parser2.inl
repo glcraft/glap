@@ -45,9 +45,9 @@ namespace glap
     public:
         using OutputType = model::Program<Name, def_cmd, Commands...>;
         template <class Iter>
-        constexpr auto parse(OutputType& program, utils::BiIterator<Iter> args) const -> PosExpected<Iter>
+        constexpr auto parse(OutputType& program, utils::BiIterator<Iter> params) const -> PosExpected<Iter>
         {
-            if (args.size() == 0) [[unlikely]] {
+            if (params.size() == 0) [[unlikely]] {
                 return make_unexpected(PositionnedError{
                     .error = Error{
                         .parameter = "",
@@ -58,10 +58,10 @@ namespace glap
                     .position = 0
                 });
             }
-            auto itarg = args.begin;
+            auto itarg = params.begin;
             program.program = *itarg++;
             auto default_command = [&] () {
-                if (itarg == args.end) {
+                if (itarg == params.end) {
                     return true;
                 }
                 if (itarg->starts_with("-")) {
@@ -83,7 +83,7 @@ namespace glap
                     });
                 }
                 program.command.template emplace<0>();
-                result = glap::parse<std::variant_alternative_t<0, decltype(program.command)>>.parse(std::get<0>(program.command), utils::BiIterator(itarg, args.end));
+                result = glap::parse<std::variant_alternative_t<0, decltype(program.command)>>.parse(std::get<0>(program.command), utils::BiIterator(itarg, params.end));
             }
             else {
                 auto name = *itarg++;
@@ -107,9 +107,9 @@ namespace glap
                 }
 
                 ([&]{
-                    if (has_name<Commands>(name, codepoint)) {
+                    if (impl::check_names<Commands>(name, codepoint)) {
                         program.command.template emplace<Commands>();
-                        result = glap::parse<Commands>.parse(std::get<Commands>(program.command), utils::BiIterator(itarg, args.end));
+                        result = glap::parse<Commands>.parse(std::get<Commands>(program.command), utils::BiIterator(itarg, params.end));
                         return true;
                     }
                     return false;
@@ -123,9 +123,10 @@ namespace glap
     public:
         using OutputType = model::Command<CommandNames, Arguments...>;
         template <class Iter>
-        constexpr auto parse(OutputType&, utils::BiIterator<Iter> args) const -> PosExpected<Iter>
+        constexpr auto parse(OutputType& command, utils::BiIterator<Iter> params) const -> PosExpected<Iter>
         {
-            return args.begin;
+            
+            return params.begin;
         }
     };
     template <class ArgNames>
@@ -133,7 +134,7 @@ namespace glap
         using OutputType = model::Flag<ArgNames>;
     public:
         template <class Iter>
-        constexpr auto parse(OutputType&, utils::BiIterator<Iter> args) const -> PosExpected<Iter>
+        constexpr auto parse(OutputType&, utils::BiIterator<Iter> params) const -> PosExpected<Iter>
         {
 
         }
