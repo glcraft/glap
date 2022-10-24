@@ -92,6 +92,10 @@ namespace glap
         && std::same_as<std::remove_cvref_t<decltype(T::shortname)>, std::optional<char32_t>>;
     template <typename T>
     concept HasShortName = HasNames<T> && T::shortname.has_value();
+    template <typename T, typename Value>
+    concept IsResolver = std::invocable<T, std::string_view> && std::same_as<std::invoke_result_t<T, std::string_view>, glap::expected<Value, void>>;
+    template <typename T>
+    concept IsValidator = std::invocable<T, std::string_view> && std::same_as<std::invoke_result_t<T, std::string_view>, bool>;
 
     template <class ...ArgN>
     struct NameChecker 
