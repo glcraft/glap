@@ -35,3 +35,11 @@ If you want to use emoji or non latin alphabet in long or short name, you can !
 ## Documentation
 
 You can find the usage documentation in the [DOCUMENTATION](docs/README.md) file
+
+## TODO
+
+- [ ] Help: color text
+- [ ] Help: locales
+- [ ] Subcommands
+- [ ] Executor (handle invokable to execute)
+- [ ] constexpr hashmap
