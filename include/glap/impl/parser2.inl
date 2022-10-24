@@ -6,6 +6,18 @@
 
 namespace glap
 {
+    namespace impl {
+        template <HasLongName Command>
+        static constexpr bool check_names(std::string_view name, std::optional<char32_t> codepoint)
+        {
+            if (name == Command::longname)
+                return true;
+            if constexpr(HasShortName<Command>)
+                if (codepoint && codepoint.value() == Command::shortname.value())
+                    return true;
+            return false;
+        }
+    }
     template <class Model>
     class Parser<Parser<Model>>
     {
@@ -30,17 +42,6 @@ namespace glap
     };
     template <StringLiteral Name, model::DefaultCommand def_cmd, class... Commands>
     class Parser<model::Program<Name, def_cmd, Commands...>> : public Parser<Parser<model::Program<Name, def_cmd, Commands...>>> {
-        
-        template <class Command>
-        static constexpr bool has_name(std::string_view name, std::optional<char32_t> codepoint)
-        {
-            if (name == Command::longname)
-                return true;
-            else if (codepoint && codepoint.value() == Command::shortname.value())
-                return true;
-            else
-                return false;
-        }
     public:
         using OutputType = model::Program<Name, def_cmd, Commands...>;
         template <class Iter>
