@@ -117,8 +117,9 @@ namespace glap
     {
         static_assert(!std::is_same_v<Arg1, Arg1>, "Duplicate argument");
     };
-    template <auto Resolver = discard, auto Validator = discard>
+    template <class T, auto Resolver = discard, auto Validator = discard>
     struct Value {
+        using value_type = T;
         constexpr Value() = default;
         constexpr Value(std::string_view v) : value(v)
         {}
@@ -126,15 +127,6 @@ namespace glap
         static constexpr auto resolver = Resolver;
         static constexpr auto validator = Validator;
 
-        std::optional<std::string_view> value;
-
-        [[nodiscard]]constexpr auto resolve() const requires (!std::same_as<decltype(Resolver), Discard>) {
-            static_assert(std::invocable<decltype(Resolver), std::string_view>, "Resolver must be callable with std::string_view");
-            return value ? Resolver(value.value()) : std::optional<decltype(Resolver(std::string_view{}))>{};
-        }
-        [[nodiscard]]constexpr auto validate() const requires (!std::same_as<decltype(Validator), Discard>) {
-            static_assert(std::invocable<decltype(Validator), std::string_view>, "Validator must be callable with std::string_view");
-            return value ? Validator(value.value()) : false;
-        }
+        std::optional<T> value;
     };
 }

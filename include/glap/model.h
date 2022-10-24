@@ -20,16 +20,16 @@ namespace glap::model
         T::type;
     } && (T::type == PType);
 
-    template <class ArgNames, auto Resolver = discard, auto Validator = discard>
-    struct Parameter : public ArgNames, public Value<Resolver, Validator> {
+    template <class ArgNames, class T = std::string_view, auto Resolver = discard, auto Validator = discard>
+    struct Parameter : public ArgNames, public Value<T, Resolver, Validator> {
         constexpr Parameter() = default;
-        constexpr Parameter(std::string_view v) : Value<Resolver, Validator>(v)
+        constexpr Parameter(std::string_view v) : Value<T, Resolver, Validator>(v)
         {}
         static constexpr auto type = ArgumentType::Parameter;
     };
     
-    template <class ArgNames, auto N = discard, auto Resolver = discard, auto Validator = discard>
-    struct Parameters : public ArgNames, public Container<Parameter<ArgNames, Resolver, Validator>, N> {
+    template <class ArgNames, class T = std::string_view, auto N = discard, auto Resolver = discard, auto Validator = discard>
+    struct Parameters : public ArgNames, public Container<Parameter<ArgNames, T, Resolver, Validator>, N> {
         static constexpr auto resolver = Resolver;
         static constexpr auto validator = Validator;
         static constexpr auto type = ArgumentType::Parameter;
@@ -39,15 +39,15 @@ namespace glap::model
         size_t occurences = 0;
         static constexpr auto type = ArgumentType::Flag;
     };
-    template <auto Resolver = discard, auto Validator = discard>
-    struct Input : public Value<Resolver, Validator> {
+    template <class T = std::string_view, auto Resolver = discard, auto Validator = discard>
+    struct Input : public Value<T, Resolver, Validator> {
         constexpr Input() = default;
-        constexpr Input(std::string_view v) : Value<Resolver, Validator>(v)
+        constexpr Input(std::string_view v) : Value<T, Resolver, Validator>(v)
         {}
         static constexpr auto type = ArgumentType::Input;
     };
-    template <auto N = discard, auto Resolver = discard, auto Validator = discard>
-    struct Inputs : public Container<Input<Resolver, Validator>, N> {
+    template <class T = std::string_view, auto N = discard, auto Resolver = discard, auto Validator = discard>
+    struct Inputs : public Container<Input<T, Resolver, Validator>, N> {
         static constexpr auto resolver = Resolver;
         static constexpr auto validator = Validator;
         static constexpr auto type = ArgumentType::Input;
