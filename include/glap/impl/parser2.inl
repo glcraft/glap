@@ -40,6 +40,11 @@ namespace glap
             return operator()(utils::BiIterator{args.begin(), args.end()});
         }
     };
+    struct ParsedParameter
+    {
+        std::optional<std::string_view> name;
+        std::optional<std::string_view> value;
+    };
     template <StringLiteral Name, model::DefaultCommand def_cmd, class... Commands>
     class Parser<model::Program<Name, def_cmd, Commands...>> : public Parser<Parser<model::Program<Name, def_cmd, Commands...>>> {
     public:
@@ -134,7 +139,7 @@ namespace glap
         using OutputType = model::Flag<ArgNames>;
     public:
         template <class Iter>
-        constexpr auto parse(OutputType&, utils::BiIterator<Iter> params) const -> PosExpected<Iter>
+        constexpr auto parse(OutputType&, ParsedParameter params) const -> PosExpected<Iter>
         {
 
         }
