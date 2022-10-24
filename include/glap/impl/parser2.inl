@@ -144,8 +144,17 @@ namespace glap
         template <class Iter>
         constexpr auto parse(OutputType& command, utils::BiIterator<Iter> params) const -> PosExpected<Iter>
         {
-            while(params.begin != params.end) {
-                
+            auto itcurrent = params.begin;
+            while(itcurrent != params.end) {
+                auto arg = *itcurrent;
+                if (arg.starts_with("---")) {
+                    return make_unexpected(Error{
+                        arg,
+                        std::nullopt,
+                        Error::Type::None,
+                        Error::Code::SyntaxError
+                    });
+                }
             }
             return params.begin;
         }
