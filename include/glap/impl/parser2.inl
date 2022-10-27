@@ -148,15 +148,66 @@ namespace glap
             while(itcurrent != params.end) {
                 auto arg = *itcurrent;
                 if (arg.starts_with("---")) {
-                    return make_unexpected(Error{
-                        arg,
-                        std::nullopt,
-                        Error::Type::None,
-                        Error::Code::SyntaxError
+                    return make_unexpected(PositionnedError{
+                        .error = Error{
+                            .parameter = arg,
+                            .value = std::nullopt,
+                            .type = Error::Type::None,
+                            .code = Error::Code::SyntaxError
+                        },
+                        .position = std::distance(params.begin, itcurrent)
                     });
+                } else {
+                    PosExpected<Iter> res;
+                    if (arg.starts_with("--")) {
+                        res = parse_long<Iter>(command, {itcurrent, params.end});
+                    } else if (arg.starts_with("-")) {
+                        res = parse_short<Iter>(command, {itcurrent, params.end});
+                    } else {
+                        auto res_input = parse_input(command, arg);
+                        if (!res_input) [[unlikely]] {
+                            res = make_unexpected(PositionnedError{
+                                .error = res.error(),
+                                .position = std::distance(params.begin, itcurrent)
+                            });
+                        }
+                    }
+                    if (!res) [[unlikely]] {
+                        return res;
+                    } 
+                    itcurrent = res.value();
                 }
             }
             return params.begin;
+        }
+    private:
+        template <class Iter>
+        constexpr auto parse_long(OutputType& command, utils::BiIterator<Iter> params) const -> PosExpected<Iter>
+        {
+            return params.begin;
+        }
+        template <class Iter>
+        constexpr auto parse_short(OutputType& command, utils::BiIterator<Iter> params) const -> PosExpected<Iter>
+        {
+            return params.begin;
+        }
+        constexpr auto parse_input(OutputType& command, std::string_view params) const -> Expected<void>
+        {
+            auto found = ([&] {
+                if constexpr(glap::model::IsArgumentTyped<Arguments, glap::model::ArgumentType::Input>) {
+                    glap::parse<Arguments>(std::get<Arguments>(command.arguments), params);
+                    return true;
+                }
+                return false;
+            }() || ...);
+            if (!found) [[unlikely]] {
+                return make_unexpected(Error{
+                    .parameter = "",
+                    .value = std::nullopt,
+                    .type = Error::Type::Input,
+                    .code = Error::Code::UnknownArgument
+                });
+            }
         }
     };
     template <class ArgNames>
