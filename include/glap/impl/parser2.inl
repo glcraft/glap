@@ -184,6 +184,51 @@ namespace glap
         template <class Iter>
         constexpr auto parse_long(OutputType& command, utils::BiIterator<Iter> params) const -> PosExpected<Iter>
         {
+            auto arg = *params.begin;
+            auto name_value = arg.substr(2);
+            auto pos_equal = name_value.find('=');
+            bool found = false;
+            auto name = name_value.substr(0, pos_equal);
+            Expected<void> res;
+            if (pos_equal == std::string_view::npos) {
+                found = ([&]{
+                    if constexpr(glap::model::IsArgumentTyped<Arguments, glap::model::ArgumentType::Flag>) {
+                        if (impl::check_names<Arguments>(name, std::nullopt)) {
+                            res = glap::parse<Arguments>.parse(command);
+                            return true;
+                        }
+                    }
+                    return false;
+                }() || ...);
+            } else {
+                found = ([&]{
+                    if constexpr(glap::model::IsArgumentTyped<Arguments, glap::model::ArgumentType::Parameter>) {
+                        if (impl::check_names<Arguments>(name, std::nullopt)) {
+                            auto value = name_value.substr(pos_equal);
+                            res = glap::parse<Arguments>.parse(command, value);
+                            return true;
+                        }
+                    }
+                    return false;
+                }() || ...);
+            }
+            if (!res) {
+                return make_unexpected(PositionnedError{
+                    .error = res.error(),
+                    .position = 0
+                });
+            }
+            if (!found) [[unlikely]] {
+                return make_unexpected(PositionnedError{
+                    .error = Error{
+                        .parameter = name,
+                        .value = std::nullopt,
+                        .type = (pos_equal == std::string_view::npos) ? Error::Type::Flag : Error::Type::Parameter,
+                        .code = Error::Code::UnknownArgument
+                    },
+                    .position = 0
+                });
+            }
             return params.begin;
         }
         template <class Iter>
