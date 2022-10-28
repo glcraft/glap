@@ -187,45 +187,16 @@ namespace glap
             auto arg = *params.begin;
             auto name_value = arg.substr(2);
             auto pos_equal = name_value.find('=');
-            bool found = false;
             auto name = name_value.substr(0, pos_equal);
             Expected<void> res;
             if (pos_equal == std::string_view::npos) {
-                found = ([&]{
-                    if constexpr(glap::model::IsArgumentTyped<Arguments, glap::model::ArgumentType::Flag>) {
-                        if (impl::check_names<Arguments>(name, std::nullopt)) {
-                            res = glap::parse<Arguments>.parse(command);
-                            return true;
-                        }
-                    }
-                    return false;
-                }() || ...);
+                res = parse_flag(command, name);
             } else {
-                found = ([&]{
-                    if constexpr(glap::model::IsArgumentTyped<Arguments, glap::model::ArgumentType::Parameter>) {
-                        if (impl::check_names<Arguments>(name, std::nullopt)) {
-                            auto value = name_value.substr(pos_equal);
-                            res = glap::parse<Arguments>.parse(command, value);
-                            return true;
-                        }
-                    }
-                    return false;
-                }() || ...);
+                res = parse_parameter(command, name, name_value.substr(pos_equal + 1));
             }
             if (!res) {
                 return make_unexpected(PositionnedError{
                     .error = res.error(),
-                    .position = 0
-                });
-            }
-            if (!found) [[unlikely]] {
-                return make_unexpected(PositionnedError{
-                    .error = Error{
-                        .parameter = name,
-                        .value = std::nullopt,
-                        .type = (pos_equal == std::string_view::npos) ? Error::Type::Flag : Error::Type::Parameter,
-                        .code = Error::Code::UnknownArgument
-                    },
                     .position = 0
                 });
             }
@@ -234,13 +205,57 @@ namespace glap
         template <class Iter>
         constexpr auto parse_short(OutputType& command, utils::BiIterator<Iter> params) const -> PosExpected<Iter>
         {
+            
             return params.begin;
         }
+        constexpr auto parse_flag(OutputType& command, std::string_view name) const -> Expected<void> {
+            Expected<void> res;
+            auto found = ([&]{
+                if constexpr(glap::model::IsArgumentTyped<Arguments, glap::model::ArgumentType::Flag>) {
+                    if (impl::check_names<Arguments>(name, std::nullopt)) {
+                        res = glap::parse<Arguments>.parse(command);
+                        return true;
+                    }
+                }
+                return false;
+            }() || ...);
+            if (!found) [[unlikely]] {
+                return make_unexpected(Error{
+                    .parameter = name,
+                    .value = std::nullopt,
+                    .type = Error::Type::Flag,
+                    .code = Error::Code::UnknownArgument
+                });
+            }
+            return {};
+        }
+        constexpr auto parse_parameter(OutputType& command, std::string_view name, std::string_view value) const -> Expected<void> {
+            Expected<void> res;
+            auto found = ([&]{
+                if constexpr(glap::model::IsArgumentTyped<Arguments, glap::model::ArgumentType::Parameter>) {
+                    if (impl::check_names<Arguments>(name, std::nullopt)) {
+                        res = glap::parse<Arguments>.parse(command, value);
+                        return true;
+                    }
+                }
+                return false;
+            }() || ...);
+            if (!found) [[unlikely]] {
+                return make_unexpected(Error{
+                    .parameter = name,
+                    .value = value,
+                    .type = Error::Type::Parameter,
+                    .code = Error::Code::UnknownArgument
+                });
+            }
+            return res;
+        }
+
         constexpr auto parse_input(OutputType& command, std::string_view params) const -> Expected<void>
         {
             auto found = ([&] {
                 if constexpr(glap::model::IsArgumentTyped<Arguments, glap::model::ArgumentType::Input>) {
-                    glap::parse<Arguments>(std::get<Arguments>(command.arguments), params);
+                    glap::parse<Arguments>.parse(std::get<Arguments>(command.arguments), params);
                     return true;
                 }
                 return false;
