@@ -167,7 +167,7 @@ namespace glap
                         auto res_input = parse_input(command, arg);
                         if (!res_input) [[unlikely]] {
                             res = make_unexpected(PositionnedError{
-                                .error = res.error(),
+                                .error = res_input.error(),
                                 .position = std::distance(params.begin, itcurrent)
                             });
                         }
@@ -213,7 +213,7 @@ namespace glap
             auto found = ([&]{
                 if constexpr(glap::model::IsArgumentTyped<Arguments, glap::model::ArgumentType::Flag>) {
                     if (impl::check_names<Arguments>(name, std::nullopt)) {
-                        res = glap::parse<Arguments>.parse(command);
+                        res = glap::parse<Arguments>.parse(std::get<Arguments>(command.arguments));
                         return true;
                     }
                 }
@@ -234,7 +234,7 @@ namespace glap
             auto found = ([&]{
                 if constexpr(glap::model::IsArgumentTyped<Arguments, glap::model::ArgumentType::Parameter>) {
                     if (impl::check_names<Arguments>(name, std::nullopt)) {
-                        res = glap::parse<Arguments>.parse(command, value);
+                        res = glap::parse<Arguments>.parse(std::get<Arguments>(command.arguments), value);
                         return true;
                     }
                 }
@@ -251,11 +251,11 @@ namespace glap
             return res;
         }
 
-        constexpr auto parse_input(OutputType& command, std::string_view params) const -> Expected<void>
+        constexpr auto parse_input(OutputType& command, std::string_view input) const -> Expected<void>
         {
             auto found = ([&] {
                 if constexpr(glap::model::IsArgumentTyped<Arguments, glap::model::ArgumentType::Input>) {
-                    glap::parse<Arguments>.parse(std::get<Arguments>(command.arguments), params);
+                    glap::parse<Arguments>.parse(std::get<Arguments>(command.arguments), input);
                     return true;
                 }
                 return false;
@@ -293,15 +293,17 @@ namespace glap
                 });
             }
         }
-        if constexpr (IsResolver<decltype(Resolver), OutputType>) {
+        if constexpr (IsResolver<decltype(Resolver)>) {
             auto result = Resolver(value);
-            if (!result) [[unlikely]] {
-                return make_unexpected(Error{
-                    .parameter = std::string_view(),
-                    .value = value,
-                    .type = Error::Type::Parameter,
-                    .code = Error::Code::BadResolution
-                });
+            if constexpr (IsExpected<decltype(result)>) {
+                if (!result) [[unlikely]] {
+                    return make_unexpected(Error{
+                        .parameter = std::string_view(),
+                        .value = value,
+                        .type = Error::Type::Parameter,
+                        .code = Error::Code::BadResolution
+                    });
+                }
             }
             return std::move(result);
         }
@@ -335,13 +337,15 @@ namespace glap
     public:
         constexpr auto parse(OutputType& params, std::string_view value) const -> Expected<void>
         {
-            if (params.values.size() >= N) [[unlikely]] {
-                return make_unexpected(Error{
-                    .parameter = std::string_view(),
-                    .value = value,
-                    .type = Error::Type::Parameter,
-                    .code = Error::Code::TooManyParameters
-                });
+            if constexpr (!std::same_as<decltype(N), Discard>) {
+                if (params.values.size() >= N) [[unlikely]] {
+                    return make_unexpected(Error{
+                        .parameter = std::string_view(),
+                        .value = value,
+                        .type = Error::Type::Parameter,
+                        .code = Error::Code::TooManyParameters
+                    });
+                }
             }
             auto result = check_value<OutputType::value_type, Resolver, Validator>(value);
             if (!result) [[unlikely]] {
@@ -379,13 +383,15 @@ namespace glap
     public:
         constexpr auto parse(OutputType& inputs, std::string_view value) const -> Expected<void>
         {
-            if (inputs.values.size() >= N) [[unlikely]] {
-                return make_unexpected(Error{
-                    .parameter = std::string_view(),
-                    .value = value,
-                    .type = Error::Type::Parameter,
-                    .code = Error::Code::TooManyParameters
-                });
+            if constexpr (!std::same_as<decltype(N), Discard>) {
+                if (inputs.values.size() >= N) [[unlikely]] {
+                    return make_unexpected(Error{
+                        .parameter = std::string_view(),
+                        .value = value,
+                        .type = Error::Type::Parameter,
+                        .code = Error::Code::TooManyParameters
+                    });
+                }
             }
             auto result = check_value<OutputType::value_type, Resolver, Validator>(value);
             if (!result) [[unlikely]] {
