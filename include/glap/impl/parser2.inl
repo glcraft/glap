@@ -306,8 +306,9 @@ namespace glap
                 }
             }
             return std::move(result);
+        } else {
+            return std::move(value);
         }
-        return std::move(value);
     }
     template <class ArgNames, auto Resolver, auto Validator>
     class Parser<model::Parameter<ArgNames, Resolver, Validator>> {
