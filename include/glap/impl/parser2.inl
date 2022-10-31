@@ -268,6 +268,7 @@ namespace glap
                     .code = Error::Code::UnknownArgument
                 });
             }
+            return {};
         }
     };
     template <class ArgNames>
