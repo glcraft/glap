@@ -75,7 +75,7 @@ namespace glap
             return m_data[index];
         }
         [[nodiscard]] constexpr auto size() const noexcept {
-            return size;
+            return m_size;
         }
         [[nodiscard]] constexpr auto capacity() const noexcept {
             return N;
