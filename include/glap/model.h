@@ -86,17 +86,17 @@ namespace glap::model
             }
         }
     public:
-        Params params;
+        Params arguments;
         template <StringLiteral lit>
         constexpr auto& get_argument() noexcept requires (NbParams > 0) {
-            return std::get<_get_argument_id<0, lit>()>(params);
+            return std::get<_get_argument_id<0, lit>()>(arguments);
         }
         template <StringLiteral lit>
         constexpr const auto& get_argument() const noexcept requires (NbParams > 0) {
-            return std::get<_get_argument_id<0, lit>()>(params);
+            return std::get<_get_argument_id<0, lit>()>(arguments);
         }
         constexpr const auto& get_inputs() const noexcept requires (NbParams > 0) {
-            return std::get<_get_input_id<0>()>(params);
+            return std::get<_get_input_id<0>()>(arguments);
         }
 
     };
