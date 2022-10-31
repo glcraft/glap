@@ -274,7 +274,6 @@ namespace glap
     class Parser<model::Flag<ArgNames>> : public Parser<Parser<model::Flag<ArgNames>>> {
         using OutputType = model::Flag<ArgNames>;
     public:
-        template <class Iter>
         constexpr auto parse(OutputType& flag) const -> Expected<void>
         {
             flag.occurences++;
@@ -308,11 +307,10 @@ namespace glap
         }
         return std::move(value);
     }
-    template <class ArgNames, class T, auto Resolver, auto Validator>
-    class Parser<model::Parameter<ArgNames, T, Resolver, Validator>> : public Parser<Parser<model::Parameter<ArgNames, T, Resolver, Validator>>> {
-        using OutputType = model::Parameter<ArgNames, T, Resolver, Validator>;
+    template <class ArgNames, auto Resolver, auto Validator>
+    class Parser<model::Parameter<ArgNames, Resolver, Validator>> : public Parser<Parser<model::Parameter<ArgNames, Resolver, Validator>>> {
+        using OutputType = model::Parameter<ArgNames, Resolver, Validator>;
     public:
-        template <class Iter>
         constexpr auto parse(OutputType& arg, std::string_view value) const -> Expected<void>
         {
             if (arg.value.has_value()) [[unlikely]] {
@@ -331,11 +329,10 @@ namespace glap
             return {};
         }
     };
-    template <class ArgNames, class T, auto N, auto Resolver, auto Validator>
-    class Parser<model::Parameters<ArgNames, T, N, Resolver, Validator>> : public Parser<Parser<model::Parameters<ArgNames, T, N, Resolver, Validator>>> {
-        using OutputType = model::Parameters<ArgNames, T, N, Resolver, Validator>;
+    template <class ArgNames, auto N, auto Resolver, auto Validator>
+    class Parser<model::Parameters<ArgNames, N, Resolver, Validator>> : public Parser<Parser<model::Parameters<ArgNames, N, Resolver, Validator>>> {
+        using OutputType = model::Parameters<ArgNames, N, Resolver, Validator>;
     public:
-        template <class Iter>
         constexpr auto parse(OutputType& params, std::string_view value) const -> Expected<void>
         {
             if (params.values.size() >= N) [[unlikely]] {
@@ -354,11 +351,10 @@ namespace glap
             return {};
         }
     };
-    template <class T, auto Resolver, auto Validator>
-    class Parser<model::Input<T, Resolver, Validator>> : public Parser<Parser<model::Input<T, Resolver, Validator>>> {
-        using OutputType = model::Input<T, Resolver, Validator>;
+    template <auto Resolver, auto Validator>
+    class Parser<model::Input<Resolver, Validator>> : public Parser<Parser<model::Input<Resolver, Validator>>> {
+        using OutputType = model::Input<Resolver, Validator>;
     public:
-        template <class Iter>
         constexpr auto parse(OutputType& input, std::string_view value) const -> Expected<void>
         {
             if (input.value.has_value()) [[unlikely]] {
@@ -377,11 +373,10 @@ namespace glap
             return {};
         }
     };
-    template <class T, auto N, auto Resolver, auto Validator>
-    class Parser<model::Inputs<T, N, Resolver, Validator>> : public Parser<Parser<model::Inputs<T, N, Resolver, Validator>>> {
-        using OutputType = model::Inputs<T, N, Resolver, Validator>;
+    template <auto N, auto Resolver, auto Validator>
+    class Parser<model::Inputs<N, Resolver, Validator>> : public Parser<Parser<model::Inputs<N, Resolver, Validator>>> {
+        using OutputType = model::Inputs<N, Resolver, Validator>;
     public:
-        template <class Iter>
         constexpr auto parse(OutputType& inputs, std::string_view value) const -> Expected<void>
         {
             if (inputs.values.size() >= N) [[unlikely]] {

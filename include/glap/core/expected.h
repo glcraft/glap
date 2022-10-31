@@ -13,5 +13,10 @@ namespace glap
     using expected = tl::expected<T, E>;
     template <class E>
     using unexpected = tl::unexpected<E>;
+    template <class T>
+    concept IsExpected = requires(T t) {
+        {t.value()} -> std::convertible_to<typename T::value_type>;
+        {t.error()} -> std::convertible_to<typename T::error_type>;
+    };
 }
 #endif

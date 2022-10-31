@@ -29,8 +29,8 @@ struct Print
 {};
 
 template <class Names, auto... T>
-struct Print<glap::model::Parameter<Names, std::string_view, T...>> {
-    using value_type= glap::model::Parameter<Names, std::string_view, T...>;
+struct Print<glap::model::Parameter<Names, T...>> {
+    using value_type= glap::model::Parameter<Names, T...>;
     void operator()(const value_type& v) const {
         fmt::print("    --{}: ", v.longname);
         if (v.value) {
@@ -63,8 +63,8 @@ struct Print<T> {
     }
 };
 template <class Names, auto N, auto ...Args>
-struct Print<glap::model::Parameters<Names, std::string_view, N, Args...>> {
-    using value_type= glap::model::Parameters<Names, std::string_view, N, Args...>;
+struct Print<glap::model::Parameters<Names, N, Args...>> {
+    using value_type= glap::model::Parameters<Names, N, Args...>;
     void operator()(const value_type& v) const {
         fmt::print("    --{}: ", v.longname);
         auto nb=0;
@@ -99,7 +99,7 @@ int main(int argc, char** argv)
 
     using command_t = Command<glap::Names<"command", 'c'>, 
         Flag<glap::Names<"flag", 'f'>>,
-        Parameter<glap::Names<"arg", 'a'>, std::string_view, discard, is_hello_world>,
+        Parameter<glap::Names<"arg", 'a'>, discard, is_hello_world>,
         Parameters<glap::Names<"args", 'b'>>,
         Inputs<>
     >;
