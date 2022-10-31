@@ -5,18 +5,24 @@ add_rules("mode.debug", "mode.release")
 add_requires("fmt 9.0.0", {optional = true}) -- required only if stl has not std::format
 add_requires("tl_expected", {optional = true}) -- required only if stl has not std::expected
 add_requires("gtest 1.12", {optional = true}) -- required only for glap-tests
+option("use_tl_expected")
+    set_default(false)
+option("use_fmt")
+    set_default(true)
+
 target("glap")
     set_kind("$(kind)")
     set_languages("cxx20")
     add_files("src/*.cpp")
     add_headerfiles("include/**.h")
     add_includedirs("include", {public = true})
+    add_options("use_tl_expected", "use_fmt")
     on_load(function (target)
-        import("lib.detect.check_cxxsnippets")
-        local has_std_expected = check_cxxsnippets("#ifndef __cpp_lib_expected\nstatic_assert(false);\n#else\nstatic_assert(__cpp_lib_expected)\n#endif")
-            target:add("packages", "fmt", {public = true})
-        if not has_std_expected then
+        if target:opt("use_tl_expected") then 
             target:add("packages", "tl_expected", {public = true})
+        end
+        if target:opt("use_fmt") then 
+            target:add("packages", "fmt", {public = true})
         end
     end)
 
