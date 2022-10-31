@@ -5,6 +5,10 @@ namespace glap::utils
 {
     template <glap::utils::Iterator<std::string_view> T>
     struct BiIterator {
+        BiIterator(T begin, T end) : begin(begin), end(end) 
+        {}
+        BiIterator(const BiIterator&) = default;
+        BiIterator(BiIterator&&) = default;
         T begin;
         T end;
 
