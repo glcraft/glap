@@ -310,7 +310,7 @@ namespace glap
         return std::move(value);
     }
     template <class ArgNames, auto Resolver, auto Validator>
-    class Parser<model::Parameter<ArgNames, Resolver, Validator>> : public Parser<Parser<model::Parameter<ArgNames, Resolver, Validator>>> {
+    class Parser<model::Parameter<ArgNames, Resolver, Validator>> {
         using OutputType = model::Parameter<ArgNames, Resolver, Validator>;
     public:
         constexpr auto parse(OutputType& arg, std::string_view value) const -> Expected<void>
@@ -323,7 +323,7 @@ namespace glap
                     .code = Error::Code::DuplicateParameter
                 });
             }
-            auto result = check_value<OutputType::value_type, Resolver, Validator>(value);
+            auto result = check_value<typename OutputType::value_type, Resolver, Validator>(value);
             if (!result) [[unlikely]] {
                 return make_unexpected(result.error());
             }
@@ -332,7 +332,7 @@ namespace glap
         }
     };
     template <class ArgNames, auto N, auto Resolver, auto Validator>
-    class Parser<model::Parameters<ArgNames, N, Resolver, Validator>> : public Parser<Parser<model::Parameters<ArgNames, N, Resolver, Validator>>> {
+    class Parser<model::Parameters<ArgNames, N, Resolver, Validator>> {
         using OutputType = model::Parameters<ArgNames, N, Resolver, Validator>;
     public:
         constexpr auto parse(OutputType& params, std::string_view value) const -> Expected<void>
@@ -347,7 +347,7 @@ namespace glap
                     });
                 }
             }
-            auto result = check_value<OutputType::value_type, Resolver, Validator>(value);
+            auto result = check_value<typename OutputType::value_type, Resolver, Validator>(value);
             if (!result) [[unlikely]] {
                 return make_unexpected(result.error());
             }
@@ -356,7 +356,7 @@ namespace glap
         }
     };
     template <auto Resolver, auto Validator>
-    class Parser<model::Input<Resolver, Validator>> : public Parser<Parser<model::Input<Resolver, Validator>>> {
+    class Parser<model::Input<Resolver, Validator>> {
         using OutputType = model::Input<Resolver, Validator>;
     public:
         constexpr auto parse(OutputType& input, std::string_view value) const -> Expected<void>
@@ -369,7 +369,7 @@ namespace glap
                     .code = Error::Code::DuplicateParameter
                 });
             }
-            auto result = check_value<OutputType::value_type, Resolver, Validator>(value);
+            auto result = check_value<typename OutputType::value_type, Resolver, Validator>(value);
             if (!result) [[unlikely]] {
                 return make_unexpected(result.error());
             }
@@ -378,7 +378,7 @@ namespace glap
         }
     };
     template <auto N, auto Resolver, auto Validator>
-    class Parser<model::Inputs<N, Resolver, Validator>> : public Parser<Parser<model::Inputs<N, Resolver, Validator>>> {
+    class Parser<model::Inputs<N, Resolver, Validator>> {
         using OutputType = model::Inputs<N, Resolver, Validator>;
     public:
         constexpr auto parse(OutputType& inputs, std::string_view value) const -> Expected<void>
@@ -393,7 +393,7 @@ namespace glap
                     });
                 }
             }
-            auto result = check_value<OutputType::value_type, Resolver, Validator>(value);
+            auto result = check_value<typename OutputType::value_type, Resolver, Validator>(value);
             if (!result) [[unlikely]] {
                 return make_unexpected(result.error());
             }
