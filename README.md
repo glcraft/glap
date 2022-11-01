@@ -38,8 +38,9 @@ You can find the usage documentation in the [DOCUMENTATION](docs/README.md) file
 
 ## TODO
 
+- [ ] 2.1 - Help generator
+- [ ] 2.2 - Executor (handle invokable objects to execute)
+- [ ] 2.2 - Subcommands
 - [ ] Help: color text
 - [ ] Help: locales
-- [ ] Subcommands
-- [ ] Executor (handle invokable to execute)
 - [ ] constexpr hashmap

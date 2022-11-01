@@ -1,5 +1,7 @@
 # Help text generator
 
+It is currently in development, not usable.
+
 ## Utils
 
 ## Descriptions
