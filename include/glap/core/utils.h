@@ -139,7 +139,7 @@ namespace glap
             using type = typename ResolverReturnType<std::invoke_result_t<T, std::string_view>>::type;
         };
         template <class T>
-        struct ResolverReturnType<glap::expected<T, void>>
+        struct ResolverReturnType<glap::expected<T, Discard>>
         {
             using type = T;
         };
