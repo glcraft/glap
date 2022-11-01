@@ -11,12 +11,12 @@ namespace glap
 {
     namespace impl {
         template <HasLongName Command>
-        static constexpr bool check_names(std::string_view name, std::optional<char32_t> codepoint)
+        static constexpr bool check_names(std::optional<std::string_view> name, std::optional<char32_t> codepoint)
         {
-            if (name == Command::longname)
+            if (name && *name == Command::longname)
                 return true;
             if constexpr(HasShortName<Command>)
-                if (codepoint && codepoint.value() == Command::shortname.value())
+                if (codepoint && *codepoint == *Command::shortname)
                     return true;
             return false;
         }
@@ -89,9 +89,10 @@ namespace glap
                         },
                         .position = std::distance(params.begin, itarg)
                     });
+                } else {
+                    program.command.template emplace<0>();
+                    result = glap::parse<std::variant_alternative_t<0, decltype(program.command)>>.parse(std::get<0>(program.command), utils::BiIterator(itarg, params.end));
                 }
-                program.command.template emplace<0>();
-                result = glap::parse<std::variant_alternative_t<0, decltype(program.command)>>.parse(std::get<0>(program.command), utils::BiIterator(itarg, params.end));
             }
             else {
                 auto name = *itarg++;
@@ -170,6 +171,8 @@ namespace glap
                                 .error = res_input.error(),
                                 .position = std::distance(params.begin, itcurrent)
                             });
+                        } else {
+                            res = std::next(itcurrent);
                         }
                     }
                     if (!res) [[unlikely]] {
@@ -184,15 +187,44 @@ namespace glap
         template <class Iter>
         constexpr auto parse_long(OutputType& command, utils::BiIterator<Iter> params) const -> PosExpected<Iter>
         {
-            auto arg = *params.begin;
+            auto arg = *params.begin++;
             auto name_value = arg.substr(2);
             auto pos_equal = name_value.find('=');
             auto name = name_value.substr(0, pos_equal);
             Expected<void> res;
+            bool found = false;
             if (pos_equal == std::string_view::npos) {
-                res = parse_flag(command, name);
+                found = ([&]{
+                    if constexpr(glap::model::IsArgumentTyped<Arguments, glap::model::ArgumentType::Flag>) {
+                        if (impl::check_names<Arguments>(name, std::nullopt)) {
+                            res = glap::parse<Arguments>.parse(std::get<Arguments>(command.arguments));
+                            return true;
+                        }
+                    }
+                    return false;
+                }() || ...);
             } else {
-                res = parse_parameter(command, name, name_value.substr(pos_equal + 1));
+                auto value = name_value.substr(pos_equal + 1);
+                found = ([&]{
+                    if constexpr(glap::model::IsArgumentTyped<Arguments, glap::model::ArgumentType::Parameter>) {
+                        if (impl::check_names<Arguments>(name, std::nullopt)) {
+                            res = glap::parse<Arguments>.parse(std::get<Arguments>(command.arguments), value);
+                            return true;
+                        }
+                    }
+                    return false;
+                }() || ...);
+            }
+            if (!found) [[unlikely]] {
+                return make_unexpected(PositionnedError{
+                    .error = Error{
+                        .parameter = name,
+                        .value = std::nullopt,
+                        .type = Error::Type::Unknown,
+                        .code = Error::Code::UnknownArgument
+                    },
+                    .position = 0
+                });
             }
             if (!res) {
                 return make_unexpected(PositionnedError{
@@ -205,60 +237,107 @@ namespace glap
         template <class Iter>
         constexpr auto parse_short(OutputType& command, utils::BiIterator<Iter> params) const -> PosExpected<Iter>
         {
-            
-            return params.begin;
-        }
-        constexpr auto parse_flag(OutputType& command, std::string_view name) const -> Expected<void> {
-            Expected<void> res;
-            auto found = ([&]{
-                if constexpr(glap::model::IsArgumentTyped<Arguments, glap::model::ArgumentType::Flag>) {
-                    if (impl::check_names<Arguments>(name, std::nullopt)) {
-                        res = glap::parse<Arguments>.parse(std::get<Arguments>(command.arguments));
-                        return true;
-                    }
-                }
-                return false;
-            }() || ...);
-            if (!found) [[unlikely]] {
-                return make_unexpected(Error{
-                    .parameter = name,
-                    .value = std::nullopt,
-                    .type = Error::Type::Flag,
-                    .code = Error::Code::UnknownArgument
+            auto itcurrent = params.begin;
+            auto arg = *itcurrent++;
+            auto list_names = arg.substr(1);
+            auto len_res = utils::uni::utf8_char_length(std::string_view(list_names));
+            if (!len_res) [[unlikely]] {
+                return make_unexpected(PositionnedError{
+                    .error = Error{
+                        .parameter = list_names,
+                        .value = std::nullopt,
+                        .type = Error::Type::Unknown,
+                        .code = Error::Code::BadString
+                    },
+                    .position = std::distance(params.begin, itcurrent)
                 });
             }
-            return {};
-        }
-        constexpr auto parse_parameter(OutputType& command, std::string_view name, std::string_view value) const -> Expected<void> {
-            Expected<void> res;
-            auto found = ([&]{
-                if constexpr(glap::model::IsArgumentTyped<Arguments, glap::model::ArgumentType::Parameter>) {
-                    if (impl::check_names<Arguments>(name, std::nullopt)) {
-                        res = glap::parse<Arguments>.parse(std::get<Arguments>(command.arguments), value);
-                        return true;
-                    }
+            auto len = len_res.value();
+            auto ch = list_names;
+            for(auto it = list_names.begin(); it != list_names.end(); it = std::next(it,len ), ch=std::string_view(it, list_names.end())) {
+                len_res = utils::uni::utf8_char_length(ch);
+                if (!len_res) [[unlikely]] {
+                    return make_unexpected(PositionnedError{
+                        .error = Error{
+                            .parameter = ch,
+                            .value = std::nullopt,
+                            .type = Error::Type::Unknown,
+                            .code = Error::Code::BadString
+                        },
+                        .position = std::distance(params.begin, itcurrent)
+                    });
                 }
-                return false;
-            }() || ...);
-            if (!found) [[unlikely]] {
-                return make_unexpected(Error{
-                    .parameter = name,
-                    .value = value,
-                    .type = Error::Type::Parameter,
-                    .code = Error::Code::UnknownArgument
-                });
+                len = len_res.value();
+                auto codepoint_res = utils::uni::codepoint(ch);
+                if (!codepoint_res) [[unlikely]] {
+                    return make_unexpected(PositionnedError{
+                        .error = Error{
+                            .parameter = ch,
+                            .value = std::nullopt,
+                            .type = Error::Type::Unknown,
+                            .code = Error::Code::BadString
+                        },
+                        .position = std::distance(params.begin, itcurrent)
+                    });
+                }
+                auto codepoint = codepoint_res.value();
+                Expected<void> res;
+
+                bool found = ([&]{
+                    if constexpr(!glap::model::IsArgumentTyped<Arguments, glap::model::ArgumentType::Input>) {
+                        if (impl::check_names<Arguments>(std::nullopt, codepoint)) {
+                            if constexpr(glap::model::IsArgumentTyped<Arguments, glap::model::ArgumentType::Flag>) {
+                                res = glap::parse<Arguments>.parse(std::get<Arguments>(command.arguments));
+                            } else if constexpr(glap::model::IsArgumentTyped<Arguments, glap::model::ArgumentType::Parameter>) {
+                                if (itcurrent == params.end) {
+                                    res = make_unexpected(Error{
+                                        .parameter = ch,
+                                        .value = std::nullopt,
+                                        .type = Error::Type::Parameter,
+                                        .code = Error::Code::MissingValue
+                                    });
+                                } else {
+                                    res = glap::parse<Arguments>.parse(std::get<Arguments>(command.arguments), *itcurrent++);
+                                }
+                            }
+                            return true;
+                        }
+                    }
+                    return false;
+                }() || ...);
+
+                if (!found) [[unlikely]] {
+                    return make_unexpected(PositionnedError{
+                        .error = Error{
+                            .parameter = arg,
+                            .value = std::nullopt,
+                            .type = Error::Type::Unknown,
+                            .code = Error::Code::UnknownArgument
+                        },
+                        .position = 0
+                    });
+                }
+                if (!res) {
+                    return make_unexpected(PositionnedError{
+                        .error = res.error(),
+                        .position = std::distance(params.begin, itcurrent)
+                    });
+                }
             }
-            return res;
+
+            return itcurrent;
         }
 
         constexpr auto parse_input(OutputType& command, std::string_view input) const -> Expected<void>
         {
+            Expected<void> res;
             auto found = ([&] {
                 if constexpr(glap::model::IsArgumentTyped<Arguments, glap::model::ArgumentType::Input>) {
-                    glap::parse<Arguments>.parse(std::get<Arguments>(command.arguments), input);
+                    res = glap::parse<Arguments>.parse(std::get<Arguments>(command.arguments), input);
                     return true;
+                } else {
+                    return false;
                 }
-                return false;
             }() || ...);
             if (!found) [[unlikely]] {
                 return make_unexpected(Error{
@@ -268,7 +347,7 @@ namespace glap
                     .code = Error::Code::UnknownArgument
                 });
             }
-            return {};
+            return res;
         }
     };
     template <class ArgNames>
@@ -306,7 +385,7 @@ namespace glap
                     });
                 }
             }
-            return std::move(result);
+            return std::move(*result);
         } else {
             return std::move(value);
         }
