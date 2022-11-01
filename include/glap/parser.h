@@ -26,24 +26,11 @@ namespace glap
     template <class C>
     static constexpr auto parse_command = ParseCommand<C>{};
 
-    enum class DefaultCommand {
-        FirstDefined,
-        None
-    };
-
-    template<StringLiteral Name, DefaultCommand def_cmd, class... Commands>
-    class Parser {
-        using NameCheck = NameChecker<Commands...>;
-        static_assert(!NameCheck::has_duplicate_longname, "commands has duplicate long name");
-        static_assert(!NameCheck::has_duplicate_shortname, "commands has duplicate short name");
-    public:
-        static constexpr std::string_view longname = Name;
-        static constexpr auto default_command = def_cmd;
-        using default_command_type = std::conditional_t<def_cmd==DefaultCommand::None, Discard, std::tuple_element_t<0, std::tuple<Commands...>>>;
-        constexpr auto parse(glap::utils::Iterable<std::string_view> auto args) const -> PosExpected<model::Program<Commands...>>;
-    private:
-         
-    };
+    template <class>
+    class Parser
+    {};
+    template <class T>
+    static constexpr auto parse = Parser<T>{};
 }
 
-#include "impl/parser.inl"
+#include "impl/parser2.inl"

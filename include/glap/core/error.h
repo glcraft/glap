@@ -20,18 +20,14 @@ namespace glap
         } type;
         enum class Code {
             NoParameter,
-            MissingParameter,
-            MissingFlag,
             NoGlobalCommand,
             BadCommand,
             UnknownArgument,
-            InvalidValue,
+            BadResolution,
+            BadValidation,
+            DuplicateParameter,
+            TooManyParameters,
             MissingValue,
-            AlreadySet,
-            FlagWithValue,
-            TooManyFlags,
-            NotEnoughFlags,
-            RequiredParameter,
             SyntaxError,
             BadString
         } code;

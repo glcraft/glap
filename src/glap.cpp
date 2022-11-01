@@ -17,18 +17,14 @@ namespace glap
         };
         auto constexpr codes_text = std::array{
             "no parameter",
-            "missing parameter",
-            "missing flag",
             "no global command set",
             "command not found",
             "unknown argument",
-            "invalid value",
+            "bad resolution",
+            "bad validation",
+            "duplicate parameter",
+            "too many parameters",
             "missing value",
-            "already set",
-            "flag with value",
-            "flag number exceeded",
-            "flag number too low",
-            "required argument(s) missing",
             "syntax error",
             "bad string",
         };

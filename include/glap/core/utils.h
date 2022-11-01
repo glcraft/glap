@@ -92,6 +92,10 @@ namespace glap
         && std::same_as<std::remove_cvref_t<decltype(T::shortname)>, std::optional<char32_t>>;
     template <typename T>
     concept HasShortName = HasNames<T> && T::shortname.has_value();
+    template <typename T>
+    concept IsResolver = std::invocable<T, std::string_view>;
+    template <typename T>
+    concept IsValidator = std::invocable<T, std::string_view> && std::same_as<std::invoke_result_t<T, std::string_view>, bool>;
 
     template <class ...ArgN>
     struct NameChecker 
@@ -117,8 +121,33 @@ namespace glap
     {
         static_assert(!std::is_same_v<Arg1, Arg1>, "Duplicate argument");
     };
+    namespace impl
+    {
+        template <class T>
+        struct ResolverReturnType
+        {
+            using type = T;
+        };
+        template <>
+        struct ResolverReturnType<Discard>
+        {
+            using type = std::string_view;
+        };
+        template <IsResolver T>
+        struct ResolverReturnType<T>
+        {
+            using type = typename ResolverReturnType<std::invoke_result_t<T, std::string_view>>::type;
+        };
+        template <class T>
+        struct ResolverReturnType<glap::expected<T, Discard>>
+        {
+            using type = T;
+        };
+    }
+
     template <auto Resolver = discard, auto Validator = discard>
     struct Value {
+        using value_type = typename impl::ResolverReturnType<decltype(Resolver)>::type;
         constexpr Value() = default;
         constexpr Value(std::string_view v) : value(v)
         {}
@@ -126,15 +155,6 @@ namespace glap
         static constexpr auto resolver = Resolver;
         static constexpr auto validator = Validator;
 
-        std::optional<std::string_view> value;
-
-        [[nodiscard]]constexpr auto resolve() const requires (!std::same_as<decltype(Resolver), Discard>) {
-            static_assert(std::invocable<decltype(Resolver), std::string_view>, "Resolver must be callable with std::string_view");
-            return value ? Resolver(value.value()) : std::optional<decltype(Resolver(std::string_view{}))>{};
-        }
-        [[nodiscard]]constexpr auto validate() const requires (!std::same_as<decltype(Validator), Discard>) {
-            static_assert(std::invocable<decltype(Validator), std::string_view>, "Validator must be callable with std::string_view");
-            return value ? Validator(value.value()) : false;
-        }
+        std::optional<value_type> value;
     };
 }
