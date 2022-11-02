@@ -128,8 +128,9 @@ namespace glap
         {
             using type = T;
         };
-        template <>
-        struct ResolverReturnType<Discard>
+        template <class D>
+            requires std::same_as<std::remove_cv_t<D>, Discard>
+        struct ResolverReturnType<D>
         {
             using type = std::string_view;
         };
@@ -138,8 +139,9 @@ namespace glap
         {
             using type = typename ResolverReturnType<std::invoke_result_t<T, std::string_view>>::type;
         };
-        template <class T>
-        struct ResolverReturnType<glap::expected<T, Discard>>
+        template <class T, class D>
+            requires std::same_as<std::remove_cv_t<D>, Discard>
+        struct ResolverReturnType<glap::expected<T, D>>
         {
             using type = T;
         };

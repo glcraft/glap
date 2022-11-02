@@ -31,7 +31,6 @@ namespace glap
         constexpr auto operator()(utils::BiIterator<Iter> args) const -> PosExpected<OutputType>
         {
             OutputType result;
-            constexpr auto parser = BaseType{};
             auto cmd = static_cast<const BaseType*>(this)->parse(result, args);
             if (!cmd)
                 return glap::make_unexpected(cmd.error());
@@ -385,9 +384,9 @@ namespace glap
                     });
                 }
             }
-            return std::move(*result);
+            return *result;
         } else {
-            return std::move(value);
+            return value;
         }
     }
     template <class ArgNames, auto Resolver, auto Validator>
@@ -418,7 +417,7 @@ namespace glap
     public:
         constexpr auto parse(OutputType& params, std::string_view value) const -> Expected<void>
         {
-            if constexpr (!std::same_as<decltype(N), Discard>) {
+            if constexpr (!std::same_as<std::remove_cv_t<decltype(N)>, Discard>) {
                 if (params.values.size() >= N) [[unlikely]] {
                     return make_unexpected(Error{
                         .parameter = std::string_view(),
@@ -464,7 +463,7 @@ namespace glap
     public:
         constexpr auto parse(OutputType& inputs, std::string_view value) const -> Expected<void>
         {
-            if constexpr (!std::same_as<decltype(N), Discard>) {
+            if constexpr (!std::same_as<std::remove_cv_t<decltype(N)>, Discard>) {
                 if (inputs.values.size() >= N) [[unlikely]] {
                     return make_unexpected(Error{
                         .parameter = std::string_view(),

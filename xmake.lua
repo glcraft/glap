@@ -1,6 +1,6 @@
 includes("xmake/**.lua")
 if (is_plat("macosx")) then
-llvm_toolchain("LLVM15.0.3", "macosx")
+    llvm_toolchain("LLVM15.0.3", "macosx")
 end
 
 add_rules("mode.debug", "mode.release")
@@ -48,6 +48,9 @@ target("glap-tests")
     add_files("tests/tests.cpp")
     add_includedirs("include")
     set_warnings("allextra", "error")
+    if is_plat("linux", "macosx") then
+        add_cxflags("-Wno-unknown-pragmas")
+    end
     add_options("use_tl_expected", "use_fmt")
     if (is_plat("windows")) then
         add_ldflags("/SUBSYSTEM:CONSOLE")
