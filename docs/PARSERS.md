@@ -114,12 +114,24 @@ using help_t = glap::model::Flag<
 using single_param_t = glap::model::Parameter<
     glap::Names<"single_param", 's'>
 >;
+using single_int_param_t = glap::model::Parameter<
+    glap::Names<"to_int", glap::discard>,
+    [] (std::string_view v) -> glap::expected<int, glap::Discard> { 
+        try {
+            return std::stoi(std::string(v)); 
+        } catch(...) {
+            // In case stoi results in an error by exception, 
+            // we return an error the parser can intercept
+            return glap::make_unexpected(glap::discard);
+        }
+    }
+>;
 using multi_param_t = glap::model::Parameters<
     glap::Names<"multi_param", 'm'>
-    0, // no limit
+    glap::discard, // optional, = no limit
 >;
 using inputs_t = glap::model::Inputs<
-    0 // no limit
+    glap::discard // optional, = no limit
 >;
 
 using command1_t = glap::model::Command<
@@ -137,12 +149,12 @@ using command2_t = glap::model::Command<
     inputs_t
 >;
 
-using parser_t = glap::Parser<"myprogram", glap::FirstDefined, command1_t, command2_t>;
+using program_t = glap::model::Program<"myprogram", glap::model::DefaultCommand::FirstDefined, command1_t, command2_t>;
 
 int main(int argc, char** argv)
 {
     auto args = std::span{argv, argv+argc};
-    parser_t parser;
-    auto result = parser.parse(args);
+    
+    auto result = glap::parser(args);
 }
 ```
