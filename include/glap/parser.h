@@ -11,21 +11,6 @@
 #include <utility>
 namespace glap 
 {
-    template <class P>
-    struct ParseArgument {
-        constexpr auto operator()(P&, std::optional<std::string_view> value) const -> Expected<void>;
-    };
-    template <class C>
-    static constexpr auto parse_argument = ParseArgument<C>{};
-
-    template <class C>
-    struct ParseCommand {
-        template <class Iter>
-        constexpr auto operator()(C&, utils::BiIterator<Iter> args) const -> PosExpected<void>;
-    };
-    template <class C>
-    static constexpr auto parse_command = ParseCommand<C>{};
-
     template <class>
     class Parser
     {};
