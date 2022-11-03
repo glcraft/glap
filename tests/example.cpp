@@ -107,7 +107,7 @@ int main(int argc, char** argv)
         command_t
     >;
 
-    auto res = glap::parse<program_t>(std::vector<std::string_view>{"glap", "command", "-f", "--arg", "hello", "--args", "1", "2", "3"});
+    auto res = glap::parser<program_t>(std::vector<std::string_view>{"glap", "command", "-f", "--arg", "hello", "--args", "1", "2", "3"});
 
 
     // using HelpCommand = glap::help::model::Command<"command", glap::help::model::Description<"first defined command">,

@@ -15,7 +15,7 @@ namespace glap
     class Parser
     {};
     template <class T>
-    static constexpr auto parse = Parser<T>{};
+    static constexpr auto parser = Parser<T>{};
 }
 
 #include "impl/parser2.inl"

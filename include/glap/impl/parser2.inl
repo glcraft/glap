@@ -52,9 +52,9 @@ namespace glap
     public:
         using OutputType = model::Program<Name, def_cmd, Commands...>;
         template <class Iter>
-        constexpr auto parse(OutputType& program, utils::BiIterator<Iter> params) const -> PosExpected<Iter>
+        constexpr auto parse(OutputType& program, utils::BiIterator<Iter> args) const -> PosExpected<Iter>
         {
-            if (params.size() == 0) [[unlikely]] {
+            if (args.size() == 0) [[unlikely]] {
                 return make_unexpected(PositionnedError{
                     .error = Error{
                         .parameter = "",
@@ -65,10 +65,10 @@ namespace glap
                     .position = 0
                 });
             }
-            auto itarg = params.begin;
+            auto itarg = args.begin;
             program.program = *itarg++;
             auto default_command = [&] () {
-                if (itarg == params.end) {
+                if (itarg == args.end) {
                     return true;
                 }
                 if (itarg->starts_with("-")) {
@@ -86,11 +86,11 @@ namespace glap
                             .type = Error::Type::Command,
                             .code = Error::Code::NoGlobalCommand
                         },
-                        .position = std::distance(params.begin, itarg)
+                        .position = std::distance(args.begin, itarg)
                     });
                 } else {
                     program.command.template emplace<0>();
-                    result = glap::parse<std::variant_alternative_t<0, decltype(program.command)>>.parse(std::get<0>(program.command), utils::BiIterator(itarg, params.end));
+                    result = glap::parser<std::variant_alternative_t<0, decltype(program.command)>>.parse(std::get<0>(program.command), utils::BiIterator(itarg, args.end));
                 }
             }
             else {
@@ -108,7 +108,7 @@ namespace glap
                                 .type = Error::Type::Command,
                                 .code = Error::Code::BadString
                             },
-                            .position = std::distance(params.begin, itarg)
+                            .position = std::distance(args.begin, itarg)
                         });
                 } else {
                     codepoint = std::nullopt;
@@ -117,7 +117,7 @@ namespace glap
                 auto found = ([&]{
                     if (impl::check_names<Commands>(name, codepoint)) {
                         program.command.template emplace<Commands>();
-                        result = glap::parse<Commands>.parse(std::get<Commands>(program.command), utils::BiIterator(itarg, params.end));
+                        result = glap::parser<Commands>.parse(std::get<Commands>(program.command), utils::BiIterator(itarg, args.end));
                         return true;
                     }
                     return false;
@@ -130,7 +130,7 @@ namespace glap
                             .type = Error::Type::Command,
                             .code = Error::Code::BadCommand
                         },
-                        .position = std::distance(params.begin, itarg)
+                        .position = std::distance(args.begin, itarg)
                     });
                 }
             }
@@ -196,7 +196,7 @@ namespace glap
                 found = ([&]{
                     if constexpr(glap::model::IsArgumentTyped<Arguments, glap::model::ArgumentType::Flag>) {
                         if (impl::check_names<Arguments>(name, std::nullopt)) {
-                            res = glap::parse<Arguments>.parse(std::get<Arguments>(command.arguments));
+                            res = glap::parser<Arguments>.parse(std::get<Arguments>(command.arguments));
                             return true;
                         }
                     }
@@ -207,7 +207,7 @@ namespace glap
                 found = ([&]{
                     if constexpr(glap::model::IsArgumentTyped<Arguments, glap::model::ArgumentType::Parameter>) {
                         if (impl::check_names<Arguments>(name, std::nullopt)) {
-                            res = glap::parse<Arguments>.parse(std::get<Arguments>(command.arguments), value);
+                            res = glap::parser<Arguments>.parse(std::get<Arguments>(command.arguments), value);
                             return true;
                         }
                     }
@@ -286,7 +286,7 @@ namespace glap
                     if constexpr(!glap::model::IsArgumentTyped<Arguments, glap::model::ArgumentType::Input>) {
                         if (impl::check_names<Arguments>(std::nullopt, codepoint)) {
                             if constexpr(glap::model::IsArgumentTyped<Arguments, glap::model::ArgumentType::Flag>) {
-                                res = glap::parse<Arguments>.parse(std::get<Arguments>(command.arguments));
+                                res = glap::parser<Arguments>.parse(std::get<Arguments>(command.arguments));
                             } else if constexpr(glap::model::IsArgumentTyped<Arguments, glap::model::ArgumentType::Parameter>) {
                                 if (itcurrent == params.end) {
                                     res = make_unexpected(Error{
@@ -296,7 +296,7 @@ namespace glap
                                         .code = Error::Code::MissingValue
                                     });
                                 } else {
-                                    res = glap::parse<Arguments>.parse(std::get<Arguments>(command.arguments), *itcurrent++);
+                                    res = glap::parser<Arguments>.parse(std::get<Arguments>(command.arguments), *itcurrent++);
                                 }
                             }
                             return true;
@@ -332,7 +332,7 @@ namespace glap
             Expected<void> res;
             auto found = ([&] {
                 if constexpr(glap::model::IsArgumentTyped<Arguments, glap::model::ArgumentType::Input>) {
-                    res = glap::parse<Arguments>.parse(std::get<Arguments>(command.arguments), input);
+                    res = glap::parser<Arguments>.parse(std::get<Arguments>(command.arguments), input);
                     return true;
                 } else {
                     return false;

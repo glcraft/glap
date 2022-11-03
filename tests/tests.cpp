@@ -106,8 +106,8 @@ using Command5 = glap::model::Command<glap::Names<"command5">,
 using ProgramTest = glap::model::Program<"test", glap::model::DefaultCommand::FirstDefined, Command1, Command2, Command3, Command4, Command5>;
 using ProgramTestNoDefault = glap::model::Program<"test_no_default", glap::model::DefaultCommand::None, Command1, Command2, Command3>;
 
-constexpr auto tests_parser = glap::parse<ProgramTest>;
-constexpr auto tests_parser_no_default = glap::parse<ProgramTestNoDefault>;
+constexpr auto tests_parser = glap::parser<ProgramTest>;
+constexpr auto tests_parser_no_default = glap::parser<ProgramTestNoDefault>;
 
 
 using namespace std::literals;
