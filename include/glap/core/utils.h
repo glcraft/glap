@@ -11,7 +11,7 @@ namespace glap
 {
     namespace utils {
         template <typename T, typename V>
-        concept Iterable = requires(T t) {
+        concept Range = requires(T t) {
             {*t.begin()} -> std::convertible_to<V>;
             {*t.end()} -> std::convertible_to<V>;
         };
@@ -35,29 +35,29 @@ namespace glap
     namespace impl {
 
         template <auto Value, size_t Default>
-        struct value_or {
+        struct ValueOr {
             static constexpr auto value = Default;
         };
         template <auto Value, size_t Default>
             requires std::convertible_to<decltype(Value), size_t>
-        struct value_or<Value, Default> {
+        struct ValueOr<Value, Default> {
             static constexpr size_t value = Value;
         };
         template <auto Value, size_t Default>
-        static constexpr auto value_or_v = value_or<Value, Default>::value;
+        static constexpr auto value_or_v = ValueOr<Value, Default>::value;
 
-        template <class Ty, auto I, size_t V>
-        struct is_value
+        template <auto I, size_t V>
+        struct IsEqual
         {
             static constexpr bool value = false;
         };
-        template <class Ty, size_t V>
-        struct is_value<Ty, V, V>
+        template <size_t V>
+        struct IsEqual<V, V>
         {
             static constexpr bool value = true;
         };
-        template <class Ty, auto I, size_t V>
-        static constexpr bool is_value_v = is_value<Ty, I, V>::value;
+        template <auto I, size_t V>
+        static constexpr bool is_equal_v = IsEqual<I, V>::value;
 
         template <class T, auto SN>
         struct OptionalValue {

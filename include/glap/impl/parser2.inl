@@ -37,7 +37,7 @@ namespace glap
             else
                 return result;
         }
-        constexpr auto operator()(utils::Iterable<std::string_view> auto args) const -> PosExpected<OutputType>
+        constexpr auto operator()(utils::Range<std::string_view> auto args) const -> PosExpected<OutputType>
         {
             return operator()(utils::BiIterator{args.begin(), args.end()});
         }
