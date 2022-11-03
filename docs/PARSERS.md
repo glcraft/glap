@@ -18,26 +18,38 @@
 
 ## Parser
 
+### Definition
+
 ```cpp
 /// In namespace glap
-template<StringLiteral Name, DefaultCommand def_cmd, class... Commands>
-class Parser;
+template <class ModelType>
+class Parser {
+    // Parse the suite of arguments contained in `args`. 
+    // `args` is a range (container or view with begin/end function members)
+    // Returns an expected with the model if success, or an error with the position of
+    // the argument which caused the error.
+    constexpr auto operator()(utils::Iterable<std::string_view> auto args) const -> PosExpected<OutputType>;
+    // Parse the suite of arguments contained in `args`. 
+    // `args` is a BiIterator object (a struct containing begin and end iterator)
+    // Returns an expected with the model if success, or an error with the position of
+    // the argument which caused the error.
+    template <class Iter>
+    constexpr auto operator()(utils::BiIterator<Iter> args) const -> PosExpected<OutputType>;
+    // Parse the suite of arguments contained in `args`. 
+    // `args` is a BiIterator object (a struct containing begin and end iterator)
+    // `model` is the reference of the output model.
+    // Returns an expected with the end parsing itterator if success, or an error with 
+    // the position of the argument which caused the error.
+    template <class Iter>
+    constexpr auto parse(OutputType& model, utils::BiIterator<Iter> args) const -> PosExpected<Iter>;
+}
+// constexpr instance of the class Parser
+template <class ModelType>
+static constexpr auto parser = Parser<ModelType>{};
 ```
+### Description
 
-### Template arguments
-
-* **Name**: The name of the program
-* **def_cmd**: enum value which define if there is a default command of not. It can be `glap::DefaultCommand::FirstDefined` or `glap::DefaultCommand::None`
-* **Commands**: list of command classes. Use [Command](#command)
-
-### Functions
-
-```cpp
-constexpr auto parse(glap::utils::Iterable<std::string_view> auto args) const -> PosExpected<model::Program<Commands...>>;
-```
-Parse each argument using an iterable container (It can be a vector, a span, an array...).
-
-The function returns a [Program](#program-templated-class) if the parse success or an [Error](#error) if it fails.
+The parser class is 
 
 ## Command
 ```cpp
@@ -80,7 +92,7 @@ struct Inputs;
 ## Program templated class
 ```cpp
 /// In namespace glap::model
-template<class... Commands>
+template<StringLiteral Name, DefaultCommand def_cmd, class... Commands>
 struct Program;
 ```
 
