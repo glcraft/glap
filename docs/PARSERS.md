@@ -49,7 +49,13 @@ static constexpr auto parser = Parser<ModelType>{};
 ```
 ### Description
 
-The parser class is 
+The parser class is the main part of the library. 
+By using the model you define previously, you'll be able to parse the command line.
+
+The parser expects primarily the Program model class, but it also works with the Command model class 
+(could be useful when you don't want any command). In that case, skip the first command line argument 
+reserved to the program name. Otherwise, it could be parsed as an input of the "command".
+
 
 ## Command
 ```cpp
