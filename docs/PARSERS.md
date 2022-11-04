@@ -56,6 +56,24 @@ The parser expects primarily the Program model class, but it also works with the
 (could be useful when you don't want any command). In that case, skip the first command line argument 
 reserved to the program name. Otherwise, it could be parsed as an input of the "command".
 
+## Program
+
+### Definition
+
+```cpp
+/// In namespace glap::model
+template<StringLiteral Name, DefaultCommand def_cmd, class... Commands>
+struct Program {
+    static constexpr std::string_view name = Name;
+    static constexpr auto default_command = def_cmd;
+    std::string_view program;
+    std::variant<Commands...> command;
+};
+```
+
+### Description
+
+
 
 ## Command
 ```cpp
@@ -95,13 +113,6 @@ template <auto N = discard, auto Resolver = discard, auto Validator = discard>
 struct Inputs;
 ```
 
-## Program templated class
-```cpp
-/// In namespace glap::model
-template<StringLiteral Name, DefaultCommand def_cmd, class... Commands>
-struct Program;
-```
-
 ## Names
 
 ```cpp
@@ -110,7 +121,7 @@ template <StringLiteral LongName, auto ShortName = discard>
 struct Names;
 ```
 
-## Error
+## Handle errors
 
 ## Discard
 
