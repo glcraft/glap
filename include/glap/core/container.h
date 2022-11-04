@@ -138,5 +138,12 @@ namespace glap
         [[nodiscard]]constexpr const auto& get() const noexcept requires (I < impl::ValueOr<N, std::numeric_limits<size_t>::max()>::value) {
             return this->values[I];
         }
+        [[nodiscard]]constexpr auto& operator[](size_t i) noexcept {
+            return this->values[i];
+        }
+        [[nodiscard]]constexpr const auto& operator[](size_t i) const noexcept {
+            return this->values[i];
+        }
+
     };
 }
