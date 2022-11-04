@@ -104,10 +104,12 @@ using Command5 = glap::model::Command<glap::Names<"command5">,
 >;
 
 using ProgramTest = glap::model::Program<"test", glap::model::DefaultCommand::FirstDefined, Command1, Command2, Command3, Command4, Command5>;
+using ProgramTestNoCommand = glap::model::Command<glap::Names<"test_no_command">, glap::model::Inputs<>>;
 using ProgramTestNoDefault = glap::model::Program<"test_no_default", glap::model::DefaultCommand::None, Command1, Command2, Command3>;
 
 constexpr auto tests_parser = glap::parser<ProgramTest>;
 constexpr auto tests_parser_no_default = glap::parser<ProgramTestNoDefault>;
+constexpr auto tests_no_command = glap::parser<ProgramTestNoCommand>;
 
 
 using namespace std::literals;
@@ -348,7 +350,7 @@ TEST(glap_inputs, single_input) {
     ASSERT_TRUE(result) << "Parser failed: " << result.error().to_string();
     ASSERT_EQ(result.value().command.index(), 0) << "Wrong command index";
     auto command1 = std::get<Command1>(result.value().command);
-    ASSERT_EQ(command1.get_inputs().value, "input1");
+    ASSERT_EQ(command1.get_inputs().value.value(), "input1");
 }
 TEST(glap_inputs, single_input_already_set) {
     auto result = tests_parser(std::array{"glap"sv, "command1"sv, "input1"sv, "input2"sv});
@@ -361,16 +363,16 @@ TEST(glap_inputs, multi_inputs) {
     ASSERT_TRUE(result) << "Parser failed: " << result.error().to_string();
     ASSERT_EQ(result.value().command.index(), 1) << "Wrong command index";
     auto command2 = std::get<Command2>(result.value().command);
-    ASSERT_EQ(command2.get_inputs().values[0].value, "input1");
-    ASSERT_EQ(command2.get_inputs().values[1].value, "input2");
+    ASSERT_EQ(command2.get_inputs().values[0].value.value(), "input1");
+    ASSERT_EQ(command2.get_inputs().values[1].value.value(), "input2");
 }
 TEST(glap_inputs, fixed_multi_inputs) {
     auto result = tests_parser(std::array{"glap"sv, "command3"sv, "input1"sv, "input2"sv});
     ASSERT_TRUE(result) << "Parser failed: " << result.error().to_string();
     ASSERT_EQ(result.value().command.index(), 2) << "Wrong command index";
     auto command3 = std::get<Command3>(result.value().command);
-    ASSERT_EQ(command3.get_inputs().values[0].value, "input1");
-    ASSERT_EQ(command3.get_inputs().values[1].value, "input2");
+    ASSERT_EQ(command3.get_inputs().values[0].value.value(), "input1");
+    ASSERT_EQ(command3.get_inputs().values[1].value.value(), "input2");
 }
 TEST(glap_inputs, inputs_out_of_range) {
     auto result = tests_parser(std::array{"glap"sv, "command3"sv, "input1"sv, "input2"sv, "input3"sv});
