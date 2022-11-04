@@ -157,6 +157,16 @@ TEST(glap_command, command_no_default) {
     auto error = result.error();
     ASSERT_EQ(error.error.code, glap::Error::Code::NoGlobalCommand);
 }
+TEST(glap_command, program_no_command) {
+    auto args = std::array{"glap"sv, "input1"sv, "input2"sv};
+    auto result = tests_no_command(std::span(args).subspan(1));
+    ASSERT_TRUE(result) << "Parser failed: " << result.error().to_string();
+    ASSERT_EQ(result.value().get_inputs().size(), 2) << "Wrong number of inputs";
+    ASSERT_TRUE(result.value().get_inputs()[0].value) << "Input 1 is not set";
+    ASSERT_TRUE(result.value().get_inputs()[1].value) << "Input 2 is not set";
+    ASSERT_EQ(result.value().get_inputs()[0].value.value(), "input1") << "Wrong input";
+    ASSERT_EQ(result.value().get_inputs()[1].value.value(), "input2") << "Wrong input";
+}
 #pragma endregion
 
 #pragma region Glap flag tests
