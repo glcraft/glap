@@ -53,8 +53,8 @@ The parser class is the main part of the library.
 By using the model you define previously, you'll be able to parse the command line.
 
 The parser expects primarily the Program model class, but it also works with the Command model class 
-(could be useful when you don't want any command). In that case, skip the first command line argument 
-reserved to the program name. Otherwise, it could be parsed as an input of the "command".
+(could be useful when you don't want any command). In that case, skip the first command line 
+argument reserved to the program name. Otherwise, it could be parsed as an input of the "command".
 
 ## Program
 
@@ -73,40 +73,77 @@ struct Program {
 
 ### Description
 
+Model to define the program command line. 
 
+`Name` is the program name. It does not infer to the parser butt is here to name the program in the 
+help. See [HELP.md](./HELP.md) for more details.
+
+`def_cmd` is the default command behaviour which define the default command to parse when you don't 
+specify in the command line. There are two values :
+* `DefaultCommand::FirstDefined` : The first command defined in `Command` is tthe default program 
+command
+* `DefaultCommand::None` : No default command is defined.
+
+In case no default command is defined, if no command is parsed in the command line, an error is 
+raised during the parse.
+
+`Commands` are the models of commands. See the [Command model class](#command) to define them.
+The long name of each command has to be unique. Same goes for the short name. A compile error is 
+raised if not.
+
+Once the command line is parsed, the result of the command is stored in `command` field and the 
+program name (first command line argument) is stored in `program` field.
 
 ## Command
+
+### Definition
+
 ```cpp
 /// In namespace glap::model
-template <class CommandNames, IsArgument... P>
-class Command;
+template <class CommandNames, IsArgument... Arguments>
+struct Command {
+    using Params = std::tuple<Arguments...>;
+    Params arguments;
+    template <StringLiteral lit>
+    constexpr const auto& get_argument() const noexcept;
+    constexpr const auto& get_inputs() const noexcept;
+}
 ```
-Model to define a command for the parser
-## Single parameter
+
+### Description
+
+Model to define a command for the program command line. 
+
+`CommandNames` is a [Names](#names) model type. 
+
+`Arguments` is a list of arguments for the command. The long name of each argument has to be unique.
+same goes for the short name. A compile error is raised if not.
+
+## Single parameter argument
 ```cpp
 /// In namespace glap::model
 template <class ArgNames, auto Resolver = discard, auto Validator = discard>
 struct Parameter;
 ```
-## Multiple parameters
+## Multiple parameters argument
 ```cpp
 /// In namespace glap::model
 template <class ArgNames, auto N = discard, auto Resolver = discard, auto Validator = discard>
 struct Parameters;
 ```
-## Flag templated class
+## Flag argument
 ```cpp
 /// In namespace glap::model
 template <class ArgNames>
 struct Flag;
 ```
-## Single expected input
+## Single expected input argument
 ```cpp
 /// In namespace glap::model
 template <auto Resolver = discard, auto Validator = discard>
 struct Input;
 ```
-## Multiple expected inputs
+## Multiple expected inputs argument
 ```cpp
 /// In namespace glap::model
 template <auto N = discard, auto Resolver = discard, auto Validator = discard>
