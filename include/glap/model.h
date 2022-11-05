@@ -60,14 +60,17 @@ namespace glap::model
     template <class T>
     concept IsArgument = std::same_as<std::remove_cvref_t<decltype(T::type)>, ArgumentType>;
     
-    template <class CommandNames, IsArgument... P>
-    class Command : public CommandNames {
-        using NameCheck = NameChecker<P...>;
+    template <class CommandNames, IsArgument... Arguments>
+    struct Command : public CommandNames {
+        using Params = std::tuple<Arguments...>;
+        Params arguments;
+    private:
+        using NameCheck = NameChecker<Arguments...>;
         static_assert(!NameCheck::has_duplicate_longname, "arguments has duplicate long name");
         static_assert(!NameCheck::has_duplicate_shortname, "arguments has duplicate short name");
 
-        using Params = std::tuple<P...>;
-        static constexpr size_t NbParams = sizeof...(P);
+        
+        static constexpr size_t NbParams = sizeof...(Arguments);
         template <size_t I>
         using Param = std::tuple_element_t<I, Params>;
         
@@ -90,16 +93,11 @@ namespace glap::model
             }
         }
     public:
-        Params arguments;
-        template <StringLiteral lit>
-        constexpr auto& get_argument() noexcept requires (NbParams > 0) {
-            return std::get<_get_argument_id<0, lit>()>(arguments);
-        }
         template <StringLiteral lit>
         constexpr const auto& get_argument() const noexcept requires (NbParams > 0) {
             return std::get<_get_argument_id<0, lit>()>(arguments);
         }
-        constexpr const auto& get_inputs() const noexcept requires (NbParams > 0) {
+        constexpr const auto& get_inputs() const noexcept requires (NbParams > 0 && (IsArgumentTyped<Arguments, ArgumentType::Input> || ...)) {
             return std::get<_get_input_id<0>()>(arguments);
         }
 
