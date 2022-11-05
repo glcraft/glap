@@ -24,26 +24,26 @@
 /// In namespace glap
 template <class ModelType>
 class Parser {
-    // Parse the suite of arguments contained in `args`. 
-    // `args` is a range (container or view with begin/end function members)
-    // Returns an expected with the model if success, or an error with the position of the argument which caused the 
-    // error.
+    /// Parse the suite of arguments contained in @param args. 
+    /// @param args is a range (container or view with begin/end function members)
+    /// Returns an expected with the model if success, or an error with the position of the argument which caused the 
+    /// error.
     constexpr auto operator()(utils::Iterable<std::string_view> auto args) const -> PosExpected<OutputType>;
-    // Parse the suite of arguments contained in `args`. 
-    // `args` is a BiIterator object (a struct containing begin and end iterator)
-    // Returns an expected with the model if success, or an error with the position of the argument which caused the 
-    // error.
+    /// Parse the suite of arguments contained in @param args. 
+    /// @param args is a BiIterator object (a struct containing begin and end iterator)
+    /// @return an expected with the model if success, or an error with the position of the argument which caused the 
+    /// error.
     template <class Iter>
     constexpr auto operator()(utils::BiIterator<Iter> args) const -> PosExpected<OutputType>;
-    // Parse the suite of arguments contained in `args`. 
-    // `args` is a BiIterator object (a struct containing begin and end iterator)
-    // `model` is the reference of the output model.
-    // Returns an expected with the end parsing itterator if success, or an error with the position of the argument 
-    // which caused the error.
+    /// Parse the suite of arguments contained in @param args. 
+    /// @param model is the reference of the output model.
+    /// @param args is a BiIterator object (a struct containing begin and end iterator)
+    /// @return an expected with the end parsing iterator if success, or an error with the position of the argument 
+    /// which caused the error.
     template <class Iter>
     constexpr auto parse(OutputType& model, utils::BiIterator<Iter> args) const -> PosExpected<Iter>;
 }
-// constexpr instance of the class Parser
+/// constexpr instance of the class Parser
 template <class ModelType>
 static constexpr auto parser = Parser<ModelType>{};
 ```
@@ -101,11 +101,12 @@ template <class CommandNames, IsArgument... Arguments>
 struct Command {
     using Params = std::tuple<Arguments...>;
     Params arguments;
-    // Get the instance of an argument stored in `arguments` by its name. A compile error is raised 
-    // 
-    template <StringLiteral lit>
+    /// Get the instance of an argument stored in `arguments` by its name. A compile error is raised if name is not 
+    /// found
+    template <StringLiteral name>
     constexpr const auto& get_argument() const noexcept;
-    // Get the instance of the input stored in `arguments`. Only if 
+    /// Get the instance of the input stored in `arguments`. A compile error is raised is no input mode type is present
+    /// in `Arguments`
     constexpr const auto& get_inputs() const noexcept;
 }
 ```
@@ -116,8 +117,8 @@ Model to define a command for the program command line.
 
 `CommandNames` is a [Names](#names) model type. 
 
-`Arguments` is a list of arguments for the command. The long name of each argument has to be unique.same goes for the 
-short name. A compile error is raised if not. Also, Arguments have to have only one input type.
+`Arguments` is a list of arguments for the command. The long name of each argument has to be unique. Same goes for the 
+short name. A compile error is raised if not. Also, Arguments have to have only one Input type.
 
 ## Single parameter argument
 ```cpp
@@ -153,7 +154,7 @@ struct Inputs;
 ## Names
 
 ```cpp
-// In namespace glap
+/// In namespace glap
 template <StringLiteral LongName, auto ShortName = discard> 
 struct Names;
 ```
@@ -186,8 +187,8 @@ using single_int_param_t = glap::model::Parameter<
         try {
             return std::stoi(std::string(v)); 
         } catch(...) {
-            // In case stoi results in an error by exception, 
-            // we return an error the parser can intercept
+            /// In case stoi results in an error by exception, 
+            /// we return an error the parser can intercept
             return glap::make_unexpected(glap::discard);
         }
     }
