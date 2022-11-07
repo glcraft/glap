@@ -98,7 +98,7 @@ command line argument) is stored in `program` field.
 ```cpp
 /// In namespace glap::model
 template <class CommandNames, IsArgument... Arguments>
-struct Command {
+struct Command : CommandNames {
     using Params = std::tuple<Arguments...>;
     Params arguments;
     /// Get the instance of an argument stored in `arguments` by its name. A compile error is raised if name is not 
@@ -121,47 +121,166 @@ Model to define a command for the program command line.
 short name. A compile error is raised if not. Also, Arguments have to have only one Input type.
 
 ## Single parameter argument
+
+### Definition
+
 ```cpp
 /// In namespace glap::model
 template <class ArgNames, auto Resolver = discard, auto Validator = discard>
-struct Parameter;
+struct Parameter : ArgNames, Value<Resolver, Validator> {
+    using value_type = typename impl::ResolverReturnType<decltype(Resolver)>::type;
+    static constexpr auto type = ArgumentType::Parameter;
+};
 ```
+
+### Description
+
+Model to define a parameter for the program command line. 
+
+`ArgNames` is a [Names](#names) model type. 
+
+The model is based on [`Value`](#value). See this chapter to see details on value capture, Resolver and Validator.
+
+
 ## Multiple parameters argument
+
+### Definition
+
 ```cpp
 /// In namespace glap::model
-template <class ArgNames, auto N = discard, auto Resolver = discard, auto Validator = discard>
-struct Parameters;
+ template <class ArgNames, auto N = discard, auto Resolver = discard, auto Validator = discard>
+struct Parameters : ArgNames, Container<Parameter<ArgNames, Resolver, Validator>, N> {
+    using value_type = typename impl::ResolverReturnType<decltype(Resolver)>::type;
+    static constexpr auto resolver = Resolver;
+    static constexpr auto validator = Validator;
+    static constexpr auto type = ArgumentType::Parameter;
+};
 ```
+
+### Description
+
 ## Flag argument
+
+### Definition
+
 ```cpp
 /// In namespace glap::model
 template <class ArgNames>
-struct Flag;
+struct Flag : ArgNames {
+    size_t occurences = 0;
+    static constexpr auto type = ArgumentType::Flag;
+};
 ```
+
+### Description
+
+Model to define a flag for the program command line. 
+
+`ArgNames` is a [Names](#names) model type. 
+
+Each time the flag is called in the command line, `occurences` is incremented.
+
 ## Single expected input argument
+
+### Definition
+
 ```cpp
 /// In namespace glap::model
 template <auto Resolver = discard, auto Validator = discard>
-struct Input;
+struct Input : Value<Resolver, Validator> {
+    using value_type = typename impl::ResolverReturnType<decltype(Resolver)>::type;
+    static constexpr auto type = ArgumentType::Input;
+};
 ```
+
+### Description
+
+Model to define a input for the program command line. 
+
+The model is based on [`Value`](#value). See this chapter to see details on value capture, Resolver and Validator.
+
 ## Multiple expected inputs argument
+
+### Definition
+
 ```cpp
 /// In namespace glap::model
 template <auto N = discard, auto Resolver = discard, auto Validator = discard>
-struct Inputs;
+struct Inputs : Container<Input<Resolver, Validator>, N> {
+    using value_type = typename impl::ResolverReturnType<decltype(Resolver)>::type;
+    static constexpr auto resolver = Resolver;
+    static constexpr auto validator = Validator;
+    static constexpr auto type = ArgumentType::Input;
+};
 ```
+
+### Description
 
 ## Names
 
+### Definition
+
 ```cpp
 /// In namespace glap
-template <StringLiteral LongName, auto ShortName = discard> 
-struct Names;
+template <StringLiteral LongName, auto ShortName = discard>
+struct Names {
+    static constexpr std::string_view longname = LongName;
+    static constexpr std::optional<char32_t> shortname = impl::optional_value<char32_t, ShortName>;
+};
 ```
+
+### Description
+
 
 ## Handle errors
 
 ## Discard
+
+### Definition
+
+```cpp
+/// In namespace glap
+struct Discard {};
+static constexpr Discard discard = {};
+```
+
+### Description
+
+The type `Discard` and value `discard` is used to apply the default behaviour or to discard something in templates.
+For example, Resolvers and Validators may be discarded so no resolution nor validations is processed.
+
+## Value
+
+### Definition
+
+```cpp
+template <auto Resolver = discard, auto Validator = discard>
+struct Value {
+    using value_type = typename impl::ResolverReturnType<decltype(Resolver)>::type;
+    static constexpr auto resolver = Resolver;
+    static constexpr auto validator = Validator;
+    std::optional<value_type> value;
+};
+```
+
+### Description
+
+This is the base model to capture the value of [Input](#single-parameter-argument) and 
+[Parameter](#single-parameter-argument).
+
+`Resolver` is either a function or [*discard*](#discard). Here is The list of signature expected :
+* `(std::string_view) -> T` where T is whatever type.
+* `(std::string_view) -> tl::expected<T, void>` where T is whatever type. If an error is raised, an error is raised 
+by the parser
+
+The type of `value` is based on the output of the `Resolver`.
+
+`Validator` is either a function or [*discard*](#discard). The signature expected is `(std::string_view) -> bool`. When
+`Validator` returns false, an error is raised by the parser.
+
+By default, there is no value. It accepts only one value. It means if a value is set whereas a value is already setted, 
+an error is raised by the parser.
+
 
 ## Quick example
 
