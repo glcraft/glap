@@ -77,5 +77,61 @@ By default, there is no value. It accepts only one value. It means if a value is
 an error is raised by the parser.
 
 ## Container
+
 ### Definition
+
+```cpp
+/// In namespace glap
+template <class T, auto N = discard>
+class Container {
+public: 
+    using value_type = T;
+private:
+    using n_type = std::remove_cvref_t<decltype(N)>;
+    static constexpr auto is_n_discard = std::is_same_v<n_type, Discard>;
+    static constexpr auto is_n_zero = impl::is_equal_v<N, 0>;
+    using dynamic_vector = std::vector<value_type>;
+    using fixed_vector = FixedVector<value_type, impl::value_or_v<N, 0>>;
+public:
+    using container_type = std::conditional_t<is_n_discard || is_n_zero, dynamic_vector, fixed_vector>;
+    container_type values;
+
+    /// Returns the size of the container
+    /// The size is the number of argument stored in the container (so not the capacity)
+    [[nodiscard]]constexpr auto size() const noexcept;
+    /// Get const value at index `i`
+    [[nodiscard]]constexpr const auto& get(size_t i) const /*noexcept is fixed vector*/;
+    /// Get value at index `i`
+    [[nodiscard]]constexpr auto& get(size_t i) /*noexcept is fixed vector*/;
+    /// Get const value at index `I`
+    /// In case container_type is a fixed vector, I is constrained about N. 
+    template <size_t I>
+    [[nodiscard]]constexpr const auto& get() const /*noexcept is fixed vector*/;
+    /// Get value at index `I`
+    /// In case container_type is a fixed vector, I is constrained about N. 
+    template <size_t I>
+    [[nodiscard]]constexpr auto& get() /*noexcept is fixed vector*/;
+    /// Get value at index `i`
+    [[nodiscard]]constexpr auto& operator[](size_t i) /*noexcept is fixed vector*/;
+    /// Get const value at index `i`
+    [[nodiscard]]constexpr const auto& operator[](size_t i) const /*noexcept is fixed vector*/;
+};
+```
 ### Description
+
+This is the base model to capture one or several values of [Inputs](#single-parameter-argument) and 
+[Parameters](#single-parameter-argument).
+
+`N` is either a integer or [*discard*]. 
+If N is 0 or [*discard*], the container type will be a dynamic vector (aka
+`std::vector<T>`). 
+Otherwise, it will be a fixed vector, which is a custom class acting like a vector embedding a fixed array.
+
+The type `T` refer directly to [`Value`], so check out [`Value`] type for more explanation about how to 
+work with values inside the container.
+
+`get` and `operator[]` retreive value inside of the [`Value`] type. so they will return an `std::optional<X>` wxhere X 
+is the type inferred from Resolver or std::string_view if no Resolver is specified.
+
+[*discard*]: #discard
+[`Value`]: #value
