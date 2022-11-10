@@ -120,30 +120,37 @@ namespace glap
         using container_type = std::conditional_t<is_n_discard || is_n_zero, dynamic_vector, fixed_vector>;
         container_type values;
 
-        constexpr auto size() const noexcept {
+        [[nodiscard]]constexpr auto size() const noexcept {
             return values.size();
         }
 
-        [[nodiscard]]constexpr const auto& get(size_t i) const noexcept {
-            return this->values[i];
+        [[nodiscard]]constexpr const auto& get(size_t i) const noexcept(noexcept(this->values[i])) {
+            if constexpr(std::same_as<container_type, fixed_vector>) {
+                assert(i < impl::ValueOr<N, 0>::value, "Index out of bounds");
+            }
+            return this->values[i].value;
         }
-        [[nodiscard]]constexpr auto& get(size_t i) noexcept {
-            return this->values[i];
+        [[nodiscard]]constexpr auto& get(size_t i) noexcept(noexcept(this->values[i])) {
+            if constexpr(std::same_as<container_type, fixed_vector>) {
+                assert(i < impl::ValueOr<N, 0>::value, "Index out of bounds");
+            }
+            return this->values[i].value;
         }
         template <size_t I>
-        [[nodiscard]]constexpr auto& get() noexcept requires (I < impl::ValueOr<N, std::numeric_limits<size_t>::max()>::value) {
-            return this->values[I];
+        [[nodiscard]]constexpr auto& get() noexcept(noexcept(this->values[I])) {
+            static_assert((std::same_as<container_type, fixed_vector> && I < impl::ValueOr<N, 0>::value), "Index out of bounds");
+            return this->values[I].value;
         }
         template <size_t I>
-        [[nodiscard]]constexpr const auto& get() const noexcept requires (I < impl::ValueOr<N, std::numeric_limits<size_t>::max()>::value) {
-            return this->values[I];
+        [[nodiscard]]constexpr const auto& get() const noexcept(noexcept(this->values[I])) {
+            static_assert((std::same_as<container_type, fixed_vector> && I < impl::ValueOr<N, 0>::value), "Index out of bounds");
+            return this->values[I].value;
         }
-        [[nodiscard]]constexpr auto& operator[](size_t i) noexcept {
-            return this->values[i];
+        [[nodiscard]]constexpr auto& operator[](size_t i) noexcept(noexcept(get(i))) {
+            return get(i);
         }
-        [[nodiscard]]constexpr const auto& operator[](size_t i) const noexcept {
-            return this->values[i];
+        [[nodiscard]]constexpr const auto& operator[](size_t i) const noexcept(noexcept(get(i))) {
+            return get(i);
         }
-
     };
 }
