@@ -75,7 +75,7 @@ struct Program {
 
 Model to define the program command line. 
 
-`Name` is the program name. It does not infer to the parser butt is here to name the program in the 
+`Name` is the program name. It does not infer to the parser but is here to name the program for generating the 
 help. See [HELP.md](./HELP.md) for more details.
 
 `def_cmd` is the default command behaviour which define the default command to parse when you don't specify in the 
