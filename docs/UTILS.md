@@ -29,6 +29,62 @@ You can define one and only unicode code point in a short name. Composed code po
 
 ## Handle errors
 
+### Definition
+
+```cpp
+/// in namespace glap
+struct Error {
+    std::string_view parameter;
+    std::optional<std::string_view> value;
+    enum class Type {
+        Command,
+        Parameter,
+        Flag,
+        Input,
+        None,
+        Unknown
+    } type;
+    enum class Code {
+        NoParameter,
+        NoGlobalCommand,
+        BadCommand,
+        UnknownArgument,
+        BadResolution,
+        BadValidation,
+        DuplicateParameter,
+        TooManyParameters,
+        MissingValue,
+        SyntaxError,
+        BadString
+    } code;
+
+    std::string to_string() const;
+};
+template <class T>
+using Expected = glap::expected<T, Error>;
+struct PositionnedError {
+    using difference_type = decltype(std::distance(std::span<std::string>().begin(), std::span<std::string>().end()));
+    Error error;
+    difference_type position;
+    auto to_string() const;
+};
+template<class T>
+using PosExpected = expected<T, PositionnedError>;
+```
+
+### Description
+
+The library does not rely on C++ exceptions. Instead, `tl::expected` (or `std::expected` 
+[if configured](README.md#xmake-configuration)) is used. If no issues is raised from the parser, the expected value 
+embedded in expected is returned. Otherwise, an `PositionnedError` is returned.
+
+In `PositionnedError`, there is the argument position and the details of the error: 
+* `Error::Type`: which kind of argument was parsing
+* `Error::Code`: the kind of error
+
+I advise you to read [the C++ documentation about `std::expected`](https://en.cppreference.com/w/cpp/utility/expected)
+to understand how to work with expected if you're not familiar with.
+
 ## Discard
 
 ### Definition

@@ -30,6 +30,8 @@ It's possible to chain short names. For example, `-vvf` would means 2 times the 
 
 Note that the library doesn't take arguments order in account because of its constexpr nature, which means `program command --flag1 --flag2` would have the same result as `program command --flag2 --flag1`.
 
+## xmake configuration
+
 ## Parts
 
 - [**Parser model**](docs/PARSERS.md)
