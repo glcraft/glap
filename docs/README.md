@@ -32,7 +32,19 @@ Note that the library doesn't take arguments order in account because of its con
 
 ## xmake configuration
 
+### Option --use_tl_expected
+
+Use `tl::expected` instead of `std::expected`.
+
+**Default to true**, will change once well implemented by GCC, LLVM and MSVC for C++23.
+
+### Option --use_fmt
+
+Use {fmt} library instead of the standard format library.
+
+**Default to true**, will change once well implemented by GCC, LLVM and MSVC.
+
 ## Parts
 
 - [**Parser model**](docs/PARSERS.md)
-- [**Help text generator**](docs/HELP.md)
+- [**Help text generator**](docs/HELP.md) (under construction. available in next version)
