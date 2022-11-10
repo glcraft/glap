@@ -47,4 +47,5 @@ Use {fmt} library instead of the standard format library.
 ## Parts
 
 - [**Parser model**](docs/PARSERS.md)
+- [**Utility structures**](docs/UTILS.md) (in complement of Parser model)
 - [**Help text generator**](docs/HELP.md) (under construction. available in next version)

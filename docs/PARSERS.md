@@ -56,6 +56,9 @@ The parser expects primarily the Program model class, but it also works with the
 when you don't want any command). In that case, skip the first command line argument reserved to the program name. 
 Otherwise, it could be parsed as an input of the "command".
 
+Use `glap::parser` to easily parse your command line. See [Quick Example](#quick-example) to get a quick view how to 
+use it.
+
 ## Program
 
 ### Definition
