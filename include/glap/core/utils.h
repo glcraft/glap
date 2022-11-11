@@ -109,7 +109,7 @@ namespace glap
         struct NameChecker<Arg1, Arg2, ArgN...> 
         {
             static constexpr bool has_duplicate_longname = Arg1::longname == Arg2::longname || NameChecker<Arg1, ArgN...>::has_duplicate_longname || NameChecker<Arg2, ArgN...>::has_duplicate_longname;
-            static constexpr bool has_duplicate_shortname = Arg1::shortname.has_value() && Arg2::shortname.has_value() && Arg1::shortname.value() == Arg2::shortname.value() || NameChecker<Arg1, ArgN...>::has_duplicate_shortname || NameChecker<Arg2, ArgN...>::has_duplicate_shortname;
+            static constexpr bool has_duplicate_shortname = (Arg1::shortname.has_value() && Arg2::shortname.has_value() && Arg1::shortname.value() == Arg2::shortname.value()) || NameChecker<Arg1, ArgN...>::has_duplicate_shortname || NameChecker<Arg2, ArgN...>::has_duplicate_shortname;
         };
         template <typename Arg1, typename Arg2, class ...ArgN>
             requires HasNames<Arg1> && (!HasNames<Arg2>)
