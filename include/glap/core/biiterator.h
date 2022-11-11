@@ -1,9 +1,9 @@
 #pragma once
 #include "utils.h"
 #include <string_view>
-namespace glap::utils 
+namespace glap::impl 
 {
-    template <glap::utils::Iterator<std::string_view> T>
+    template <Iterator<std::string_view> T>
     struct BiIterator {
         BiIterator(T begin, T end) : begin(begin), end(end) 
         {}

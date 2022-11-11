@@ -9,7 +9,7 @@
 
 namespace glap
 {
-    namespace utils {
+    namespace impl {
         template <typename T, typename V>
         concept Range = requires(T t) {
             {*t.begin()} -> std::convertible_to<V>;
@@ -97,32 +97,32 @@ namespace glap
     template <typename T>
     concept IsValidator = std::invocable<T, std::string_view> && std::same_as<std::invoke_result_t<T, std::string_view>, bool>;
 
-    template <class ...ArgN>
-    struct NameChecker 
-    {
-        static constexpr bool has_duplicate_longname = false;
-        static constexpr bool has_duplicate_shortname = false;
-    };
-    template <HasNames Arg1, HasNames Arg2, class ...ArgN>
-    struct NameChecker<Arg1, Arg2, ArgN...> 
-    {
-        static constexpr bool has_duplicate_longname = Arg1::longname == Arg2::longname || NameChecker<Arg1, ArgN...>::has_duplicate_longname || NameChecker<Arg2, ArgN...>::has_duplicate_longname;
-        static constexpr bool has_duplicate_shortname = Arg1::shortname.has_value() && Arg2::shortname.has_value() && Arg1::shortname.value() == Arg2::shortname.value() || NameChecker<Arg1, ArgN...>::has_duplicate_shortname || NameChecker<Arg2, ArgN...>::has_duplicate_shortname;
-    };
-    template <typename Arg1, typename Arg2, class ...ArgN>
-        requires HasNames<Arg1> && (!HasNames<Arg2>)
-    struct NameChecker<Arg1, Arg2, ArgN...>
-    {
-        static constexpr bool has_duplicate_longname = NameChecker<Arg1, ArgN...>::has_duplicate_longname;
-        static constexpr bool has_duplicate_shortname = NameChecker<Arg1, ArgN...>::has_duplicate_shortname;
-    };
-    template <typename Arg1, class ...ArgN>
-    struct NameChecker<Arg1, Arg1, ArgN...>
-    {
-        static_assert(!std::is_same_v<Arg1, Arg1>, "Duplicate argument");
-    };
     namespace impl
     {
+        template <class ...ArgN>
+        struct NameChecker 
+        {
+            static constexpr bool has_duplicate_longname = false;
+            static constexpr bool has_duplicate_shortname = false;
+        };
+        template <HasNames Arg1, HasNames Arg2, class ...ArgN>
+        struct NameChecker<Arg1, Arg2, ArgN...> 
+        {
+            static constexpr bool has_duplicate_longname = Arg1::longname == Arg2::longname || NameChecker<Arg1, ArgN...>::has_duplicate_longname || NameChecker<Arg2, ArgN...>::has_duplicate_longname;
+            static constexpr bool has_duplicate_shortname = Arg1::shortname.has_value() && Arg2::shortname.has_value() && Arg1::shortname.value() == Arg2::shortname.value() || NameChecker<Arg1, ArgN...>::has_duplicate_shortname || NameChecker<Arg2, ArgN...>::has_duplicate_shortname;
+        };
+        template <typename Arg1, typename Arg2, class ...ArgN>
+            requires HasNames<Arg1> && (!HasNames<Arg2>)
+        struct NameChecker<Arg1, Arg2, ArgN...>
+        {
+            static constexpr bool has_duplicate_longname = NameChecker<Arg1, ArgN...>::has_duplicate_longname;
+            static constexpr bool has_duplicate_shortname = NameChecker<Arg1, ArgN...>::has_duplicate_shortname;
+        };
+        template <typename Arg1, class ...ArgN>
+        struct NameChecker<Arg1, Arg1, ArgN...>
+        {
+            static_assert(!std::is_same_v<Arg1, Arg1>, "Duplicate argument");
+        };
         template <class T>
         struct ResolverReturnType
         {
@@ -146,17 +146,4 @@ namespace glap
             using type = T;
         };
     }
-
-    template <auto Resolver = discard, auto Validator = discard>
-    struct Value {
-        using value_type = typename impl::ResolverReturnType<decltype(Resolver)>::type;
-        constexpr Value() = default;
-        constexpr Value(std::string_view v) : value(v)
-        {}
-        
-        static constexpr auto resolver = Resolver;
-        static constexpr auto validator = Validator;
-
-        std::optional<value_type> value;
-    };
 }

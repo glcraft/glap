@@ -2,6 +2,7 @@
 #include "core/discard.h"
 #include "core/utils.h"
 #include "core/container.h"
+#include "core/value.h"
 #include <variant>
 namespace glap::model
 {
@@ -65,7 +66,7 @@ namespace glap::model
         using Params = std::tuple<Arguments...>;
         Params arguments;
     private:
-        using NameCheck = NameChecker<Arguments...>;
+        using NameCheck = impl::NameChecker<Arguments...>;
         static_assert(!NameCheck::has_duplicate_longname, "arguments has duplicate long name");
         static_assert(!NameCheck::has_duplicate_shortname, "arguments has duplicate short name");
 
@@ -104,7 +105,7 @@ namespace glap::model
     };
     template<StringLiteral Name, DefaultCommand def_cmd, class... Commands>
     struct Program {
-        using NameCheck = NameChecker<Commands...>;
+        using NameCheck = impl::NameChecker<Commands...>;
         static_assert(!NameCheck::has_duplicate_longname, "arguments has duplicate long name");
         static_assert(!NameCheck::has_duplicate_shortname, "arguments has duplicate short name");
         

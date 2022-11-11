@@ -28,7 +28,7 @@ namespace glap
         using OutputType = Model;
     public:
         template <class Iter>
-        constexpr auto operator()(utils::BiIterator<Iter> args) const -> PosExpected<OutputType>
+        constexpr auto operator()(impl::BiIterator<Iter> args) const -> PosExpected<OutputType>
         {
             OutputType result;
             auto cmd = static_cast<const BaseType*>(this)->parse(result, args);
@@ -37,9 +37,9 @@ namespace glap
             else
                 return result;
         }
-        constexpr auto operator()(utils::Range<std::string_view> auto args) const -> PosExpected<OutputType>
+        constexpr auto operator()(impl::Range<std::string_view> auto args) const -> PosExpected<OutputType>
         {
-            return operator()(utils::BiIterator{args.begin(), args.end()});
+            return operator()(impl::BiIterator{args.begin(), args.end()});
         }
     };
     struct ParsedParameter
@@ -52,7 +52,7 @@ namespace glap
     public:
         using OutputType = model::Program<Name, def_cmd, Commands...>;
         template <class Iter>
-        constexpr auto parse(OutputType& program, utils::BiIterator<Iter> args) const -> PosExpected<Iter>
+        constexpr auto parse(OutputType& program, impl::BiIterator<Iter> args) const -> PosExpected<Iter>
         {
             if (args.size() == 0) [[unlikely]] {
                 return make_unexpected(PositionnedError{
@@ -90,7 +90,7 @@ namespace glap
                     });
                 } else {
                     program.command.template emplace<0>();
-                    result = glap::parser<std::variant_alternative_t<0, decltype(program.command)>>.parse(std::get<0>(program.command), utils::BiIterator(itarg, args.end));
+                    result = glap::parser<std::variant_alternative_t<0, decltype(program.command)>>.parse(std::get<0>(program.command), impl::BiIterator(itarg, args.end));
                 }
             }
             else {
@@ -117,7 +117,7 @@ namespace glap
                 auto found = ([&]{
                     if (impl::check_names<Commands>(name, codepoint)) {
                         program.command.template emplace<Commands>();
-                        result = glap::parser<Commands>.parse(std::get<Commands>(program.command), utils::BiIterator(itarg, args.end));
+                        result = glap::parser<Commands>.parse(std::get<Commands>(program.command), impl::BiIterator(itarg, args.end));
                         return true;
                     }
                     return false;
@@ -142,7 +142,7 @@ namespace glap
     public:
         using OutputType = model::Command<CommandNames, Arguments...>;
         template <class Iter>
-        constexpr auto parse(OutputType& command, utils::BiIterator<Iter> params) const -> PosExpected<Iter>
+        constexpr auto parse(OutputType& command, impl::BiIterator<Iter> params) const -> PosExpected<Iter>
         {
             auto itcurrent = params.begin;
             while(itcurrent != params.end) {
@@ -184,7 +184,7 @@ namespace glap
         }
     private:
         template <class Iter>
-        constexpr auto parse_long(OutputType& command, utils::BiIterator<Iter> params) const -> PosExpected<Iter>
+        constexpr auto parse_long(OutputType& command, impl::BiIterator<Iter> params) const -> PosExpected<Iter>
         {
             auto arg = *params.begin++;
             auto name_value = arg.substr(2);
@@ -234,7 +234,7 @@ namespace glap
             return params.begin;
         }
         template <class Iter>
-        constexpr auto parse_short(OutputType& command, utils::BiIterator<Iter> params) const -> PosExpected<Iter>
+        constexpr auto parse_short(OutputType& command, impl::BiIterator<Iter> params) const -> PosExpected<Iter>
         {
             auto itcurrent = params.begin;
             auto arg = *itcurrent++;
