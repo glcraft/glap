@@ -4,7 +4,6 @@
 #include <string_view>
 #include <optional>
 
-
 namespace glap
 {
     template <auto Resolver = discard, auto Validator = discard>
