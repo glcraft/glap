@@ -1,17 +1,17 @@
 includes("xmake/**.lua")
-if (is_plat("macosx")) then
-    llvm_toolchain("LLVM15.0.3", "macosx")
-end
 
 add_rules("mode.debug", "mode.release")
 add_requires("fmt 9.0.0", {optional = true}) -- required only if stl has not std::format
 add_requires("tl_expected", {optional = true}) -- required only if stl has not std::expected
 add_requires("gtest 1.12", {optional = true}) -- required only for glap-tests
+    
 option("use_tl_expected")
     set_default(true)
+    set_showmenu(true)
     add_defines("GLAP_USE_TL_EXPECTED", {public = true})
 option("use_fmt")
     set_default(true)
+    set_showmenu(true)
     add_defines("GLAP_USE_FMT", {public = true})
 
 target("glap")

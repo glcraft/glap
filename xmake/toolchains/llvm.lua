@@ -144,3 +144,5 @@ function llvm_toolchain(toolchain_name, sdk)
         end)
     toolchain_end()
 end
+
+llvm_toolchain("LLVM15.0.0", "macosx")
