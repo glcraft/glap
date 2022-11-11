@@ -121,8 +121,8 @@ This is the base model to capture the value of [Input](#single-parameter-argumen
 
 `Resolver` is either a function or [*discard*](#discard). Here is The list of signature expected :
 * `(std::string_view) -> T` where T is whatever type.
-* `(std::string_view) -> tl::expected<T, void>` where T is whatever type. If an error is raised, an error is raised 
-by the parser
+* `(std::string_view) -> tl::expected<T, Discard>` where T is whatever type. If a Discard error is raised, it is 
+intercepted and raised by the parser.
 
 The type of `value` is based on the output of the `Resolver`.
 

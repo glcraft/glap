@@ -138,11 +138,12 @@ struct Parameter : ArgNames, Value<Resolver, Validator> {
 
 ### Description
 
-Model to define a parameter for the program command line. 
+Model to define a single value parameter for the program command line. 
 
 `ArgNames` is a [Names](UTILS.md#names) model type. 
 
-The model is based on [`Value`](UTILS.md#value). See this chapter to see details on value capture, Resolver and Validator.
+The model is based on [`Value`](UTILS.md#value). See this chapter to see details on value capture, Resolver and 
+Validator.
 
 
 ## Multiple parameters argument
@@ -161,6 +162,15 @@ struct Parameters : ArgNames, Container<Parameter<ArgNames, Resolver, Validator>
 ```
 
 ### Description
+
+Model to define a one or more values parameter for the program command line. 
+
+`ArgNames` is a [`Names`](UTILS.md#names) model type. 
+
+The model is based on [`Container`](UTILS.md#value). See this chapter to see details on value capture and how `N` works. 
+
+Each single value is stored in a [`Parameter`](#single-parameter-argument) so check it out to get informations about 
+Resolver and Validator.
 
 ## Flag argument
 
@@ -198,9 +208,10 @@ struct Input : Value<Resolver, Validator> {
 
 ### Description
 
-Model to define a input for the program command line. 
+Model to define a single value input for the program command line. 
 
-The model is based on [`Value`](UTILS.md#value). See this chapter to see details on value capture, Resolver and Validator.
+The model is based on [`Value`](UTILS.md#value). See this chapter to see details on value capture, Resolver and 
+Validator.
 
 ## Multiple expected inputs argument
 
@@ -219,7 +230,14 @@ struct Inputs : Container<Input<Resolver, Validator>, N> {
 
 ### Description
 
+Model to define a one or more values input for the program command line. 
 
+`ArgNames` is a [`Names`](UTILS.md#names) model type. 
+
+The model is based on [`Container`](UTILS.md#value). See this chapter to see details on value capture and how `N` works. 
+
+Each single value is stored in a [`Parameter`](#single-parameter-argument) so check it out to get informations about 
+Resolver and Validator.
 
 ## Quick example
 
