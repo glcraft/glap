@@ -85,7 +85,7 @@ using Command2 = glap::model::Command<glap::Names<"command2", glap::discard>,
     glap::model::Flag<glap::Names<"flag", 'f'>>,
     glap::model::Parameter<glap::Names<"param", 'a'>, glap::discard, test_is_hello_world>,
     glap::model::Parameters<glap::Names<"params", 'b'>>,
-    glap::model::Parameters<glap::Names<"fixed_args", 'c'>, 2>,
+    glap::model::Parameters<glap::Names<"stack_args", 'c'>, 2>,
     glap::model::Inputs<>
 >;
 
@@ -366,7 +366,7 @@ TEST(glap_inputs, multi_inputs) {
     ASSERT_EQ(command2.get_inputs().values[0].value.value(), "input1");
     ASSERT_EQ(command2.get_inputs().values[1].value.value(), "input2");
 }
-TEST(glap_inputs, fixed_multi_inputs) {
+TEST(glap_inputs, stack_multi_inputs) {
     auto result = tests_parser(std::array{"glap"sv, "command3"sv, "input1"sv, "input2"sv});
     ASSERT_TRUE(result) << "Parser failed: " << result.error().to_string();
     ASSERT_EQ(result.value().command.index(), 2) << "Wrong command index";

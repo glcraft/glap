@@ -4,16 +4,16 @@
 namespace glap
 {
     template<typename T, size_t N>
-    class FixedVector {
+    class StackVector {
         T m_data[N];
         size_t m_size = 0;
         
         template <class Ty>
         class _iterator {
-            FixedVector<Ty, N>& array;
+            StackVector<Ty, N>& array;
             size_t index;
         public:
-            constexpr _iterator(FixedVector<T, N>& array, size_t index = 0) noexcept : array(array), index(index) 
+            constexpr _iterator(StackVector<T, N>& array, size_t index = 0) noexcept : array(array), index(index) 
             {}
             constexpr _iterator& operator++() noexcept {
                 ++index;
@@ -35,7 +35,7 @@ namespace glap
         using size_type = size_t;
         using difference_type = ptrdiff_t;
 
-        constexpr ~FixedVector() requires std::destructible<T> {
+        constexpr ~StackVector() requires std::destructible<T> {
             if constexpr (!std::is_trivially_destructible_v<T>) {
                 for (size_t i = 0; i < m_size; ++i) {
                     m_data[i].~T();
@@ -115,9 +115,9 @@ namespace glap
         static constexpr auto is_n_discard = std::is_same_v<n_type, Discard>;
         static constexpr auto is_n_zero = impl::is_equal_v<N, 0>;
         using dynamic_vector = std::vector<value_type>;
-        using fixed_vector = FixedVector<value_type, impl::value_or_v<N, 0>>;
+        using stack_vector = StackVector<value_type, impl::value_or_v<N, 0>>;
     public:
-        using container_type = std::conditional_t<is_n_discard || is_n_zero, dynamic_vector, fixed_vector>;
+        using container_type = std::conditional_t<is_n_discard || is_n_zero, dynamic_vector, stack_vector>;
         container_type values;
 
         [[nodiscard]]constexpr auto size() const noexcept {
@@ -125,25 +125,25 @@ namespace glap
         }
 
         [[nodiscard]]constexpr const auto& get(size_t i) const noexcept(noexcept(this->values[i])) {
-            if constexpr(std::same_as<container_type, fixed_vector>) {
+            if constexpr(std::same_as<container_type, stack_vector>) {
                 assert(i < impl::ValueOr<N, 0>::value, "Index out of bounds");
             }
             return this->values[i].value;
         }
         [[nodiscard]]constexpr auto& get(size_t i) noexcept(noexcept(this->values[i])) {
-            if constexpr(std::same_as<container_type, fixed_vector>) {
+            if constexpr(std::same_as<container_type, stack_vector>) {
                 assert(i < impl::ValueOr<N, 0>::value, "Index out of bounds");
             }
             return this->values[i].value;
         }
         template <size_t I>
         [[nodiscard]]constexpr auto& get() noexcept(noexcept(this->values[I])) {
-            static_assert((std::same_as<container_type, fixed_vector> && I < impl::ValueOr<N, 0>::value), "Index out of bounds");
+            static_assert((std::same_as<container_type, stack_vector> && I < impl::ValueOr<N, 0>::value), "Index out of bounds");
             return this->values[I].value;
         }
         template <size_t I>
         [[nodiscard]]constexpr const auto& get() const noexcept(noexcept(this->values[I])) {
-            static_assert((std::same_as<container_type, fixed_vector> && I < impl::ValueOr<N, 0>::value), "Index out of bounds");
+            static_assert((std::same_as<container_type, stack_vector> && I < impl::ValueOr<N, 0>::value), "Index out of bounds");
             return this->values[I].value;
         }
         [[nodiscard]]constexpr auto& operator[](size_t i) noexcept(noexcept(get(i))) {

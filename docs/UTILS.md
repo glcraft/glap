@@ -147,30 +147,30 @@ private:
     static constexpr auto is_n_discard = std::is_same_v<n_type, Discard>;
     static constexpr auto is_n_zero = impl::is_equal_v<N, 0>;
     using dynamic_vector = std::vector<value_type>;
-    using fixed_vector = FixedVector<value_type, impl::value_or_v<N, 0>>;
+    using stack_vector = StackVector<value_type, impl::value_or_v<N, 0>>;
 public:
-    using container_type = std::conditional_t<is_n_discard || is_n_zero, dynamic_vector, fixed_vector>;
+    using container_type = std::conditional_t<is_n_discard || is_n_zero, dynamic_vector, stack_vector>;
     container_type values;
 
     /// Returns the size of the container
     /// The size is the number of argument stored in the container (so not the capacity)
     [[nodiscard]]constexpr auto size() const noexcept;
     /// Get const value at index `i`
-    [[nodiscard]]constexpr const auto& get(size_t i) const /*noexcept is fixed vector*/;
+    [[nodiscard]]constexpr const auto& get(size_t i) const /*noexcept is stack vector*/;
     /// Get value at index `i`
-    [[nodiscard]]constexpr auto& get(size_t i) /*noexcept is fixed vector*/;
+    [[nodiscard]]constexpr auto& get(size_t i) /*noexcept is stack vector*/;
     /// Get const value at index `I`
-    /// In case container_type is a fixed vector, I is constrained about N. 
+    /// In case container_type is a stack vector, I is constrained about N. 
     template <size_t I>
-    [[nodiscard]]constexpr const auto& get() const /*noexcept is fixed vector*/;
+    [[nodiscard]]constexpr const auto& get() const /*noexcept is stack vector*/;
     /// Get value at index `I`
-    /// In case container_type is a fixed vector, I is constrained about N. 
+    /// In case container_type is a stack vector, I is constrained about N. 
     template <size_t I>
-    [[nodiscard]]constexpr auto& get() /*noexcept is fixed vector*/;
+    [[nodiscard]]constexpr auto& get() /*noexcept is stack vector*/;
     /// Get value at index `i`
-    [[nodiscard]]constexpr auto& operator[](size_t i) /*noexcept is fixed vector*/;
+    [[nodiscard]]constexpr auto& operator[](size_t i) /*noexcept is stack vector*/;
     /// Get const value at index `i`
-    [[nodiscard]]constexpr const auto& operator[](size_t i) const /*noexcept is fixed vector*/;
+    [[nodiscard]]constexpr const auto& operator[](size_t i) const /*noexcept is stack vector*/;
 };
 ```
 ### Description
@@ -181,7 +181,7 @@ This is the base model to capture one or several values of [Inputs](#single-para
 `N` is either a integer or [*discard*]. 
 If N is 0 or [*discard*], the container type will be a dynamic vector (aka
 `std::vector<T>`). 
-Otherwise, it will be a fixed vector, which is a custom class acting like a vector embedding a fixed array.
+Otherwise, it will be a stack vector, which is a custom class acting like a vector but with a fixed size array on the stack.
 
 The type `T` refer directly to [`Value`], so check out [`Value`] type for more explanation about how to 
 work with values inside the container.
