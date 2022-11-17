@@ -30,12 +30,13 @@ function llvm_toolchain(toolchain_name, sdk)
                 local ok, _ = os.execv(cmd, argv, table.join(opt, {stdout = outfile, stderr = errfile}))
                 return ok, os.exists(outfile) and io.readfile(outfile) or nil, os.exists(errfile) and io.readfile(errfile) or nil
             end
+            local xcrun_args_common = {}
             -- setup xcrun arguments
             if toolchain_name then 
-                xcrun_args_common = table.join(xcrun_args, {"-toolchain", toolchain_name})
+                xcrun_args_common = table.join(xcrun_args_common, {"-toolchain", toolchain_name})
             end
             if sdk then 
-                xcrun_args_common = table.join(xcrun_args, {"-sdk", sdk} )
+                xcrun_args_common = table.join(xcrun_args_common, {"-sdk", sdk} )
             end
             
             local logfile = os.tmpfile()
@@ -145,4 +146,25 @@ function llvm_toolchain(toolchain_name, sdk)
     toolchain_end()
 end
 
-llvm_toolchain("LLVM15.0.0", "macosx")
+function llvm_load_toolchain(toolchain_path)
+    local toolchain_name = path.basename(toolchain_path)
+    local version = toolchain_name:match("LLVM(%d+%.%d+%.%d+)")
+    -- print("loading toolchain %s (version: %s) for macos", toolchain_name, version)
+    llvm_toolchain(toolchain_name, "macosx")
+end
+
+function llvm_load_environnement(...)
+    local args = {...}
+    local all_toolchains = {}
+    for i,toolchain_path in ipairs(args) do
+        -- print("Checking out toolchains from " .. toolchain_path)
+        all_toolchains = table.join(all_toolchains, os.dirs(path.join(toolchain_path, "LLVM*.xctoolchain")))
+    end
+    -- print("Found " .. #all_toolchains .. " toolchains")
+    for i,toolchain_path in ipairs(all_toolchains) do
+        -- print("Setup toolchain " .. toolchain_path)
+        llvm_load_toolchain(toolchain_path)
+    end
+end
+
+llvm_load_environnement("/Applications/Xcode.app/Contents/Developer/Toolchains", path.join(os.getenv("HOME"), "Library/Developer/Toolchains"), "/Library/Developer/Toolchains")
