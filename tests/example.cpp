@@ -1,3 +1,5 @@
+#include "glap/core/value.h"
+#include <__concepts/derived_from.h>
 #include <glap/glap.h>
 #include <ranges>
 #include <charconv>
@@ -5,140 +7,112 @@
 #include <string_view>
 #include <type_traits>
 #include <variant>
+#include <fmt/ranges.h>
 
-struct Param1 {
-    static constexpr std::string_view longname = "param1";  
-    static constexpr std::optional<char32_t> shortname = 'p';
-    static constexpr auto type = glap::model::ArgumentType::Parameter;
-    using result_type = void;
-};
-
-auto to_int(std::string_view str) -> tl::expected<int, std::errc> {
-    int result;
-    auto [_, ec] { std::from_chars(str.data(), str.data() + str.size(), result) };
- 
-    if (ec == std::errc()) {
-        return result;
-    } else {
-        return tl::make_unexpected(ec);
-    }
-}
-
-template <class P>
-struct Print 
-{};
-
-template <class Names, auto... T>
-struct Print<glap::model::Parameter<Names, T...>> {
-    using value_type= glap::model::Parameter<Names, T...>;
-    void operator()(const value_type& v) const {
-        fmt::print("    --{}: ", v.longname);
-        if (v.value) {
-            fmt::print("\"{}\"\n", v.value.value());
-        } else {
-            fmt::print("none\n");
-        }
-    }
-};
-template <class ...P>
-struct Print<glap::model::Flag<P...>> {
-    using value_type= glap::model::Flag<P...>;
-    void operator()(const value_type& v) const {
-        fmt::print("    --{}: {}x\n", v.longname, v.occurences);
-    }
-};
-template <class T> 
-    requires requires (T a){
-        a.values;
-        T::type == glap::model::ArgumentType::Input;
-    }
-struct Print<T> {
-    using value_type= T;
-    void operator()(const value_type& v) const {
-        fmt::print("    inputs: ");
-        auto nb=0;
-        for (auto& val : v.values)
-            fmt::print("{}\"{}\"", nb++>0 ? ", " : "", val.value.value_or("none"));
-        fmt::print("\n ");
-    }
-};
-template <class Names, auto N, auto ...Args>
-struct Print<glap::model::Parameters<Names, N, Args...>> {
-    using value_type= glap::model::Parameters<Names, N, Args...>;
-    void operator()(const value_type& v) const {
-        fmt::print("    --{}: ", v.longname);
-        auto nb=0;
-        if (v.values.empty()) {
-            fmt::print("none\n");
-            return;
-        }
-        for (auto& val : v.values)
-            fmt::print("{}\"{}\"", nb++>0 ? ", " : "", val.value.value_or("none"));
-        fmt::print("\n");
-    }
-};
 template <class T>
-static constexpr auto print = Print<T>{};
-
+    requires requires { T::type; }
+void print(const T& value) {
+    if constexpr (requires { value.longname; }) {
+        fmt::print("  --{}: ", value.longname);
+    } else {
+        fmt::print("  input: ");
+    }
+    if constexpr (requires { value.value; }) { // Value based
+        fmt::print("\"{}\"", value.value.value());
+    } else if constexpr (requires { value.values; }) { // Container based
+        fmt::print("[ ");
+        for (const auto& v : value.values) {
+            fmt::print("\"{}\" ", v.value.value());
+        }
+        fmt::print("]");
+    } else if constexpr (requires { value.occurences; }) { // Flag
+        fmt::print("{}x", value.occurences);
+    }
+    fmt::print("\n");
+}
 template <class Names, class ...P>
-auto print_command(glap::model::Command<Names, P...>& command) {
-    fmt::print("command: {}\n", command.longname);
+auto print(const glap::model::Command<Names, P...>& command) {
+    fmt::print("{}: \n", command.longname);
     ([&] {
-        print<P>(std::get<P>(command.params));
+        print(std::get<P>(command.arguments));
     }(), ...);
-    
 }
-bool is_hello_world(std::string_view v) {
-    return v == "hello" || v == "world";
+template <auto Name, auto D, class ...C>
+auto print(const glap::model::Program<Name, D, C...>& program) {
+    fmt::print("{}\n", program.program);
+    ([&] {
+        if (std::holds_alternative<C>(program.command)) {
+            print(std::get<C>(program.command));
+            return true;
+        } else {
+            return false;
+        }
+    }() || ...);
 }
+
+using flag_t = glap::model::Flag<
+    glap::Names<"flag", 'f'>
+>;
+using verbose_t = glap::model::Flag<
+    glap::Names<"verbose", 'v'>
+>;
+using help_t = glap::model::Flag<
+    glap::Names<"help", 'h'>
+>;
+using single_param_t = glap::model::Parameter<
+    glap::Names<"single_param", 's'>
+>;
+using single_int_param_t = glap::model::Parameter<
+    glap::Names<"to_int", glap::discard>,
+    [] (std::string_view v) -> glap::expected<int, glap::Discard> { 
+        try {
+            return std::stoi(std::string(v)); 
+        } catch(...) {
+            /// In case stoi results in an error by exception, 
+            /// we return an error the parser can intercept
+            return glap::make_unexpected(glap::discard);
+        }
+    }
+>;
+using multi_param_t = glap::model::Parameters<
+    glap::Names<"multi_param", 'm'>,
+    glap::discard // optional, = no limit
+>;
+using inputs_t = glap::model::Inputs<
+    glap::discard // optional, = no limit
+>;
+
+using command1_t = glap::model::Command<
+    glap::Names<"command1", 'c'>, 
+    flag_t, 
+    verbose_t, 
+    help_t, 
+    inputs_t
+>;
+using command2_t = glap::model::Command<
+    glap::Names<"command2">, // notice that there is no short name here
+    single_param_t, 
+    multi_param_t, 
+    help_t, 
+    inputs_t
+>;
+
+using program_t = glap::model::Program<"myprogram", glap::model::DefaultCommand::FirstDefined, command1_t, command2_t>;
 
 int main(int argc, char** argv)
 {
     using namespace glap::model;
     using glap::discard;
+    auto args = std::vector<std::string_view>(argv, argv + argc);
 
-    using command_t = Command<glap::Names<"command", 'c'>, 
-        Flag<glap::Names<"flag", 'f'>>,
-        Parameter<glap::Names<"arg", 'a'>, discard, is_hello_world>,
-        Parameters<glap::Names<"args", 'b'>>,
-        Inputs<>
-    >;
-    using program_t = Program<"glap", DefaultCommand::FirstDefined, Command<glap::Names<"othercommand", 't'>, Flag<glap::Names<"flag", 'f'>>>,
-        command_t
-    >;
+    auto result = glap::parser<program_t>(args);
 
-    auto res = glap::parser<program_t>(std::vector<std::string_view>{"glap", "command", "-f", "--arg", "hello", "--args", "1", "2", "3"});
-
-
-    // using HelpCommand = glap::help::model::Command<"command", glap::help::model::Description<"first defined command">,
-    //     glap::help::model::Argument<"flag", glap::help::model::Description<"flag example">>,
-    //     glap::help::model::Argument<"arg", glap::help::model::Description<"single parameter example">>,
-    //     glap::help::model::Argument<"args", glap::help::model::Description<"multiple parameters example">>,
-    //     glap::help::model::Argument<"INPUTS", glap::help::model::Description<"inputs description">>
-    // >;
-    // using HelpProgram = glap::help::model::Program<"glap-example",
-    //     glap::help::model::FullDescription<"example program", "This is an exemple of the program description">, 
-    //     HelpCommand
-    // >;
-    // {
-    //     auto help_str = glap::get_help<HelpProgram, decltype(parser)>();
-    //     fmt::print("# Help Program :\n{}\n\n", help_str);
-    // }
-    // {
-    //     auto help_str = glap::get_help<HelpCommand, ParserCommand>();
-    //     fmt::print("# Help Command \"command\" :\n{}\n\n", help_str);
-    // }
-
-
-    // auto result = parser.parse(std::span{argv, argv+argc} | std::views::transform([](auto arg) {return std::string_view{arg};}) );
-
-    // if (result) {
-    //     auto& v = *result;
-    //     fmt::print("program: {}\n", v.program);
-    //     std::visit([](auto& command){ print_command (command); }, v.command);
-    // } else {
-    //     fmt::print("{}\n", result.error().to_string());
-    //     return 1;
-    // }
+    if (result) {
+        auto& v = *result;
+        print(v);
+    } else {
+        fmt::print("{}\n", result.error().to_string());
+        return 1;
+    }
     return 0;
 }
