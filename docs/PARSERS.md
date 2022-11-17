@@ -312,3 +312,5 @@ int main(int argc, char** argv)
     auto result = glap::parser(args);
 }
 ```
+
+See the [full example source program](../tests/example.cpp) to get more details.
