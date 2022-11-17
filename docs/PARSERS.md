@@ -2,18 +2,29 @@
 
 - [Parser model](#parser-model)
   - [Parser](#parser)
-    - [Template arguments](#template-arguments)
-    - [Functions](#functions)
+    - [Definition](#definition)
+    - [Description](#description)
+  - [Program](#program)
+    - [Definition](#definition-1)
+    - [Description](#description-1)
   - [Command](#command)
-  - [Single parameter](#single-parameter)
-  - [Multiple parameters](#multiple-parameters)
-  - [Flag templated class](#flag-templated-class)
-  - [Single expected input](#single-expected-input)
-  - [Multiple expected inputs](#multiple-expected-inputs)
-  - [Program templated class](#program-templated-class)
-  - [Names](#names)
-  - [Error](#error)
-  - [Discard](#discard)
+    - [Definition](#definition-2)
+    - [Description](#description-2)
+  - [Single parameter argument](#single-parameter-argument)
+    - [Definition](#definition-3)
+    - [Description](#description-3)
+  - [Multiple parameters argument](#multiple-parameters-argument)
+    - [Definition](#definition-4)
+    - [Description](#description-4)
+  - [Flag argument](#flag-argument)
+    - [Definition](#definition-5)
+    - [Description](#description-5)
+  - [Single expected input argument](#single-expected-input-argument)
+    - [Definition](#definition-6)
+    - [Description](#description-6)
+  - [Multiple expected inputs argument](#multiple-expected-inputs-argument)
+    - [Definition](#definition-7)
+    - [Description](#description-7)
   - [Quick example](#quick-example)
 
 ## Parser
@@ -270,8 +281,8 @@ using single_int_param_t = glap::model::Parameter<
     }
 >;
 using multi_param_t = glap::model::Parameters<
-    glap::Names<"multi_param", 'm'>
-    glap::discard, // optional, = no limit
+    glap::Names<"multi_param", 'm'>,
+    glap::discard // optional, = no limit
 >;
 using inputs_t = glap::model::Inputs<
     glap::discard // optional, = no limit
