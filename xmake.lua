@@ -58,7 +58,7 @@ target("glap-tests")
         add_ldflags("/SUBSYSTEM:CONSOLE")
     end
     on_load(function (target)
-        target:set("default", not not target:opt("build_tests"))
+        target:set("default", target:opt("build_tests") ~= nil)
     end)
     on_install(function (target)
         -- nothing to install
