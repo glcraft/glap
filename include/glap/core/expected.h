@@ -38,7 +38,7 @@ namespace glap
         concept convertible_to = std::convertible_to<T, U>;
     #else
         template <typename T, typename U>
-        concept convertible_to = std::is_convertible<U, T>;
+        concept convertible_to = std::is_convertible_v<U, T>;
     #endif
     }
 
