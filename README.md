@@ -4,6 +4,17 @@ A UTF-8 command line parser written in C++20 respecting conventionals shell argu
 
 *Note : as the library is still in development, the API may change in the future.*
 
+## CI
+| Platform  | CI                                                                                                                                                         | Prebuilt                                                   | Run tests |
+|-----------|------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------|-----------|
+| Windows   | [![Windows](https://github.com/glcraft/glap/actions/workflows/Windows.yml/badge.svg)](https://github.com/glcraft/glap/actions/workflows/Windows.yml)       | https://nightly.link/glcraft/glap/workflows/Windows/main   | ❌         |
+| Ubuntu    | [![Ubuntu](https://github.com/glcraft/glap/actions/workflows/Ubuntu.yml/badge.svg)](https://github.com/glcraft/glap/actions/workflows/Ubuntu.yml)          | https://nightly.link/glcraft/glap/workflows/Ubuntu/main    | ❌         |
+| Archlinux | [![Archlinux](https://github.com/glcraft/glap/actions/workflows/Archlinux.yml/badge.svg)](https://github.com/glcraft/glap/actions/workflows/Archlinux.yml) | https://nightly.link/glcraft/glap/workflows/Archlinux/main | ✔️         |
+| Fedora    | [![Fedora](https://github.com/glcraft/glap/actions/workflows/Fedora.yml/badge.svg)](https://github.com/glcraft/glap/actions/workflows/Fedora.yml)          | https://nightly.link/glcraft/glap/workflows/Fedora/main    | ✔️         |
+| macOS     | [![macOS](https://github.com/glcraft/glap/actions/workflows/macOS.yml/badge.svg)](https://github.com/glcraft/glap/actions/workflows/macOS.yml)             | https://nightly.link/glcraft/glap/workflows/macOS/main     | ❌         |
+| iOS       | [![iOS](https://github.com/glcraft/glap/actions/workflows/iOS.yml/badge.svg)](https://github.com/glcraft/glap/actions/workflows/iOS.yml)                   | https://nightly.link/glcraft/glap/workflows/iOS/main       | ❌         |
+| Android   | [![Android](https://github.com/glcraft/glap/actions/workflows/Android.yml/badge.svg)](https://github.com/glcraft/glap/actions/workflows/Android.yml)       | https://nightly.link/glcraft/glap/workflows/Android/main   | ❌         |
+
 ## Notable features
 
 ### Compile time evaluated model
