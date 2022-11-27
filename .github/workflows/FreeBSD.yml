@@ -50,7 +50,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Tests
+      - name: Configure, Build, Tests and Installation
         uses: vmactions/freebsd-vm@v0
         with:
           usesh: true
