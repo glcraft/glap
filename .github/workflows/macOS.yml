@@ -59,7 +59,7 @@ jobs:
       - name: Configure & Build
         id: build
         run: |
-          xmake f -D --yes -m ${{ matrix.mode }} -k ${{ matrix.kind }} --build_tests=false
+          xmake f -D --yes -m ${{ matrix.mode }} -k ${{ matrix.kind }} --build_tests=true
           xmake b -D
 
       - name: Tests
