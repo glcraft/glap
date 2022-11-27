@@ -27,13 +27,14 @@ target("glap")
     add_headerfiles("include/(**/*.h)", "include/(**/*.inl)")
     add_includedirs("include", {public = true})
     add_options("use_tl_expected", "use_fmt")
-    on_load(function (target)
-        for _, dep in ipairs({"tl_expected", "fmt"}) do
-            if target:opt("use_" .. dep) then
-                target:add("packages", dep, {public = true})
-            end
-        end
-    end)
+    add_configfiles("xmake/config/config.h.in")
+    if has_config("use_tl_expected") then
+        add_packages("tl_expected", {public = true})
+    end
+
+    if has_config("use_fmt") then
+        add_packages("fmt", {public = true})
+    end
 
 target("glap-example")
     set_kind("binary")
