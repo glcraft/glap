@@ -1,0 +1,79 @@
+name: FreeBSD
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - '.github/workflows/Archlinux.yml'
+      - '.github/workflows/Ubuntu.yml'
+      - '.github/workflows/Windows.yml'
+      - '.github/workflows/Fedora.yml'
+      - '.github/workflows/Android.yml'
+      - '.github/workflows/macOS.yml'
+      - '.github/workflows/iOS.yml'
+      - '.gitignore'
+      - 'LICENSE'
+      - 'README.md'
+  pull_request:
+    branches: [ main ]
+    paths-ignore:
+      - '.github/workflows/Archlinux.yml'
+      - '.github/workflows/Ubuntu.yml'
+      - '.github/workflows/Windows.yml'
+      - '.github/workflows/Fedora.yml'
+      - '.github/workflows/Android.yml'
+      - '.github/workflows/macOS.yml'
+      - '.github/workflows/iOS.yml'
+      - '.gitignore'
+      - 'LICENSE'
+      - 'README.md'
+
+jobs:
+  build:
+    name: FreeBSD ( ${{ matrix.kind }}-${{ matrix.mode }} )
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macOS-12]
+        kind: [static, shared]
+        mode: [release, debug, asan]
+
+    runs-on: ${{ matrix.os }}
+
+    concurrency:
+      group: ${{ github.ref }}-${{ github.base_ref }}-${{ github.head_ref }}-FreeBSD-${{ matrix.kind }}-${{ matrix.mode }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Tests
+        uses: vmactions/freebsd-vm@v0
+        with:
+          usesh: true
+          sync: sshfs
+          mem: 4096
+          copyback: false
+          prepare: pkg install -y git curl unzip gmake llvm gsed bash perl5 openssl
+          run: |
+            git clone --recurse-submodules https://github.com/xmake-io/xmake.git /tmp/xmake -b dev
+            cd /tmp/xmake
+            gmake -j4
+            gmake install
+            export XMAKE_ROOT=y
+            cd -
+            git config --global --add safe.directory /Users/runner/work/xmake-repo/xmake-repo
+            xmake repo --update
+            xmake f -D --yes -m ${{ matrix.mode }} -k ${{ matrix.kind }} -p iphoneos --build_tests=false
+            xmake b -D
+            xmake install -D --installdir="${{ runner.workspace }}/output"
+
+      - name: Upload artifacts
+        id: upload
+        uses: actions/upload-artifact@v1
+        with:
+          name: ${{ matrix.os }}-x64-${{ matrix.kind }}-${{ matrix.mode }}
+          path: ${{ runner.workspace }}/output
