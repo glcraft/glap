@@ -59,12 +59,9 @@ jobs:
       - name: Configure & Build
         id: build
         run: |
-          xmake f -D --yes -m ${{ matrix.mode }} -k ${{ matrix.kind }} --build_tests=true
+          xmake f -D --yes -m ${{ matrix.mode }} -k ${{ matrix.kind }} --build_tests=false
           xmake b -D
           xmake install -D --installdir="${{ runner.workspace }}/output"
-
-      - name: Tests
-        run: xmake run glap-tests
 
       - name: Upload artifacts
         id: upload
