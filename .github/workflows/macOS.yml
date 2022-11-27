@@ -1,13 +1,12 @@
-name: Archlinux
+name: macOS
 
 on:
   push:
     branches: [ main ]
     paths-ignore:
-      - '.github/workflows/Ubuntu.yml'
+      - '.github/workflows/Archlinux.yml'
       - '.github/workflows/Windows.yml'
       - '.github/workflows/Fedora.yml'
-      - '.github/workflows/macOS.yml'
       - '.github/workflows/iOS.yml'
       - '.github/workflows/Android.yml'
       - '.github/workflows/FreeBSD.yml'
@@ -17,10 +16,9 @@ on:
   pull_request:
     branches: [ main ]
     paths-ignore:
-      - '.github/workflows/Ubuntu.yml'
+      - '.github/workflows/Archlinux.yml'
       - '.github/workflows/Windows.yml'
       - '.github/workflows/Fedora.yml'
-      - '.github/workflows/macOS.yml'
       - '.github/workflows/iOS.yml'
       - '.github/workflows/Android.yml'
       - '.github/workflows/FreeBSD.yml'
@@ -30,31 +28,21 @@ on:
 
 jobs:
   build:
-    name: archlinux-latest-x64 ( ${{ matrix.kind }}-${{ matrix.mode }} )
+    name: ${{ matrix.os }}-x64 ( ${{ matrix.kind }}-${{ matrix.mode }} )
 
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: [macOS-latest]
         kind: [static, shared]
         mode: [release, debug, asan]
 
     runs-on: ${{ matrix.os }}
-    container:
-      image: archlinux:base-devel
-      volumes:
-        - /output:/output
 
     concurrency:
-      group: ${{ github.ref }}-${{ github.base_ref }}-${{ github.head_ref }}-Archlinux-${{ matrix.kind }}-${{ matrix.mode }}
+      group: ${{ github.ref }}-${{ github.base_ref }}-${{ github.head_ref }}-macOS-${{ matrix.kind }}-${{ matrix.mode }}
 
     steps:
-      - name: Dependencies bootstrap
-        run: |
-          pacman -Syu --noconfirm --needed openssl
-          pacman -Sy --noconfirm --needed glibc git base-devel perl make unzip p7zip
-          pacman -Sy --noconfirm --needed mesa gcc-fortran glu
-
       - name: Checkout
         uses: actions/checkout@v3
         with:
@@ -66,21 +54,21 @@ jobs:
           xmake-version: branch@dev
 
       - name: Update xmake repository
-        run: sudo xmake repo --root -vD --update
+        run: xmake repo --update
 
       - name: Configure & Build
         id: build
         run: |
-          sudo xmake f --root -vD --yes -m ${{ matrix.mode }} -k ${{ matrix.kind }} --build_tests=true
-          sudo xmake b --root -vD
-          sudo xmake install --root -vD --installdir="/output"
+          xmake f -D --yes -m ${{ matrix.mode }} -k ${{ matrix.kind }} --build_tests=true
+          xmake b -D
+          xmake install -D --installdir="${{ runner.workspace }}/output"
 
       - name: Tests
-        run: sudo xmake run --root glap-tests
+        run: xmake run glap-tests
 
       - name: Upload artifacts
         id: upload
         uses: actions/upload-artifact@v1
         with:
           name: ${{ matrix.os }}-x64-${{ matrix.kind }}-${{ matrix.mode }}
-          path: /output
+          path: ${{ runner.workspace }}/output
