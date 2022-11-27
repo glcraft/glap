@@ -1,0 +1,52 @@
+name: Windows
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: ${{ matrix.os }}-${{ matrix.arch }} ( ${{ matrix.vs_runtime }} ${{ matrix.kind }}, ${{ matrix.mode }} )
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022]
+        kind: [static, shared]
+        mode: [release, debug, asan]
+        vs_runtime: [MT, MD]
+        arch: [x64, x86, arm64]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Install xmake
+        uses: xmake-io/github-action-setup-xmake@v1
+
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Configure Pagefile
+        uses: al-cheb/configure-pagefile-action@v1.2
+        with:
+          minimum-size: 8GB
+          maximum-size: 32GB
+          disk-root: "D:"
+
+      - name: Configure & Build
+        id: build
+        run: |
+          xmake f -D --yes -a ${{ matrix.arch }} -m ${{ matrix.mode }} -k ${{ matrix.kind }} --vs_runtime=${{ matrix.vs_runtime }}
+          xmake b -D
+          xmake install -v --installdir="${{ runner.workspace }}/glap"
+
+      - name: Upload artifacts
+        id: upload
+        uses: actions/upload-artifact@v1
+        with:
+          name: ${{ matrix.os }}-${{ matrix.arch }}-${{ matrix.kind }}-${{ matrix.mode }}-${{ matrix.vs_runtime }}
+          path: ${{ runner.workspace }}/glap
