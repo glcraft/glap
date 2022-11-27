@@ -76,7 +76,9 @@ jobs:
           dir D:\a\glap\glap\build\windows\${{ matrix.arch }}\${{ matrix.mode }}\
 
       - name: Tests
-        run: xmake run -vD glap-tests
+        run: |
+          xmake b -D glap-tests
+          xmake run -vD glap-tests
 
       - name: Upload artifacts
         id: upload
