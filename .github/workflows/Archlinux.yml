@@ -75,7 +75,7 @@ jobs:
           sudo xmake b --root -vD
 
       - name: Tests
-        run: sudo xmake run --root
+        run: sudo xmake run --root glap-tests
 
       - name: Installation
         run: sudo /__t/xmake/dev/x64/bin/xmake install --root -vD --installdir="/output"

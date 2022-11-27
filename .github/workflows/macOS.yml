@@ -62,6 +62,9 @@ jobs:
           xmake f -D --yes -m ${{ matrix.mode }} -k ${{ matrix.kind }} --build_tests=false
           xmake b -D
 
+      - name: Tests
+        run: xmake run glap-tests
+
       - name: Installation
         run: xmake install -D --installdir="${{ runner.workspace }}/output"
 
