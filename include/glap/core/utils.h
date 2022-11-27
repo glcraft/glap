@@ -6,18 +6,19 @@
 #include "discard.h"
 #include "expected.h"
 #include "utf8.h"
+#include "convertible_to.h"
 
 namespace glap
 {
     namespace impl {
         template <typename T, typename V>
         concept Range = requires(T t) {
-            {*t.begin()} -> std::convertible_to<V>;
-            {*t.end()} -> std::convertible_to<V>;
+            {*t.begin()} -> impl::convertible_to<V>;
+            {*t.end()} -> impl::convertible_to<V>;
         };
         template <typename T, typename V>
         concept Iterator = requires(T t) {
-            {*t} -> std::convertible_to<V>;
+            {*t} -> impl::convertible_to<V>;
             {++t} -> std::same_as<T&>;
         };
     }
@@ -39,7 +40,7 @@ namespace glap
             static constexpr auto value = Default;
         };
         template <auto Value, size_t Default>
-            requires std::convertible_to<decltype(Value), size_t>
+            requires impl::convertible_to<decltype(Value), size_t>
         struct ValueOr<Value, Default> {
             static constexpr size_t value = Value;
         };
@@ -72,7 +73,7 @@ namespace glap
             static constexpr auto value = std::optional<char32_t>{};
         };
         template<auto V> 
-            requires std::convertible_to<decltype(V), std::string_view> && (std::string_view(V).size() == 0)
+            requires impl::convertible_to<decltype(V), std::string_view> && (std::string_view(V).size() == 0)
         struct OptionalValue<std::string_view, V> {
             static constexpr auto value = std::optional<std::string_view>{};
         };

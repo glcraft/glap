@@ -22,30 +22,14 @@ namespace glap
     using unexpected = tl::unexpected<E>;
 } // namespace glap
 #endif
-
-#if defined(__cpp_lib_concepts) && __cpp_lib_concepts >= 201806L
-#include <concepts>
-#else
-#include <type_traits>
-#endif
+#include "convertible_to.h"
 
 
 namespace glap
 {
-    namespace details {
-    #if defined(__cpp_lib_concepts) && __cpp_lib_concepts >= 201806L
-        template <typename T, typename U>
-        concept convertible_to = std::convertible_to<T, U>;
-    #else
-        template <typename T, typename U>
-        concept convertible_to = std::is_convertible_v<U, T>;
-    #endif
-    }
-
     template <class T>
     concept IsExpected = requires(T t) {
-
-        {t.value()} -> details::convertible_to<typename T::value_type>;
-        {t.error()} -> details::convertible_to<typename T::error_type>;
+        {t.value()} -> impl::convertible_to<typename T::value_type>;
+        {t.error()} -> impl::convertible_to<typename T::error_type>;
     };
 } // namespace glap
