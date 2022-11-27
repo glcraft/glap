@@ -73,7 +73,7 @@ jobs:
           xmake f -D --yes -a ${{ matrix.arch }} -m ${{ matrix.mode }} -k ${{ matrix.kind }} --vs_runtime=${{ matrix.vs_runtime }} --build_tests=true
           xmake b -D
           xmake install -D --installdir="${{ runner.workspace }}/output"
-          dit D:\a\glap\glap\build\windows\arm64\release\
+          dir D:\a\glap\glap\build\windows\${{ matrix.arch }}\${{ matrix.mode }}\
 
       - name: Tests
         run: xmake run glap-tests
