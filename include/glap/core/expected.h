@@ -45,7 +45,7 @@ namespace glap
     template <class T>
     concept IsExpected = requires(T t) {
 
-        {t.value()} -> std::convertible_to<typename T::value_type>;
-        {t.error()} -> std::convertible_to<typename T::error_type>;
+        {t.value()} -> convertible_to<typename T::value_type>;
+        {t.error()} -> convertible_to<typename T::error_type>;
     };
 } // namespace glap
