@@ -43,23 +43,22 @@ target("glap-example")
     add_files("tests/example.cpp")
     add_options("use_tl_expected", "use_fmt")
 
-target("glap-tests")
-    set_kind("binary")
-    set_languages("cxx20")
-    add_deps("glap")
-    add_packages("gtest")
-    add_files("tests/tests.cpp")
-    set_warnings("allextra", "error")
-    add_options("use_tl_expected", "use_fmt", "build_tests")
-    if is_plat("linux", "macosx") then
-        add_cxflags("-Wno-unknown-pragmas")
-    end
-    if (is_plat("windows")) then
-        add_ldflags("/SUBSYSTEM:CONSOLE")
-    end
-    on_load(function (target)
-        target:set("default", target:opt("build_tests") ~= nil)
-    end)
-    on_install(function (target)
-        -- nothing to install
-    end)
+if has_config("build_tests") then
+    target("glap-tests")
+        set_kind("binary")
+        set_languages("cxx20")
+        add_deps("glap")
+        add_packages("gtest")
+        add_files("tests/tests.cpp")
+        set_warnings("allextra", "error")
+        add_options("use_tl_expected", "use_fmt")
+        if is_plat("linux", "macosx") then
+            add_cxflags("-Wno-unknown-pragmas")
+        end
+        if (is_plat("windows")) then
+            add_ldflags("/SUBSYSTEM:CONSOLE")
+        end
+        on_install(function (target)
+            -- nothing to install
+        end)
+end
