@@ -23,6 +23,8 @@ namespace glap
 } // namespace glap
 #endif
 
+#include <concepts>
+
 namespace glap
 {
     template <class T>
