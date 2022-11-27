@@ -88,5 +88,5 @@ jobs:
         id: upload
         uses: actions/upload-artifact@v1
         with:
-          name: ${{ matrix.os }}-x64-${{ matrix.kind }}-${{ matrix.mode }}
+          name: Fedora-x64-${{ matrix.kind }}-${{ matrix.mode }}
           path: /output
