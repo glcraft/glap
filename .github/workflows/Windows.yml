@@ -72,13 +72,12 @@ jobs:
         run: |
           xmake f -D --yes -a ${{ matrix.arch }} -m ${{ matrix.mode }} -k ${{ matrix.kind }} --vs_runtime=${{ matrix.vs_runtime }} --build_tests=true
           xmake b -D
-          xmake install -D --installdir="${{ runner.workspace }}/output"
-          dir D:\a\glap\glap\build\windows\${{ matrix.arch }}\${{ matrix.mode }}\
 
       - name: Tests
-        run: |
-          xmake b -D glap-tests
-          xmake run -vD glap-tests
+        run: xmake run
+
+      - name: Installation
+        run: xmake install -D --installdir="${{ runner.workspace }}/output"
 
       - name: Upload artifacts
         id: upload

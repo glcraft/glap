@@ -73,10 +73,12 @@ jobs:
         run: |
           sudo xmake f --root -vD --yes -m ${{ matrix.mode }} -k ${{ matrix.kind }} --build_tests=true
           sudo xmake b --root -vD
-          sudo xmake install --root -vD --installdir="/output"
 
       - name: Tests
-        run: sudo xmake run --root glap-tests
+        run: sudo xmake run --root
+
+      - name: Installation
+        run: sudo /__t/xmake/dev/x64/bin/xmake install --root -vD --installdir="/output"
 
       - name: Upload artifacts
         id: upload

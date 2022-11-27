@@ -61,7 +61,9 @@ jobs:
         run: |
           xmake f -D --yes -m ${{ matrix.mode }} -k ${{ matrix.kind }} -p iphoneos --build_tests=false
           xmake b -D
-          xmake install -D --installdir="${{ runner.workspace }}/output"
+
+      - name: Installation
+        run: xmake install -D --installdir="${{ runner.workspace }}/output"
 
       - name: Upload artifacts
         id: upload
