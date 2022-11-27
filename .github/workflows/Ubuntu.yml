@@ -1,0 +1,46 @@
+name: Ubuntu
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: ${{ matrix.os }}-x64 ( ${{ matrix.kind }}-${{ matrix.mode }} )
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        kind: [static, shared]
+        mode: [release, debug, asan]
+
+    runs-on: ${{ matrix.os }}
+
+    concurrency:
+      group: ${{ github.ref }}-${{ github.base_ref }}-${{ github.head_ref }}-Ubuntu-${{ matrix.kind }}-${{ matrix.mode }}
+
+    steps:
+      - name: Install xmake
+        uses: xmake-io/github-action-setup-xmake@v1
+
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Configure & Build
+        id: build
+        run: |
+          xmake f -D --yes -m ${{ matrix.mode }} -k ${{ matrix.kind }}
+          xmake b -D
+          xmake install -D --installdir="${{ runner.workspace }}/output"
+
+      - name: Upload artifacts
+        id: upload
+        uses: actions/upload-artifact@v1
+        with:
+          name: ${{ matrix.os }}-x64-${{ matrix.kind }}-${{ matrix.mode }}
+          path: ${{ runner.workspace }}/output

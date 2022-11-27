@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    name: ${{ matrix.os }}-${{ matrix.arch }} ( ${{ matrix.vs_runtime }} ${{ matrix.kind }}, ${{ matrix.mode }} )
+    name: ${{ matrix.os }}-${{ matrix.arch }} ( ${{ matrix.kind }}-${{ matrix.mode }}-{{ matrix.vs_runtime }} )
 
     strategy:
       fail-fast: false
@@ -20,6 +20,9 @@ jobs:
         arch: [x64, arm64]
 
     runs-on: ${{ matrix.os }}
+
+    concurrency:
+      group: ${{ github.ref }}-${{ github.base_ref }}-${{ github.head_ref }}-Windows-${{ matrix.kind }}-${{ matrix.mode }}-{{ matrix.vs_runtime }}
 
     steps:
       - name: Install xmake
@@ -40,9 +43,9 @@ jobs:
       - name: Configure & Build
         id: build
         run: |
-          xmake f -vD --yes -a ${{ matrix.arch }} -m ${{ matrix.mode }} -k ${{ matrix.kind }} --vs_runtime=${{ matrix.vs_runtime }}
-          xmake b -vD
-          xmake install -vD --installdir="${{ runner.workspace }}/output"
+          xmake f -D --yes -a ${{ matrix.arch }} -m ${{ matrix.mode }} -k ${{ matrix.kind }} --vs_runtime=${{ matrix.vs_runtime }}
+          xmake b -D
+          xmake install -D --installdir="${{ runner.workspace }}/output"
 
       - name: Upload artifacts
         id: upload
