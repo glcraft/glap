@@ -31,7 +31,6 @@ target("glap")
     if has_config("use_tl_expected") then
         add_packages("tl_expected", {public = true})
     end
-
     if has_config("use_fmt") then
         add_packages("fmt", {public = true})
     end
