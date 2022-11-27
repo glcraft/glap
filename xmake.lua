@@ -1,6 +1,6 @@
 includes("xmake/**.lua")
 
-add_rules("mode.debug", "mode.release")
+add_rules("mode.debug", "mode.release", "mode.asan")
 add_requires("fmt 9.0.0", {optional = true}) -- required only if stl has not std::format
 add_requires("tl_expected", {optional = true}) -- required only if stl has not std::expected
 add_requires("gtest 1.12", {optional = true}) -- required only for glap-tests
@@ -24,16 +24,16 @@ target("glap")
     set_kind("$(kind)")
     set_languages("cxx20")
     add_files("src/*.cpp")
-    add_headerfiles("include/(**/*.h)", "include/(**/*.inl)")
+    add_headerfiles("include/(glap/**.h)", "include/(glap/**.inl)")
     add_includedirs("include", {public = true})
     add_options("use_tl_expected", "use_fmt")
-    on_load(function (target)
-        for _, dep in ipairs({"tl_expected", "fmt"}) do
-            if target:opt("use_" .. dep) then
-                target:add("packages", dep, {public = true})
-            end
-        end
-    end)
+    add_configfiles("xmake/config/config.h.in")
+    if has_config("use_tl_expected") then
+        add_packages("tl_expected", {public = true})
+    end
+    if has_config("use_fmt") then
+        add_packages("fmt", {public = true})
+    end
 
 target("glap-example")
     set_kind("binary")
@@ -43,23 +43,22 @@ target("glap-example")
     add_files("tests/example.cpp")
     add_options("use_tl_expected", "use_fmt")
 
-target("glap-tests")
-    set_kind("binary")
-    set_languages("cxx20")
-    add_deps("glap")
-    add_packages("gtest")
-    add_files("tests/tests.cpp")
-    set_warnings("allextra", "error")
-    add_options("use_tl_expected", "use_fmt", "build_tests")
-    if is_plat("linux", "macosx") then
-        add_cxflags("-Wno-unknown-pragmas")
-    end
-    if (is_plat("windows")) then
-        add_ldflags("/SUBSYSTEM:CONSOLE")
-    end
-    on_load(function (target)
-        target:set("default", target:opt("build_tests") ~= nil)
-    end)
-    on_install(function (target)
-        -- nothing to install
-    end)
+if has_config("build_tests") then
+    target("glap-tests")
+        set_kind("binary")
+        set_languages("cxx20")
+        add_deps("glap")
+        add_packages("gtest")
+        add_files("tests/tests.cpp")
+        set_warnings("allextra", "error")
+        add_options("use_tl_expected", "use_fmt")
+        if is_plat("linux", "macosx") then
+            add_cxflags("-Wno-unknown-pragmas")
+        end
+        if (is_plat("windows")) then
+            add_ldflags("/SUBSYSTEM:CONSOLE")
+        end
+        on_install(function (target)
+            -- nothing to install
+        end)
+end
