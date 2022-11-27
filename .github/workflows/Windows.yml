@@ -3,8 +3,20 @@ name: Windows
 on:
   push:
     branches: [ main ]
+    paths-ignore:
+      - '.github/workflows/Archlinux.yml'
+      - '.github/workflows/Ubuntu.yml'
+      - '.gitignore'
+      - 'LICENSE'
+      - 'README.md'
   pull_request:
     branches: [ main ]
+    paths-ignore:
+      - '.github/workflows/Archlinux.yml'
+      - '.github/workflows/Ubuntu.yml'
+      - '.gitignore'
+      - 'LICENSE'
+      - 'README.md'
 
 jobs:
   build:
@@ -25,13 +37,18 @@ jobs:
       group: ${{ github.ref }}-${{ github.base_ref }}-${{ github.head_ref }}-Windows-${{ matrix.kind }}-${{ matrix.mode }}-{{ matrix.vs_runtime }}
 
     steps:
-      - name: Install xmake
-        uses: xmake-io/github-action-setup-xmake@v1
-
       - name: Checkout
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+
+      - name: Install xmake
+        uses: xmake-io/github-action-setup-xmake@v1
+        with:
+          xmake-version: branch@dev
+
+      - name: Update xmake repository
+        run: xmake repo --update
 
       - name: Configure Pagefile
         uses: al-cheb/configure-pagefile-action@v1.3

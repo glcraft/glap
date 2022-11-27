@@ -1,10 +1,10 @@
-name: Ubuntu
+name: Archlinux
 
 on:
   push:
     branches: [ main ]
     paths-ignore:
-      - '.github/workflows/Archlinux.yml'
+      - '.github/workflows/Ubuntu.yml'
       - '.github/workflows/Windows.yml'
       - '.gitignore'
       - 'LICENSE'
@@ -12,7 +12,7 @@ on:
   pull_request:
     branches: [ main ]
     paths-ignore:
-      - '.github/workflows/Archlinux.yml'
+      - '.github/workflows/Ubuntu.yml'
       - '.github/workflows/Windows.yml'
       - '.gitignore'
       - 'LICENSE'
@@ -20,7 +20,7 @@ on:
 
 jobs:
   build:
-    name: ${{ matrix.os }}-x64 ( ${{ matrix.kind }}-${{ matrix.mode }} )
+    name: archlinux-latest-x64 ( ${{ matrix.kind }}-${{ matrix.mode }} )
 
     strategy:
       fail-fast: false
@@ -30,11 +30,21 @@ jobs:
         mode: [release, debug, asan]
 
     runs-on: ${{ matrix.os }}
+    container:
+      image: archlinux:base-devel
+      volumes:
+        - /output:/output
 
     concurrency:
-      group: ${{ github.ref }}-${{ github.base_ref }}-${{ github.head_ref }}-Ubuntu-${{ matrix.kind }}-${{ matrix.mode }}
+      group: ${{ github.ref }}-${{ github.base_ref }}-${{ github.head_ref }}-Archlinux-${{ matrix.kind }}-${{ matrix.mode }}
 
     steps:
+      - name: Dependencies bootstrap
+        run: |
+          pacman -Syu --noconfirm --needed openssl
+          pacman -Sy --noconfirm --needed glibc git base-devel perl make unzip p7zip
+          pacman -Sy --noconfirm --needed mesa gcc-fortran glu
+
       - name: Checkout
         uses: actions/checkout@v3
         with:
@@ -46,18 +56,18 @@ jobs:
           xmake-version: branch@dev
 
       - name: Update xmake repository
-        run: xmake repo --update
+        run: sudo xmake repo --root -vD --update
 
       - name: Configure & Build
         id: build
         run: |
-          xmake f -D --yes -m ${{ matrix.mode }} -k ${{ matrix.kind }}
-          xmake b -D
-          xmake install -D --installdir="${{ runner.workspace }}/output"
+          sudo xmake f --root -vD --yes -m ${{ matrix.mode }} -k ${{ matrix.kind }}
+          sudo xmake b --root -vD
+          sudo xmake install --root -vD --installdir="/output"
 
       - name: Upload artifacts
         id: upload
         uses: actions/upload-artifact@v1
         with:
           name: ${{ matrix.os }}-x64-${{ matrix.kind }}-${{ matrix.mode }}
-          path: ${{ runner.workspace }}/output
+          path: /output
