@@ -14,7 +14,6 @@ A UTF-8 command line parser written in C++20 respecting conventionals shell argu
 | macOS     | [![macOS](https://github.com/glcraft/glap/actions/workflows/macOS.yml/badge.svg)](https://github.com/glcraft/glap/actions/workflows/macOS.yml)             | https://nightly.link/glcraft/glap/workflows/macOS/main     | ❌         |
 | iOS       | [![iOS](https://github.com/glcraft/glap/actions/workflows/iOS.yml/badge.svg)](https://github.com/glcraft/glap/actions/workflows/iOS.yml)                   | https://nightly.link/glcraft/glap/workflows/iOS/main       | ❌         |
 | Android   | [![Android](https://github.com/glcraft/glap/actions/workflows/Android.yml/badge.svg)](https://github.com/glcraft/glap/actions/workflows/Android.yml)       | https://nightly.link/glcraft/glap/workflows/Android/main   | ❌         |
-| FreeBSD   | [![FreeBSD](https://github.com/glcraft/glap/actions/workflows/FreeBSD.yml/badge.svg)](https://github.com/glcraft/glap/actions/workflows/FreeBSD.yml)       | https://nightly.link/glcraft/glap/workflows/FreeBSD/main   | ❌         |
 
 ## Notable features
 
