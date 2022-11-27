@@ -61,13 +61,13 @@ jobs:
 
       - name: Prepare
         run: |
-          wget -q https://dl.google.com/android/repository/android-ndk-r25-linux-x86_64.zip
-          unzip -q -o ./android-ndk-r25-linux-x86_64.zip
+          wget -q https://dl.google.com/android/repository/android-ndk-r25b-linux.zip
+          unzip -q -o ./android-ndk-r25b-linux.zip
 
       - name: Configure & Build
         id: build
         run: |
-          xmake f -D --yes -a ${{ matrix.arch }} -p android --ndk=`pwd`/android-ndk-r25 --ndk_sdkver=33 -m ${{ matrix.mode }} -k ${{ matrix.kind }} --build_tests=false
+          xmake f -D --yes -a ${{ matrix.arch }} -p android --ndk=`pwd`/android-ndk-r25b --ndk_sdkver=33 -m ${{ matrix.mode }} -k ${{ matrix.kind }} --build_tests=false
           xmake b -D
 
       - name: Installation
