@@ -1,18 +1,19 @@
 #pragma once
 
 #ifndef GLAP_MODULE
-#include "core/utf8.h"
-#include "core/discard.h"
-#include "core/utils.h"
-#include "help.h"
+#include "../../core/utf8.h"
+#include "../../core/discard.h"
+#include "../../core/utils.h"
+#include "../../core/fmt.h"
+#include "../help.h"
 
-#include "model.h"
-#include "parser.h"
+#include "../../model.h"
+#include <concepts>
 #include <cstddef>
 #include <algorithm>
 #endif
 
-namespace glap {
+namespace glap::generators {
     namespace impl {
         template <class P, class H>
         concept IsHelpInputsCompatible = requires { P::type == glap::model::ArgumentType::Input; } && help::IsInputs<H>;
@@ -85,19 +86,22 @@ namespace glap {
                 return it;
             }
         };
-        template<help::IsDescription FromHelp, HasLongName FromParser>
+        template<help::IsDescription FromHelp, class FromParser>
+            requires (HasLongName<FromParser> || requires { FromParser::name; })
         struct BasicHelp<FromHelp, FromParser>
         {
             template <class OutputIt, bool Fullname = false>
             OutputIt name(OutputIt it) const noexcept {
                 if constexpr(Fullname && HasShortName<FromParser>)
                     return glap::format_to(it, "{}, {}", glap::utils::uni::codepoint_to_utf8(FromParser::shortname.value()), FromParser::longname);
-                else
+                else if constexpr(requires { FromParser::name; })
+                    return glap::format_to(it, "{}", FromParser::name);
+                else 
                     return glap::format_to(it, "{}", FromParser::longname);
             }
             template <class OutputIt, bool FullDescription = false>
             OutputIt description(OutputIt it) const noexcept {
-                if constexpr(help::IsFullDescription<FromHelp>)
+                if constexpr(FullDescription && help::IsFullDescription<FromHelp>)
                     return glap::format_to(it, "{}\n\n{}", FromHelp::short_description, FromHelp::long_description);
                 else
                     return glap::format_to(it, "{}", FromHelp::short_description);
@@ -135,11 +139,11 @@ namespace glap {
         static constexpr auto basic_help = BasicHelp<FromHelp, FromParser>{};
     }
 
-    template<StringLiteral NameHelp, help::IsDescription Desc, class ...CommandsHelp, StringLiteral NameParser, DefaultCommand def_cmd, class... CommandsParser>
-    struct Help<help::model::Program<NameHelp, Desc, CommandsHelp...>, Parser<NameParser, def_cmd, CommandsParser...>> {
-        using ProgramHelp = help::model::Program<NameHelp, Desc, CommandsHelp...>;
-        using ProgramParser = Parser<NameParser, def_cmd, CommandsParser...>;
-
+    template<StringLiteral NameHelp, help::IsDescription Desc, class ...CommandsHelp, StringLiteral NameParser, model::DefaultCommand def_cmd, class... CommandsParser>
+    struct Help<help::Program<NameHelp, Desc, CommandsHelp...>, model::Program<NameParser, def_cmd, CommandsParser...>> {
+        using ProgramHelp = help::Program<NameHelp, Desc, CommandsHelp...>;
+        using ProgramParser = model::Program<NameParser, def_cmd, CommandsParser...>;
+        
         [[nodiscard]] constexpr std::string operator()() const noexcept {
             std::string result;
             this->operator()(std::back_inserter(result));
@@ -165,8 +169,8 @@ namespace glap {
     };
 
     template<StringLiteral Name, help::IsDescription Desc, class ...ParamsHelp, class CommandNames, model::IsArgument... ParamsParser>
-    struct Help<help::model::Command<Name, Desc, ParamsHelp...>, model::Command<CommandNames, ParamsParser...>> {
-        using CommandHelp = help::model::Command<Name, Desc, ParamsHelp...>;
+    struct Help<help::Command<Name, Desc, ParamsHelp...>, model::Command<CommandNames, ParamsParser...>> {
+        using CommandHelp = help::Command<Name, Desc, ParamsHelp...>;
         using CommandParser = model::Command<CommandNames, ParamsParser...>;
         [[nodiscard]] constexpr std::string operator()() const noexcept {
             std::string result;
@@ -185,7 +189,7 @@ namespace glap {
                     if constexpr(model::IsArgumentTyped<ParamsParser, model::ArgumentType::Parameter>) {
                         it = glap::format_to(it, " [--");
                         it = param_basic_help.template name<OutputIt>(it);
-                        it = glap::format_to(it, " VALUE]");
+                        it = glap::format_to(it, "=VALUE]");
                     } else if constexpr(model::IsArgumentTyped<ParamsParser, model::ArgumentType::Flag>) {
                         it = glap::format_to(it, " [--");
                         it = param_basic_help.template name<OutputIt>(it);
