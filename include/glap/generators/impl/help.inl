@@ -17,14 +17,13 @@ namespace glap::generators {
         struct FindByName 
         {};
         template <class FromParser, class T, class ...Others>
-            requires (HasLongName<FromParser> && FromParser::longname == T::name) || IsHelpInputsCompatible<FromParser, T>
+            requires (HasLongName<FromParser> && FromParser::longname == T::name) || (requires {FromParser::name;} && FromParser::name == T::name) || IsHelpInputsCompatible<FromParser, T>
         struct FindByName<FromParser, T, Others...>
         {
         public:
             using type = T;
         };
         template <class Named, class T, class ...Others>
-            requires ((!HasLongName<Named> || Named::longname != T::name) && !IsHelpInputsCompatible<Named, T>)
         struct FindByName<Named, T, Others...> : FindByName<Named, Others...> 
         {};
         template <class FromParser>
@@ -209,4 +208,7 @@ namespace glap::generators {
             static constexpr auto param_name_max_length = impl::max_length<ParamsParser...>(2)+help::PADDING;
             static constexpr auto this_basic_help = impl::basic_help<CommandHelp, CommandParser>;
     };
+    template<StringLiteral NameHelp, help::IsDescription Desc, class ...CommandsHelp, class CommandNames, model::IsArgument... ParamsParser>
+    struct Help<help::Program<NameHelp, Desc, CommandsHelp...>, model::Command<CommandNames, ParamsParser...>> : Help<typename impl::FindByName<CommandNames, CommandsHelp...>::type, model::Command<CommandNames, ParamsParser...>>
+    {};
 }
