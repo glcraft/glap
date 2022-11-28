@@ -149,7 +149,7 @@ namespace glap::generators {
         constexpr OutputIt operator()(OutputIt it) const noexcept {
             it = this_basic_help.template identity<OutputIt, false, false>(it);
             it = glap::format_to(it, "\n\n");
-            it = glap::format_to(it, "Command{}:\n", sizeof...(CommandsParser) > 1 ? "s" : "");
+            it = glap::format_to(it, "Command{}:", sizeof...(CommandsParser) > 1 ? "s" : "");
             // constexpr auto max_cmd_name_length = impl::max_length<CommandsParser...>(2)+2;
             ([&] {
                 constexpr auto cmd_basic_help = impl::basic_help<typename impl::FindByName<CommandsParser, CommandsHelp...>::type, CommandsParser>;
@@ -196,7 +196,7 @@ namespace glap::generators {
                 }(), ...);
                 it = glap::format_to(it, "\n\n");
             }
-            it = glap::format_to(it, "Argument{}:\n", sizeof...(ParamsParser) > 1 ? "s" : "");
+            it = glap::format_to(it, "Argument{}:", sizeof...(ParamsParser) > 1 ? "s" : "");
             ([&] {
                 constexpr auto param_basic_help = impl::basic_help<typename impl::FindByName<ParamsParser, ParamsHelp...>::type, ParamsParser>;
                 constexpr auto spacing = param_name_max_length - impl::max_length<ParamsParser>(2);
