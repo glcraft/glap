@@ -20,6 +20,8 @@ option("use_fmt")
     set_description("Use fmt instead of std::format")
     add_defines("GLAP_USE_FMT", {public = true})
 
+includes("make_my_glap")
+
 target("glap")
     set_kind("$(kind)")
     set_languages("cxx20")
