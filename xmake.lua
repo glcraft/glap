@@ -53,6 +53,8 @@ option("enable_std_module")
     set_description("Enable C++23 std module support")
     add_defines("GLAP_USE_STD_MODULE", {public = true})
 
+includes("make_my_glap")
+
 target("glap")
     set_kind("$(kind)")
     if has_config("enable_std_module") or not has_config("use_tl_expected") then
