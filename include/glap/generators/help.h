@@ -13,9 +13,9 @@ namespace glap {
         inline constexpr std::string_view INPUTS_NAME = "INPUTS";
         inline constexpr int PADDING = 4;
         template <class T>
-        concept IsDescription = std::same_as<std::remove_cvref_t<decltype(T::short_description)>, std::string_view>;
+        concept HasDescription = std::same_as<std::remove_cvref_t<decltype(T::short_description)>, std::string_view>;
         template <class T>
-        concept IsFullDescription = IsDescription<T> 
+        concept HasFullDescription = HasDescription<T> 
             && std::same_as<std::remove_cvref_t<decltype(T::long_description)>, std::string_view>;
         template <class T>
         concept IsInputs = (T::name == INPUTS_NAME);
@@ -29,15 +29,15 @@ namespace glap {
             static constexpr std::string_view long_description = Long;
         };
 
-        template<StringLiteral Name, IsDescription Desc> 
+        template<StringLiteral Name, HasDescription Desc> 
         struct Argument : Desc {
             static constexpr std::string_view name = Name;
         };
-        template<StringLiteral Name, IsDescription Desc, class ...Params>
+        template<StringLiteral Name, HasDescription Desc, class ...Params>
         struct Command : Desc {
             static constexpr auto name = Name;
         };
-        template<StringLiteral Name, IsDescription Desc, class ...Commands>
+        template<StringLiteral Name, HasDescription Desc, class ...Commands>
         struct Program : Desc
         {};
     }
