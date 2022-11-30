@@ -6,9 +6,9 @@
 
 ```cpp
 /// In namespace glap
-template <StringLiteral LongName, auto ShortName = discard>
+template <StringLiteral Name, auto ShortName = discard>
 struct Names {
-    static constexpr std::string_view longname = LongName;
+    static constexpr std::string_view name = Name;
     static constexpr std::optional<char32_t> shortname = impl::optional_value<char32_t, ShortName>;
 };
 ```
