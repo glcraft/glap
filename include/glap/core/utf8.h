@@ -76,7 +76,7 @@ GLAP_EXPORT namespace glap::utils::uni {
         }
         return codepoint;
     }
-    [[nodiscard]] constexpr std::string codepoint_to_utf8(char32_t codepoint) noexcept {
+    [[nodiscard]] inline std::string codepoint_to_utf8(char32_t codepoint) noexcept {
         std::string utf8;
         if (codepoint <= 0x7F) {
             utf8.push_back(static_cast<char>(codepoint));
