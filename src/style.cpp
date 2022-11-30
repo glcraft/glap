@@ -1,4 +1,6 @@
 #include <glap/generators/style.h>
+#include <string>
+#include <glap/core/fmt.h>
 
 namespace glap::generators {
 #ifdef _WIN32
