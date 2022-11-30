@@ -1,6 +1,7 @@
 #include <concepts>
 #include <glap/glap.h>
 #include <fmt/format.h>
+#include <iterator>
 #include <string_view>
 #include <variant>
 #include <iostream>
@@ -168,7 +169,7 @@ int main(int argc, char** argv)
     }
     return 0;
 }
-int _main(int argc, char** argv) {
+int main2(int argc, char** argv) {
     using namespace glap::generators;
     Style{
         .foreground_color = colors::foreground::RED,
@@ -187,4 +188,5 @@ int _main(int argc, char** argv) {
     fmt::print("Hello, world!\n");
     Style::reset();
     fmt::print("Hello, world!\n");
+    return 0;
 }
