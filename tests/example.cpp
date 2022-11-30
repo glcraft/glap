@@ -135,8 +135,8 @@ using help_program_t = glap::generators::help::Program<
 template <class T>
     requires requires { T::type; }
 void print(const T& value) {
-    if constexpr (requires { value.longname; }) {
-        fmt::print("  --{}: ", value.longname);
+    if constexpr (requires { value.name; }) {
+        fmt::print("  --{}: ", value.name);
     } else {
         fmt::print("  input: ");
     }
@@ -155,7 +155,7 @@ void print(const T& value) {
 }
 template <class Names, class ...P>
 auto print(const glap::model::Command<Names, P...>& command) {
-    fmt::print("{}: \n", command.longname);
+    fmt::print("{}: \n", command.name);
     ([&] {
         print(std::get<P>(command.arguments));
     }(), ...);

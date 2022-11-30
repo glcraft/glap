@@ -76,5 +76,3 @@ namespace glap::generators {
         }
     };
 }
-
-#include "../impl/style.inl"
