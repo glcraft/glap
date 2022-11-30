@@ -68,7 +68,7 @@ namespace glap::generators {
             }
             template <class OutputIt, bool FullDescription = false>
             OutputIt description(OutputIt it) const noexcept {
-                if constexpr(help::IsFullDescription<FromHelp>)
+                if constexpr(help::HasFullDescription<FromHelp>)
                     return glap::format_to(it, "{}\n\n{}", FromHelp::short_description, FromHelp::long_description);
                 else
                     return glap::format_to(it, "{}", FromHelp::short_description);
@@ -81,7 +81,7 @@ namespace glap::generators {
                 return it;
             }
         };
-        template<help::IsDescription FromHelp, class FromParser>
+        template<help::HasDescription FromHelp, class FromParser>
             requires (HasLongName<FromParser> || requires { FromParser::name; })
         struct BasicHelp<FromHelp, FromParser>
         {
@@ -96,7 +96,7 @@ namespace glap::generators {
             }
             template <class OutputIt, bool FullDescription = false>
             OutputIt description(OutputIt it) const noexcept {
-                if constexpr(FullDescription && help::IsFullDescription<FromHelp>)
+                if constexpr(FullDescription && help::HasFullDescription<FromHelp>)
                     return glap::format_to(it, "{}\n\n{}", FromHelp::short_description, FromHelp::long_description);
                 else
                     return glap::format_to(it, "{}", FromHelp::short_description);
@@ -134,13 +134,14 @@ namespace glap::generators {
         static constexpr auto basic_help = BasicHelp<FromHelp, FromParser>{};
     }
 
-    template<StringLiteral NameHelp, help::IsDescription Desc, class ...CommandsHelp, StringLiteral NameParser, model::DefaultCommand def_cmd, class... CommandsParser>
+    template<StringLiteral NameHelp, help::HasDescription Desc, class ...CommandsHelp, StringLiteral NameParser, model::DefaultCommand def_cmd, class... CommandsParser>
     struct Help<help::Program<NameHelp, Desc, CommandsHelp...>, model::Program<NameParser, def_cmd, CommandsParser...>> {
         using ProgramHelp = help::Program<NameHelp, Desc, CommandsHelp...>;
         using ProgramParser = model::Program<NameParser, def_cmd, CommandsParser...>;
         
-        [[nodiscard]] constexpr std::string operator()() const noexcept {
+        [[nodiscard]] std::string operator()() const noexcept {
             std::string result;
+            result.reserve(1024);
             this->operator()(std::back_inserter(result));
             return result;
         }
@@ -163,12 +164,13 @@ namespace glap::generators {
         static constexpr auto this_basic_help = impl::basic_help<ProgramHelp, ProgramParser>;
     };
 
-    template<StringLiteral Name, help::IsDescription Desc, class ...ParamsHelp, class CommandNames, model::IsArgument... ParamsParser>
+    template<StringLiteral Name, help::HasDescription Desc, class ...ParamsHelp, class CommandNames, model::IsArgument... ParamsParser>
     struct Help<help::Command<Name, Desc, ParamsHelp...>, model::Command<CommandNames, ParamsParser...>> {
         using CommandHelp = help::Command<Name, Desc, ParamsHelp...>;
         using CommandParser = model::Command<CommandNames, ParamsParser...>;
-        [[nodiscard]] constexpr std::string operator()() const noexcept {
+        [[nodiscard]] std::string operator()() const noexcept {
             std::string result;
+            result.reserve(1024);
             this->operator()(std::back_inserter(result));
             return result;
         }
@@ -208,7 +210,7 @@ namespace glap::generators {
             static constexpr auto param_name_max_length = impl::max_length<ParamsParser...>(2)+help::PADDING;
             static constexpr auto this_basic_help = impl::basic_help<CommandHelp, CommandParser>;
     };
-    template<StringLiteral NameHelp, help::IsDescription Desc, class ...CommandsHelp, class CommandNames, model::IsArgument... ParamsParser>
+    template<StringLiteral NameHelp, help::HasDescription Desc, class ...CommandsHelp, class CommandNames, model::IsArgument... ParamsParser>
     struct Help<help::Program<NameHelp, Desc, CommandsHelp...>, model::Command<CommandNames, ParamsParser...>> : Help<typename impl::FindByName<CommandNames, CommandsHelp...>::type, model::Command<CommandNames, ParamsParser...>>
     {};
 }
