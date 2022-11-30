@@ -21,7 +21,7 @@ namespace glap::generators {
         struct FindByName
         {};
         template <class FromParser, class T, class ...Others>
-            requires (HasLongName<FromParser> && FromParser::longname == T::name) || (requires {FromParser::name;} && FromParser::name == T::name) || IsHelpInputsCompatible<FromParser, T>
+            requires (HasLongName<FromParser> && FromParser::name == T::name) || IsHelpInputsCompatible<FromParser, T>
         struct FindByName<FromParser, T, Others...>
         {
         public:
