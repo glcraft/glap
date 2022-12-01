@@ -1,0 +1,26 @@
+program_name:
+  long_description: long description of the program
+  description: quick description of the program
+  default_command: true
+  commands:
+    command_name:
+      shortname: c # optional, internal codepoint verification
+      description: quick description of the command
+      long_description: long description of the command
+      arguments:
+        flag_name:
+          type: flag
+          shortname: f # optional, internal codepoint verification
+          description: quick description of the flag
+          long_description: long description of the flag
+        parameter_name:
+          type: parameter
+          description: quick description of the flag
+          long_description: long description of the flag
+          max_number: 3 # default: glap::discard
+          validator: \[\](std::string_view value) -> bool { return value.len() % 2; } # default: glap::discard
+          resolver: \&mynamespace::to_int # default: glap::discard
+      inputs:
+        max_number: 3 # default: glap::discard
+        validator: \[\](std::string_view value) -> bool { return value.len() % 2; } # default: glap::discard
+        resolver: \&mynamespace::to_int # default: glap::discard
