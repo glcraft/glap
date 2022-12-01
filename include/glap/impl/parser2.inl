@@ -403,7 +403,7 @@ namespace glap
         {
             if (arg.value.has_value()) [[unlikely]] {
                 return make_unexpected(Error{
-                    .parameter = OutputType::longname,
+                    .parameter = OutputType::name,
                     .value = value,
                     .type = Error::Type::Parameter,
                     .code = Error::Code::DuplicateParameter
