@@ -590,3 +590,4 @@ healthchecksdb
 builddir-release
 build
 .xmake
+test.lua
