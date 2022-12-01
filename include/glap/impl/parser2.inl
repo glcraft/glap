@@ -403,7 +403,7 @@ namespace glap
         {
             if (arg.value.has_value()) [[unlikely]] {
                 return make_unexpected(Error{
-                    .parameter = std::string_view(),
+                    .parameter = OutputType::longname,
                     .value = value,
                     .type = Error::Type::Parameter,
                     .code = Error::Code::DuplicateParameter
@@ -426,7 +426,7 @@ namespace glap
             if constexpr (!std::same_as<std::remove_cv_t<decltype(N)>, Discard>) {
                 if (params.values.size() >= N) [[unlikely]] {
                     return make_unexpected(Error{
-                        .parameter = std::string_view(),
+                        .parameter = OutputType::longname,
                         .value = value,
                         .type = Error::Type::Parameter,
                         .code = Error::Code::TooManyParameters
