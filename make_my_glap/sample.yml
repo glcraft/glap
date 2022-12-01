@@ -1,4 +1,6 @@
-program_name:
+version: 1.0.0
+program:
+  name: program_name
   long_description: long description of the program
   description: quick description of the program
   default_command: true
