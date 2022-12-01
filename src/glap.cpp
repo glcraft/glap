@@ -22,7 +22,7 @@ namespace glap
             "unknown argument",
             "bad resolution",
             "bad validation",
-            "duplicate parameter",
+            "parameter already set",
             "too many parameters",
             "missing value",
             "syntax error",
@@ -30,7 +30,7 @@ namespace glap
         };
         auto value = std::string{};
         if (this->value) {
-            value = glap::format(" (={})", *this->value);
+            value = glap::format(" (value: \"{}\")", *this->value);
         }
         return glap::format("\"{}\"{}{} : {}", this->parameter, value, types[static_cast<std::size_t>(this->type)], codes_text[static_cast<std::size_t>(this->code)]);
     }
