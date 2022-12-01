@@ -134,6 +134,9 @@ namespace glap
                     });
                 }
             }
+            if (!result) [[unlikely]] {
+                result.error().position += std::distance(args.begin, itarg);
+            }
             return result;
         }
     };
@@ -168,14 +171,17 @@ namespace glap
                         if (!res_input) [[unlikely]] {
                             res = make_unexpected(PositionnedError{
                                 .error = res_input.error(),
-                                .position = std::distance(params.begin, itcurrent)
+                                .position = 0
                             });
                         } else {
                             res = std::next(itcurrent);
                         }
                     }
                     if (!res) [[unlikely]] {
-                        return res;
+                        return make_unexpected(PositionnedError{
+                            .error = res.error().error,
+                            .position = res.error().position + std::distance(params.begin, itcurrent)
+                        });
                     } 
                     itcurrent = res.value();
                 }
