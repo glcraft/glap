@@ -451,7 +451,7 @@ namespace glap
                 return make_unexpected(Error{
                     .parameter = std::string_view(),
                     .value = value,
-                    .type = Error::Type::Parameter,
+                    .type = Error::Type::Input,
                     .code = Error::Code::DuplicateParameter
                 });
             }
@@ -474,13 +474,14 @@ namespace glap
                     return make_unexpected(Error{
                         .parameter = std::string_view(),
                         .value = value,
-                        .type = Error::Type::Parameter,
+                        .type = Error::Type::Input,
                         .code = Error::Code::TooManyParameters
                     });
                 }
             }
             auto result = check_value<typename OutputType::value_type, Resolver, Validator>(value);
             if (!result) [[unlikely]] {
+                result.error().type = Error::Type::Input;
                 return make_unexpected(result.error());
             }
             inputs.values.push_back(std::move(result.value()));
