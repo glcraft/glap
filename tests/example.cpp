@@ -86,7 +86,8 @@ using command1_t = glap::model::Command<
 >;
 using command2_t = glap::model::Command<
     glap::Names<"command2">, // notice that there is no short name here
-    single_param_t, 
+    single_param_t,
+    single_int_param_t, 
     multi_param_t, 
     help_t, 
     inputs_t
