@@ -4,6 +4,13 @@
 #include <span>
 #include <iostream>
 #include <ranges>
+#include <fmt/format.h>
+#include <fmt/os.h>
+
+auto emit_error(std::string_view msg, auto... args) {
+    fmt::print(stderr, "error: ", fmt::format(fmt::runtime(msg), args...));
+    exit(1);
+}
 
 
 
@@ -21,7 +28,7 @@ int main(int argc, char** argv) {
     auto program = args_result.value();
     auto &command = std::get<args::command_generate_t>(program.command);
     if (!command.get_argument<"yaml">().value) {
-        std::cout << "yaml path is not set" << std::endl;
+        emit_error("yaml path is not set");
     }
     auto yaml_path = std::string{command.get_argument<"yaml">().value.value()};
     auto yaml_config = YAML::LoadFile(yaml_path);
