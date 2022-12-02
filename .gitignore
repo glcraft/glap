@@ -591,3 +591,5 @@ builddir-release
 build
 .xmake
 test.lua
+
+make_my_glap/output.h
