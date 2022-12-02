@@ -13,6 +13,17 @@ auto emit_error(std::string_view msg, auto... args) {
 }
 
 
+auto parse_yaml(std::string_view path) -> YAML::Node {
+    auto yaml_path = std::string{path};
+    try {
+        return YAML::LoadFile(yaml_path);
+    } catch (YAML::BadFile &e) {
+        emit_error("failed to open file '{}'", yaml_path);
+    } catch (YAML::ParserException &e) {
+        emit_error("failed to parse file '{}'\n{}", yaml_path, e.what());
+    }
+    return {};
+}
 
 int main(int argc, char** argv) {
     // store arguments in a vector of string_view
@@ -31,7 +42,8 @@ int main(int argc, char** argv) {
         emit_error("yaml path is not set");
     }
     auto yaml_path = std::string{command.get_argument<"yaml">().value.value()};
-    auto yaml_config = YAML::LoadFile(yaml_path);
+    auto config = parse_yaml(yaml_path);
+
     auto type = command.get_argument<"type">().value.value_or("header");
     auto output_path = command.get_argument<"output">().value.value_or("output.h");
     return 0;
