@@ -50,6 +50,18 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup XMake cache
+        uses: actions/cache@v3
+        with:
+          path: '.xmake-cache'
+          key: ${{ matrix.os }}-${{ matrix.arch }}-ci
+
+      - name: Install xmake
+        uses: xmake-io/github-action-setup-xmake@v1
+        with:
+          xmake-version: branch@dev
+          actions-cache-folder: '.xmake-cache'
+          actions-cache-key: '${{ matrix.os }}-${{ matrix.arch }}-ci'
       - name: Install xmake
         uses: xmake-io/github-action-setup-xmake@v1
         with:
