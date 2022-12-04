@@ -58,10 +58,18 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup XMake cache
+        uses: actions/cache@v3
+        with:
+          path: '.xmake-cache'
+          key: ${{ matrix.os }}-ci
+
       - name: Install xmake
         uses: xmake-io/github-action-setup-xmake@v1
         with:
           xmake-version: branch@dev
+          actions-cache-folder: '.xmake-cache'
+          actions-cache-key: '${{ matrix.os }}-ci'
 
       - name: Update xmake repository
         run: sudo xmake repo --root -vD --update
@@ -69,14 +77,14 @@ jobs:
       - name: Configure & Build
         id: build
         run: |
-          sudo xmake f --root -vD --yes -m ${{ matrix.mode }} -k ${{ matrix.kind }} --build_tests=true
-          sudo xmake b --root -vD
+          sudo /__w/glap/glap/.xmake-cache/bin/xmake f --root -vD --yes -m ${{ matrix.mode }} -k ${{ matrix.kind }} --build_tests=true
+          sudo /__w/glap/glap/.xmake-cache/bin/xmake b --root -vD
 
       - name: Tests
-        run: sudo xmake run --root glap-tests
+        run: sudo /__w/glap/glap/.xmake-cache/bin/xmake run --root glap-tests
 
       - name: Installation
-        run: sudo /__t/xmake/dev/x64/bin/xmake install --root -vD --installdir="/output"
+        run: sudo /__w/glap/glap/.xmake-cache/bin/xmake install --root -vD --installdir="/output"
 
       - name: Upload artifacts
         id: upload
