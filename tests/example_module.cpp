@@ -1,13 +1,12 @@
-#include <concepts>
-#include <glap/glap.h>
-#include <string_view>
-#include <variant>
+import <concepts>;
+import <variant>;
+import <string_view>;
 
 #ifdef GLAP_USE_FMT
-#include <fmt/format.h>
+import <fmt/format.h>;
 #else
-#include <format>
-#include <iostream>
+import <format>;
+import <iostream>;
 namespace fmt {
     template<typename... Args>
     constexpr auto print(std::format_string<Args...> format_string, Args&& ... args)
@@ -16,6 +15,8 @@ namespace fmt {
     }
 }
 #endif
+
+import glap;
 
 template <class T>
     requires requires { T::type; }
