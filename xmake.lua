@@ -19,10 +19,23 @@ option("use_fmt")
     set_showmenu(true)
     set_description("Use fmt instead of std::format")
     add_defines("GLAP_USE_FMT", {public = true})
+option("enable_module")
+    set_default(false)
+    set_showmenu(true)
+    set_description("Enable C++20 module support")
+option("enable_std_module")
+    set_default(false)
+    add_deps("enable_module")
+    set_showmenu(true)
+    set_description("Enable C++23 std module support")
 
 target("glap")
     set_kind("$(kind)")
-    set_languages("cxx20")
+    if has_config("use_tl_expected") and not has_config("enable_module") then
+        set_languages("cxx20")
+    else
+        set_languages("cxxlatest")
+    end
     add_files("src/*.cpp")
     add_headerfiles("include/(glap/**.h)", "include/(glap/**.inl)")
     add_includedirs("include", {public = true})
@@ -34,19 +47,44 @@ target("glap")
     if has_config("use_fmt") then
         add_packages("fmt", {public = true})
     end
+    if has_config("enable_module") then
+        add_files("modules/**.mpp")
+    end
 
 target("glap-example")
     set_kind("binary")
-    set_languages("cxx20")
+    if has_config("use_tl_expected") and not has_config("enable_module") then
+        set_languages("cxx20")
+    else
+        set_languages("cxxlatest")
+    end
     set_default(false)
     add_deps("glap")
     add_files("tests/example.cpp")
     add_options("use_tl_expected", "use_fmt")
 
+if has_config("enable_module") then
+    target("glap-module-example")
+        set_kind("binary")
+        if has_config("use_tl_expected") and not has_config("enable_module") then
+            set_languages("cxx20")
+        else
+            set_languages("cxxlatest")
+        end
+        set_default(false)
+        add_deps("glap")
+        add_files("tests/example_module.cpp")
+        add_options("use_tl_expected", "use_fmt")
+end
+
 if has_config("build_tests") then
     target("glap-tests")
         set_kind("binary")
-        set_languages("cxx20")
+        if has_config("use_tl_expected") and not has_config("enable_module") then
+            set_languages("cxx20")
+        else
+            set_languages("cxxlatest")
+        end
         add_deps("glap")
         add_packages("gtest")
         add_files("tests/tests.cpp")

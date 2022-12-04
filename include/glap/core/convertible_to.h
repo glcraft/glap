@@ -1,12 +1,16 @@
 #pragma once
+
+#ifndef GLAP_MODULE
+#include "base.h"
+#include <version>
 #if defined(__cpp_lib_concepts) && __cpp_lib_concepts >= 201806L
 #include <concepts>
 #else
 #include <type_traits>
 #endif
+#endif
 
-
-namespace glap
+GLAP_EXPORT namespace glap
 {
     namespace impl {
     #if defined(__cpp_lib_concepts) && __cpp_lib_concepts >= 201806L

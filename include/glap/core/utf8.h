@@ -1,9 +1,14 @@
 #pragma once
+
+#ifndef GLAP_MODULE
+#include "base.h"
 #include <iterator>
 #include <string_view>
 #include <string>
 #include "expected.h"
-namespace glap::utils::uni {
+#endif
+
+GLAP_EXPORT namespace glap::utils::uni {
     struct UnicodeError {
         std::string_view str;
         size_t pos;

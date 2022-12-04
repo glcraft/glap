@@ -1,4 +1,6 @@
 #pragma once
+
+#ifndef GLAP_MODULE
 #include "../parser.h"
 #include "../model.h"
 #include "glap/core/expected.h"
@@ -6,6 +8,7 @@
 #include <optional>
 #include <string_view>
 #include <variant>
+#endif
 
 namespace glap
 {
