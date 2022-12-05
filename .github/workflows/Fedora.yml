@@ -75,7 +75,7 @@ jobs:
           actions-cache-key: 'fedora-ci'
 
       - name: Update xmake repository
-        run: sudo xmake repo --root -vD --update
+        run: sudo /__w/glap/glap/.xmake-cache/bin/xmake repo --root -vD --update
 
       - name: Configure & Build
         id: build
