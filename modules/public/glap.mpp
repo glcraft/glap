@@ -1,8 +1,5 @@
 module;
 
-#define GLAP_MODULE
-#define GLAP_EXPORT export
-
 #include <version>
 
 export module glap;
@@ -12,7 +9,7 @@ import <fmt/fmt.h>;
 #endif
 
 #ifdef GLAP_USE_TL_EXPECTED
-import <tl/expected.hpp>
+import <tl/expected.hpp>;
 #endif
 
 #ifdef GLAP_USE_STD_MODULE
@@ -41,6 +38,8 @@ import <expected>;
 #endif
 
 #pragma warning(disable:5244)
+#define GLAP_MODULE
+#define GLAP_EXPORT export
 #include <glap/core/discard.h>
 #include <glap/core/convertible_to.h>
 #include <glap/core/fmt.h>
