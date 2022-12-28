@@ -1,4 +1,15 @@
-#include "tl/expected.hpp"
+#ifdef GLAP_USE_MODULE
+#ifdef GLAP_STD_USE_MODULE
+import <concepts>;
+import <variant>;
+import <string_view>;
+import <format>; // format exists on c++20 no need to fallback
+import <iostream>;
+#else
+import std; // expected exists on c++23 no need to fallback
+#endif
+import <gtest/gtest.h>;
+#else
 #include <array>
 #include <charconv>
 #include <glap/parser.h>
@@ -9,44 +20,46 @@
 #include <concepts>
 #include <gtest/gtest.h>
 #include <variant>
+#endif
+
 
 bool test_is_hello_world(std::string_view v) {
     return v == "hello" || v == "world";
 }
 
 template <class T>
-tl::expected<T, glap::Discard> from_chars(std::string_view v) {
+glap::expected<T, glap::Discard> from_chars(std::string_view v) {
     T result;
     auto ch_result = std::from_chars(v.data(), v.data() + v.size(), result);
     if (ch_result.ec == std::errc()) {
         return result;
     } else {
-        return tl::make_unexpected(glap::discard);
+        return glap::make_unexpected(glap::discard);
     }
 }
 
 template <>
-tl::expected<float, glap::Discard> from_chars<float>(std::string_view v) {
+glap::expected<float, glap::Discard> from_chars<float>(std::string_view v) {
     try {
         return std::stof(std::string(v));
     } catch (const std::invalid_argument&) {
-        return tl::make_unexpected(glap::discard);
+        return glap::make_unexpected(glap::discard);
     }
 }
 template <>
-tl::expected<double, glap::Discard> from_chars<double>(std::string_view v) {
+glap::expected<double, glap::Discard> from_chars<double>(std::string_view v) {
     try {
         return std::stod(std::string(v));
     } catch (const std::invalid_argument&) {
-        return tl::make_unexpected(glap::discard);
+        return glap::make_unexpected(glap::discard);
     }
 }
 template <>
-tl::expected<long double, glap::Discard> from_chars<long double>(std::string_view v) {
+glap::expected<long double, glap::Discard> from_chars<long double>(std::string_view v) {
     try {
         return std::stold(std::string(v));
     } catch (const std::invalid_argument&) {
-        return tl::make_unexpected(glap::discard);
+        return glap::make_unexpected(glap::discard);
     }
 }
 
@@ -58,30 +71,30 @@ struct Point {
 };
 
 template <>
-tl::expected<Point, glap::Discard> from_chars<Point>(std::string_view v) {
+glap::expected<Point, glap::Discard> from_chars<Point>(std::string_view v) {
     Point result;
     auto pos = v.find(',');
     if (pos == std::string_view::npos) {
-        return tl::make_unexpected(glap::discard);
+        return glap::make_unexpected(glap::discard);
     }
     auto ch_result = std::from_chars(v.data(), v.data() + pos, result.x);
     if (ch_result.ec != std::errc()) {
-        return tl::make_unexpected(glap::discard);
+        return glap::make_unexpected(glap::discard);
     }
     ch_result = std::from_chars(v.data() + pos + 1, v.data() + v.size(), result.y);
     if (ch_result.ec != std::errc()) {
-        return tl::make_unexpected(glap::discard);
+        return glap::make_unexpected(glap::discard);
     }
     return result;
 }
 
-using Command1 = glap::model::Command<glap::Names<"command1", 't'>, 
+using Command1 = glap::model::Command<glap::Names<"command1", 't'>,
     glap::model::Flag<glap::Names<"flag", 'f'>>,
     glap::model::Parameter<glap::Names<"param", 'c'>>,
     glap::model::Input<>
 >;
 
-using Command2 = glap::model::Command<glap::Names<"command2", glap::discard>, 
+using Command2 = glap::model::Command<glap::Names<"command2", glap::discard>,
     glap::model::Flag<glap::Names<"flag", 'f'>>,
     glap::model::Parameter<glap::Names<"param", 'a'>, glap::discard, test_is_hello_world>,
     glap::model::Parameters<glap::Names<"params", 'b'>>,
@@ -89,17 +102,17 @@ using Command2 = glap::model::Command<glap::Names<"command2", glap::discard>,
     glap::model::Inputs<>
 >;
 
-using Command3 = glap::model::Command<glap::Names<"command3", glap::discard>, 
+using Command3 = glap::model::Command<glap::Names<"command3", glap::discard>,
     glap::model::Parameter<glap::Names<"float", glap::discard>, from_chars<float>>,
     glap::model::Parameter<glap::Names<"int", glap::discard>, from_chars<int>>,
     glap::model::Parameter<glap::Names<"point", glap::discard>, from_chars<Point>>,
     glap::model::Inputs<2>
 >;
 
-using Command4 = glap::model::Command<glap::Names<"command4">, 
+using Command4 = glap::model::Command<glap::Names<"command4">,
     glap::model::Input<glap::discard, test_is_hello_world>
 >;
-using Command5 = glap::model::Command<glap::Names<"command5">, 
+using Command5 = glap::model::Command<glap::Names<"command5">,
     glap::model::Input<from_chars<int>>
 >;
 
@@ -483,7 +496,7 @@ TEST(glap_combined, parameter_flags) {
     EXPECT_EQ(command.get_argument<"flag">().occurences, 2);
     auto params = command.get_argument<"params">().values;
     ASSERT_FALSE(params.empty()) << "Parameter 'params' is empty";
-    ASSERT_EQ(params.size(), 3) << "Parameter 'params' has not exactly 3 values";
+    ASSERT_EQ(params.size(), 3) << "Parameter 'params' has not exacexpy 3 values";
     ASSERT_EQ(params[0].value, "v1"sv) << "Parameter 'params' has wrong value";
     ASSERT_EQ(params[1].value, "v2"sv) << "Parameter 'params' has wrong value";
     ASSERT_EQ(params[2].value, "v3"sv) << "Parameter 'params' has wrong value";
