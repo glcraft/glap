@@ -4,15 +4,18 @@
 #include "base.h"
 #include "convertible_to.h"
 #include <version>
-#endif
 
 #ifndef GLAP_USE_TL_EXPECTED
 #   ifndef __cpp_lib_expected
 #       error "standard expected requires C++23"
 #   endif
-
 #include <expected>
+#else
+#include <tl/expected.hpp>
+#endif
+#endif
 
+#ifndef GLAP_USE_TL_EXPECTED
 GLAP_EXPORT namespace glap
 {
     template <class T, class E>
@@ -21,9 +24,6 @@ GLAP_EXPORT namespace glap
     using unexpected = std::unexpected<E>;
 } // namespace glap
 #else
-
-#include <tl/expected.hpp>
-
 GLAP_EXPORT namespace glap
 {
     template <class T, class E>

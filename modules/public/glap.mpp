@@ -1,7 +1,3 @@
-module;
-
-#include <version>
-
 export module glap;
 
 #ifdef GLAP_USE_FMT
@@ -26,9 +22,7 @@ import <variant>;
 import <type_traits>;
 import <utility>;
 import <vector>;
-#if defined(__cpp_lib_concepts) && __cpp_lib_concepts >= 201806L
 import <concepts>;
-#endif
 #ifndef GLAP_USE_FMT
 import <format>;
 #endif

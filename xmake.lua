@@ -10,7 +10,6 @@ option("build_tests")
     set_showmenu(true)
     set_description("Build tests")
 option("use_tl_expected")
-    set_default(true)
     set_showmenu(true)
     set_description("Use tl::expected instead of std::expected")
     add_defines("GLAP_USE_TL_EXPECTED", {public = true})
@@ -47,15 +46,15 @@ option("enable_std_module")
 
 target("glap")
     set_kind("$(kind)")
-    if has_config("use_tl_expected") and not has_config("enable_module") then
-        set_languages("cxx20")
-    else
+    if has_config("enable_std_module") or not has_config("use_tl_expected") then
         set_languages("cxxlatest")
+    else
+        set_languages("cxx20")
     end
     add_files("src/*.cpp")
     add_headerfiles("include/(glap/**.h)", "include/(glap/**.inl)")
     add_includedirs("include", {public = true})
-    add_options("use_tl_expected", "use_fmt")
+    add_options("use_tl_expected", "use_fmt", "enable_std_module")
     add_configfiles("xmake/config/config.h.in")
     if has_config("use_tl_expected") then
         add_packages("tl_expected", {public = true})
@@ -68,16 +67,16 @@ target("glap")
     end
     on_load(function(target)
         if not has_config("enable_std_modules") then
-            target:data_set("c++.msvc.enable_std_import", false)
+            -- target:data_set("c++.msvc.enable_std_import", false)
         end
     end)
 
 target("glap-example")
     set_kind("binary")
-    if has_config("use_tl_expected") and not has_config("enable_module") then
-        set_languages("cxx20")
-    else
+    if not has_config("use_tl_expected") then
         set_languages("cxxlatest")
+    else
+        set_languages("cxx20")
     end
     set_default(false)
     add_deps("glap")
@@ -87,16 +86,16 @@ target("glap-example")
 if has_config("enable_module") then
     target("glap-module-example")
         set_kind("binary")
-        if has_config("use_tl_expected") and not has_config("enable_module") then
-            set_languages("cxx20")
-        else
+        if has_config("enable_std_module") or not has_config("use_tl_expected") then
             set_languages("cxxlatest")
+        else
+            set_languages("cxx20")
         end
         add_defines("GLAP_USE_MODULE")
         set_default(false)
         add_deps("glap")
         add_files("tests/example.cpp")
-        add_options("use_tl_expected", "use_fmt")
+        add_options("use_tl_expected", "use_fmt", "enable_std_module")
         on_load(function(target)
             if not has_config("enable_std_modules") then
                 target:data_set("c++.msvc.enable_std_import", false)
@@ -107,10 +106,10 @@ end
 if has_config("build_tests") then
     target("glap-tests")
         set_kind("binary")
-        if has_config("use_tl_expected") and not has_config("enable_module") then
-            set_languages("cxx20")
-        else
+        if not has_config("use_tl_expected") then
             set_languages("cxxlatest")
+        else
+            set_languages("cxx20")
         end
         add_deps("glap")
         add_packages("gtest")
@@ -130,16 +129,16 @@ if has_config("build_tests") then
     if has_config("enable_module") then
         target("glap-tests-modules")
             set_kind("binary")
-            if has_config("use_tl_expected") and not has_config("enable_module") then
-                set_languages("cxx20")
-            else
+            if has_config("enable_std_module") or not has_config("use_tl_expected") then
                 set_languages("cxxlatest")
+            else
+                set_languages("cxx20")
             end
             add_deps("glap")
             add_packages("gtest")
             add_files("tests/tests.cpp")
             set_warnings("allextra", "error")
-            add_options("use_tl_expected", "use_fmt")
+            add_options("use_tl_expected", "use_fmt", "enable_std_module")
             add_defines("GLAP_USE_MODULE")
             if is_plat("linux", "macosx") then
                 add_cxflags("-Wno-unknown-pragmas")
