@@ -14,11 +14,26 @@ option("use_tl_expected")
     set_showmenu(true)
     set_description("Use tl::expected instead of std::expected")
     add_defines("GLAP_USE_TL_EXPECTED", {public = true})
+    add_deps("enable_std_module")
+    on_check(function (option)
+        if option:dep("enable_std_module"):enabled() then
+            option:enable(false)
+        else
+            option:enable(true)
+        end
+    end)
 option("use_fmt")
-    set_default(true)
     set_showmenu(true)
     set_description("Use fmt instead of std::format")
     add_defines("GLAP_USE_FMT", {public = true})
+    add_deps("enable_module")
+    on_check(function (option)
+        if option:dep("enable_module"):enabled() then
+            option:enable(false)
+        else
+            option:enable(true)
+        end
+    end)
 option("enable_module")
     set_default(false)
     set_showmenu(true)
