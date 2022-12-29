@@ -1,0 +1,54 @@
+export module glap;
+
+#ifdef GLAP_USE_FMT
+import <fmt/fmt.h>;
+#endif
+
+#ifdef GLAP_USE_TL_EXPECTED
+import <tl/expected.hpp>;
+#endif
+
+#ifdef GLAP_USE_STD_MODULE
+import std;
+#else
+import <string_view>;
+import <string>;
+import <iterator>;
+import <span>;
+import <algorithm>;
+import <optional>;
+import <cstddef>;
+import <variant>;
+import <type_traits>;
+import <utility>;
+import <vector>;
+import <concepts>;
+#ifndef GLAP_USE_FMT
+import <format>;
+#endif
+#ifndef GLAP_USE_TL_EXPECTED
+import <expected>;
+#endif
+#endif
+
+#pragma warning(disable:5244)
+#define GLAP_MODULE
+#define GLAP_EXPORT export
+#include <glap/core/discard.h>
+#include <glap/core/convertible_to.h>
+#include <glap/core/fmt.h>
+#include <glap/core/expected.h>
+#include <glap/core/utf8.h>
+#include <glap/core/error.h>
+#include <glap/core/utils.h>
+#include <glap/core/container.h>
+#include <glap/core/value.h>
+#include <glap/core/biiterator.h>
+
+//#include <glap/help.h>
+#include <glap/model.h>
+#include <glap/parser.h>
+
+//#include <glap/impl/help.inl>
+#include <glap/impl/parser2.inl>
+#pragma warning(default:5244)

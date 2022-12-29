@@ -1,4 +1,6 @@
 #pragma once
+
+#ifndef GLAP_MODULE
 #include "core/utf8.h"
 #include "core/discard.h"
 #include "core/utils.h"
@@ -6,15 +8,16 @@
 
 #include "model.h"
 #include "parser.h"
-#include <concepts>
 #include <cstddef>
 #include <algorithm>
+#endif
+
 namespace glap {
     namespace impl {
         template <class P, class H>
         concept IsHelpInputsCompatible = requires { P::type == glap::model::ArgumentType::Input; } && help::IsInputs<H>;
         template <class FromParser, class ...Others>
-        struct FindByName 
+        struct FindByName
         {};
         template <class FromParser, class T, class ...Others>
             requires (HasLongName<FromParser> && FromParser::longname == T::name) || IsHelpInputsCompatible<FromParser, T>
@@ -25,10 +28,10 @@ namespace glap {
         };
         template <class Named, class T, class ...Others>
             requires ((!HasLongName<Named> || Named::longname != T::name) && !IsHelpInputsCompatible<Named, T>)
-        struct FindByName<Named, T, Others...> : FindByName<Named, Others...> 
+        struct FindByName<Named, T, Others...> : FindByName<Named, Others...>
         {};
         template <class FromParser>
-        struct FindByName<FromParser> 
+        struct FindByName<FromParser>
         {
         public:
             using type = void;
@@ -136,7 +139,7 @@ namespace glap {
     struct Help<help::model::Program<NameHelp, Desc, CommandsHelp...>, Parser<NameParser, def_cmd, CommandsParser...>> {
         using ProgramHelp = help::model::Program<NameHelp, Desc, CommandsHelp...>;
         using ProgramParser = Parser<NameParser, def_cmd, CommandsParser...>;
-        
+
         [[nodiscard]] constexpr std::string operator()() const noexcept {
             std::string result;
             this->operator()(std::back_inserter(result));

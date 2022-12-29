@@ -1,9 +1,14 @@
 #pragma once
+
+#ifndef GLAP_MODULE
+#include "base.h"
 #include <iterator>
 #include <string_view>
 #include <string>
 #include "expected.h"
-namespace glap::utils::uni {
+#endif
+
+GLAP_EXPORT namespace glap::utils::uni {
     struct UnicodeError {
         std::string_view str;
         size_t pos;
@@ -13,7 +18,7 @@ namespace glap::utils::uni {
     };
     template <class T>
     using Expected = expected<T, UnicodeError>;
-    [[nodiscard]] constexpr Expected<uint8_t> utf8_char_length(std::string_view str) noexcept {
+    [[nodiscard]] constexpr Expected<std::uint8_t> utf8_char_length(std::string_view str) noexcept {
         auto c = str.front();
         if ((c & 0x80) == 0) {
             return 1;
@@ -32,7 +37,7 @@ namespace glap::utils::uni {
         }
     }
     [[nodiscard]] constexpr Expected<size_t> utf8_length(std::string_view str) noexcept {
-        uint8_t len = 0;
+        std::uint8_t len = 0;
         for (auto itChar = str.data(); itChar != str.data()+str.size();) {
             auto char_len = utf8_char_length(std::string_view{itChar, 1});
             if (!char_len) {

@@ -1,8 +1,15 @@
+#ifndef GLAP_MODULE
 #include <string_view>
 #include <array>
 #include <glap/core/fmt.h>
 #include <glap/core/error.h>
+#else
+module glap;
 
+#ifndef GLAP_USE_STD_MODULE
+import <array>;
+#endif
+#endif
 
 namespace glap 
 {

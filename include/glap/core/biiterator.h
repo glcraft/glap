@@ -1,11 +1,16 @@
 #pragma once
+
+#ifndef GLAP_MODULE
+#include "base.h"
 #include "utils.h"
 #include <string_view>
-namespace glap::impl 
+#endif
+
+GLAP_EXPORT namespace glap::impl
 {
     template <Iterator<std::string_view> T>
     struct BiIterator {
-        BiIterator(T begin, T end) : begin(begin), end(end) 
+        BiIterator(T begin, T end) : begin(begin), end(end)
         {}
         BiIterator(const BiIterator&) = default;
         BiIterator(BiIterator&&) = default;

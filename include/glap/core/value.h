@@ -1,10 +1,14 @@
 #pragma once
+
+#ifndef GLAP_MODULE
+#include "base.h"
 #include "discard.h"
 #include "utils.h"
 #include <string_view>
 #include <optional>
+#endif
 
-namespace glap
+GLAP_EXPORT namespace glap
 {
     template <auto Resolver = discard, auto Validator = discard>
     struct Value {

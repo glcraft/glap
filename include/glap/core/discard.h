@@ -1,6 +1,11 @@
 #pragma once
-namespace glap
+
+#ifndef GLAP_MODULE
+#include "base.h"
+#endif
+
+GLAP_EXPORT namespace glap
 {
     struct Discard {};
-    static constexpr Discard discard = {};
+    inline constexpr Discard discard = {};
 }

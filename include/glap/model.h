@@ -1,10 +1,15 @@
 #pragma once
+
+#ifndef GLAP_MODULE
+#include "core/base.h"
 #include "core/discard.h"
 #include "core/utils.h"
 #include "core/container.h"
 #include "core/value.h"
 #include <variant>
-namespace glap::model
+#endif
+
+GLAP_EXPORT namespace glap::model
 {
     enum class ArgumentType {
         Parameter,
@@ -29,7 +34,7 @@ namespace glap::model
         {}
         static constexpr auto type = ArgumentType::Parameter;
     };
-    
+
     template <class ArgNames, auto N = discard, auto Resolver = discard, auto Validator = discard>
     struct Parameters : ArgNames, Container<Parameter<ArgNames, Resolver, Validator>, N> {
         using value_type = typename impl::ResolverReturnType<decltype(Resolver)>::type;
@@ -60,7 +65,7 @@ namespace glap::model
 
     template <class T>
     concept IsArgument = std::same_as<std::remove_cvref_t<decltype(T::type)>, ArgumentType>;
-    
+
     template <class CommandNames, IsArgument... Arguments>
     struct Command : CommandNames {
         using Params = std::tuple<Arguments...>;
@@ -70,11 +75,11 @@ namespace glap::model
         static_assert(!NameCheck::has_duplicate_longname, "arguments has duplicate long name");
         static_assert(!NameCheck::has_duplicate_shortname, "arguments has duplicate short name");
 
-        
+
         static constexpr size_t NbParams = sizeof...(Arguments);
         template <size_t I>
         using Param = std::tuple_element_t<I, Params>;
-        
+
         template <size_t i, StringLiteral lit>
         static consteval size_t _get_argument_id() noexcept {
             static_assert((i < NbParams), "Argument not found");
@@ -108,7 +113,7 @@ namespace glap::model
         using NameCheck = impl::NameChecker<Commands...>;
         static_assert(!NameCheck::has_duplicate_longname, "arguments has duplicate long name");
         static_assert(!NameCheck::has_duplicate_shortname, "arguments has duplicate short name");
-        
+
         static constexpr std::string_view name = Name;
         static constexpr auto default_command = def_cmd;
         std::string_view program;

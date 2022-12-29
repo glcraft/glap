@@ -1,5 +1,7 @@
 #pragma once
 
+#ifndef GLAP_MODULE
+#include "core/base.h"
 #include "core/expected.h"
 #include "core/error.h"
 #include "core/utils.h"
@@ -9,13 +11,17 @@
 #include "model.h"
 #include <type_traits>
 #include <utility>
-namespace glap 
+#endif
+
+GLAP_EXPORT namespace glap
 {
     template <class>
     class Parser
     {};
     template <class T>
-    static constexpr auto parser = Parser<T>{};
+    inline constexpr auto parser = Parser<T>{};
 }
 
+#ifndef GLAP_MODULE
 #include "impl/parser2.inl"
+#endif

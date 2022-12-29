@@ -1,11 +1,16 @@
 #pragma once
+
+#ifndef GLAP_MODULE
+#include "base.h"
 #include "expected.h"
 #include "fmt.h"
 #include <string_view>
 #include <span>
 #include <algorithm>
 #include <optional>
-namespace glap 
+#endif
+
+GLAP_EXPORT namespace glap
 {
     struct Error {
         std::string_view parameter;
