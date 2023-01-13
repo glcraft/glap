@@ -26,6 +26,9 @@ on:
       - 'LICENSE'
       - 'README.md'
 
+env:
+  XMAKE_ROOT: y
+
 jobs:
   build:
     name: Android-${{ matrix.arch }} ( ${{ matrix.kind }}-${{ matrix.mode }} )
