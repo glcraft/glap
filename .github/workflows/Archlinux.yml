@@ -81,6 +81,8 @@ jobs:
       - name: Install xmake
         uses: xmake-io/github-action-setup-xmake@v1
         if: ${{ env.ACT }}
+        with:
+          xmake-version: branch@dev
 
       - name: Update xmake repository
         run: sudo xmake repo --root -vD --update
