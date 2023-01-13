@@ -58,6 +58,12 @@ jobs:
           dnf -y install perl
           dnf -y install glibc-static libstdc++-static libasan
           dnf -y install gfortran
+          dnf -y install ncurses-devel
+
+      - name: Act Dependencies bootstrap
+        if: ${{ env.ACT }}
+        run: |
+          dnf -y install nodejs
 
       - name: Checkout
         uses: actions/checkout@v3

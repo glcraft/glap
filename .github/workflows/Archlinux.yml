@@ -51,7 +51,12 @@ jobs:
         run: |
           pacman -Syu --noconfirm --needed openssl
           pacman -Sy --noconfirm --needed glibc git base-devel perl make unzip p7zip
-          pacman -Sy --noconfirm --needed mesa gcc-fortran glu
+          pacman -Sy --noconfirm --needed mesa gcc-fortran glu ncurses
+
+      - name: Act Dependencies bootstrap
+        if: ${{ env.ACT }}
+        run: |
+          pacman -Sy --noconfirm --needed nodejs
 
       - name: Checkout
         uses: actions/checkout@v3
