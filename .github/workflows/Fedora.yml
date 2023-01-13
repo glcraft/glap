@@ -26,6 +26,9 @@ on:
       - 'LICENSE'
       - 'README.md'
 
+env:
+  XMAKE_ROOT: y
+
 jobs:
   build:
     name: fedora-latest-x64 ( ${{ matrix.kind }}-${{ matrix.mode }} )
@@ -63,16 +66,22 @@ jobs:
 
       - name: Setup XMake cache
         uses: actions/cache@v3
+        if: ${{ !env.ACT }}
         with:
           path: '.xmake-cache'
           key: ${{ matrix.os }}-ci
 
-      - name: Install xmake
+      - name: Install xmake (cached)
         uses: xmake-io/github-action-setup-xmake@v1
+        if: ${{ !env.ACT }}
         with:
           xmake-version: branch@dev
           actions-cache-folder: '.xmake-cache'
           actions-cache-key: 'fedora-ci'
+
+      - name: Install xmake
+        uses: xmake-io/github-action-setup-xmake@v1
+        if: ${{ env.ACT }}
 
       - name: Update xmake repository
         run: sudo /__w/glap/glap/.xmake-cache/bin/xmake repo --root -vD --update
@@ -80,14 +89,14 @@ jobs:
       - name: Configure & Build
         id: build
         run: |
-          sudo /__w/glap/glap/.xmake-cache/bin/xmake f --root -vD --yes -m ${{ matrix.mode }} -k ${{ matrix.kind }} --build_tests=true
-          sudo /__w/glap/glap/.xmake-cache/bin/xmake b --root -vD
+          sudo /__w/glap/glap/.xmake-cache/bin/xmake f -vD --yes -m ${{ matrix.mode }} -k ${{ matrix.kind }} --build_tests=true
+          sudo /__w/glap/glap/.xmake-cache/bin/xmake b -vD
 
       - name: Tests
-        run: sudo /__w/glap/glap/.xmake-cache/bin/xmake run --root glap-tests
+        run: sudo /__w/glap/glap/.xmake-cache/bin/xmake run glap-tests
 
       - name: Installation
-        run: sudo /__w/glap/glap/.xmake-cache/bin/xmake install --root -vD --installdir="/output"
+        run: sudo /__w/glap/glap/.xmake-cache/bin/xmake install -vD --installdir="/output"
 
       - name: Upload artifacts
         id: upload
