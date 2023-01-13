@@ -43,8 +43,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     container:
         image: fedora:latest
+        options: --user root
         volumes:
-          - /output:/output
+          - output:/output
 
     concurrency:
       group: ${{ github.ref }}-${{ github.base_ref }}-${{ github.head_ref }}-Fedora-${{ matrix.kind }}-${{ matrix.mode }}
@@ -88,6 +89,8 @@ jobs:
       - name: Install xmake
         uses: xmake-io/github-action-setup-xmake@v1
         if: ${{ env.ACT }}
+        with:
+          xmake-version: branch@dev
 
       - name: Update xmake repository
         run: sudo /__w/glap/glap/.xmake-cache/bin/xmake repo --root -vD --update
