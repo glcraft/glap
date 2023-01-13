@@ -26,6 +26,9 @@ on:
       - 'LICENSE'
       - 'README.md'
 
+env:
+  XMAKE_ROOT: y
+
 jobs:
   build:
     name: archlinux-latest-x64 ( ${{ matrix.kind }}-${{ matrix.mode }} )
@@ -40,6 +43,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     container:
       image: archlinux:base-devel
+      options: --user root
       volumes:
         - /output:/output
 
@@ -55,8 +59,7 @@ jobs:
 
       - name: Act Dependencies bootstrap
         if: ${{ env.ACT }}
-        run: |
-          pacman -Sy --noconfirm --needed nodejs
+        run: pacman -Sy --noconfirm --needed nodejs
 
       - name: Checkout
         uses: actions/checkout@v3
@@ -68,7 +71,7 @@ jobs:
         if: ${{ !env.ACT }}
         with:
           path: '.xmake-cache'
-          key: ${{ matrix.os }}-ci
+          key: 'archlinux-ci'
 
       - name: Install xmake (cached)
         uses: xmake-io/github-action-setup-xmake@v1
@@ -76,7 +79,7 @@ jobs:
         with:
           xmake-version: branch@dev
           actions-cache-folder: '.xmake-cache'
-          actions-cache-key: '${{ matrix.os }}-ci'
+          actions-cache-key: 'archlinux-ci'
 
       - name: Install xmake
         uses: xmake-io/github-action-setup-xmake@v1
@@ -85,19 +88,19 @@ jobs:
           xmake-version: branch@dev
 
       - name: Update xmake repository
-        run: sudo xmake repo --root -vD --update
+        run: xmake repo -vD --update
 
       - name: Configure & Build
         id: build
         run: |
-          sudo /__w/glap/glap/.xmake-cache/bin/xmake f --root -vD --yes -m ${{ matrix.mode }} -k ${{ matrix.kind }} --build_tests=true
-          sudo /__w/glap/glap/.xmake-cache/bin/xmake b --root -vD
+          xmake f -vD --yes -m ${{ matrix.mode }} -k ${{ matrix.kind }} --build_tests=true
+          xmake b -vD
 
       - name: Tests
-        run: sudo /__w/glap/glap/.xmake-cache/bin/xmake run --root glap-tests
+        run: xmake run glap-tests
 
       - name: Installation
-        run: sudo /__w/glap/glap/.xmake-cache/bin/xmake install --root -vD --installdir="/output"
+        run: xmake install -vD --installdir="/output"
 
       - name: Upload artifacts
         id: upload
