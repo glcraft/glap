@@ -32,12 +32,16 @@ namespace format {
 
 #ifdef GLAP_USE_FMT
 #include <fmt/format.h>
-using format = fmt;
+using namespace format = fmt;
 #else
 #include <format>
 #include <iostream>
-using format = std;
 namespace format {
+    using std::format;
+    using std::vformat;
+    using std::format_to;
+    using std::vformat_to;
+
     template<typename... Args>
     constexpr auto print(std::format_string<Args...> format_string, Args&& ... args)
     {

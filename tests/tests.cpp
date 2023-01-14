@@ -3,7 +3,6 @@
 import <concepts>;
 import <variant>;
 import <string_view>;
-import <format>; // format exists on c++20 no need to fallback
 import <iostream>;
 #else
 import std; // expected exists on c++23 no need to fallback
