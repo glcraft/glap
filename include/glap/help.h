@@ -1,14 +1,19 @@
 #pragma once
+
+#ifndef GLAP_MODULE
+#include "core/base.h"
 #include "core/discard.h"
 #include "core/utils.h"
 #include <concepts>
 #include <optional>
 #include <string_view>
 #include <type_traits>
-namespace glap {
+#endif
+
+GLAP_EXPORT namespace glap {
     namespace help {
-        static constexpr std::string_view INPUTS_NAME = "INPUTS";
-        static constexpr int PADDING = 4;
+        inline constexpr std::string_view INPUTS_NAME = "INPUTS";
+        inline constexpr int PADDING = 4;
         template <class T>
         concept IsDescription = std::same_as<std::remove_cvref_t<decltype(T::short_description)>, std::string_view>;
         template <class T>
@@ -45,6 +50,9 @@ namespace glap {
     {};
 
     template<class FromHelp, class FromParser>
-    static constexpr auto get_help = Help<FromHelp, FromParser>{};
+    inline constexpr auto get_help = Help<FromHelp, FromParser>{};
 }
+
+#ifndef GLAP_MODULE
 #include "impl/help.inl"
+#endif

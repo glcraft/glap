@@ -26,6 +26,9 @@ on:
       - 'LICENSE'
       - 'README.md'
 
+env:
+  XMAKE_ROOT: y
+
 jobs:
   build:
     name: Android-${{ matrix.arch }} ( ${{ matrix.kind }}-${{ matrix.mode }} )
@@ -51,16 +54,24 @@ jobs:
 
       - name: Setup XMake cache
         uses: actions/cache@v3
+        if: ${{ !env.ACT }}
         with:
           path: '.xmake-cache'
           key: ${{ matrix.os }}-ci
 
-      - name: Install xmake
+      - name: Install xmake (cached)
         uses: xmake-io/github-action-setup-xmake@v1
+        if: ${{ !env.ACT }}
         with:
           xmake-version: branch@dev
           actions-cache-folder: '.xmake-cache'
           actions-cache-key: '${{ matrix.os }}-ci'
+
+      - name: Install xmake
+        uses: xmake-io/github-action-setup-xmake@v1
+        if: ${{ env.ACT }}
+        with:
+          xmake-version: branch@dev
 
       - name: Update xmake repository
         run: xmake repo --update
