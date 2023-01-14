@@ -1,19 +1,25 @@
 #pragma once
+
+#ifndef GLAP_MODULE
+#include "base.h"
 #include "utils.h"
 #include <cstddef>
-namespace glap
+#include <vector>
+#endif
+
+GLAP_EXPORT namespace glap
 {
     template<typename T, size_t N>
     class StackVector {
         T m_data[N];
         size_t m_size = 0;
-        
+
         template <class Ty>
         class _iterator {
             StackVector<Ty, N>& array;
             size_t index;
         public:
-            constexpr _iterator(StackVector<T, N>& array, size_t index = 0) noexcept : array(array), index(index) 
+            constexpr _iterator(StackVector<T, N>& array, size_t index = 0) noexcept : array(array), index(index)
             {}
             constexpr _iterator& operator++() noexcept {
                 ++index;
@@ -108,7 +114,7 @@ namespace glap
     };
     template <class T, auto N = discard>
     class Container {
-    public: 
+    public:
         using value_type = T;
     private:
         using n_type = std::remove_cvref_t<decltype(N)>;
