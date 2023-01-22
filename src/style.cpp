@@ -1,7 +1,7 @@
 #include <glap/generators/style.h>
 #include <string>
 #include <glap/core/fmt.h>
-
+#include <iostream>
 namespace glap::generators {
 #ifdef _WIN32
     void Style::apply() const noexcept {
@@ -33,10 +33,12 @@ namespace glap::generators {
         if (!style.empty()) {
             style.pop_back();
         }
-        print("\033[{}m", style);
+        std::cout.write("\033[", 2);
+        std::cout.write(std::data(style), std::size(style));
+        std::cout.write("m", 1);
     }
     void Style::reset() noexcept {
-        print("\033[0m");
+        std::cout.write("\033[0m", 4);
     }
 #endif
 }
