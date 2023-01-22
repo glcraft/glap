@@ -8,7 +8,7 @@
 #include <optional>
 #include <string_view>
 #include <type_traits>
-namespace glap {
+namespace glap::generators {
     namespace help {
         inline constexpr std::string_view INPUTS_NAME = "INPUTS";
         inline constexpr int PADDING = 4;
