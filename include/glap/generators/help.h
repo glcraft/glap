@@ -101,6 +101,6 @@ namespace glap::generators {
     inline constexpr auto get_help = Help<FromHelp, FromParser>{};
 }
 
-#ifndef GLAP_MODULE
+
 #include "impl/help.inl"
 #endif
