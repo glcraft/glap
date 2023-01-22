@@ -18,12 +18,10 @@
 GLAP_EXPORT namespace glap {
     using std::format;
     using std::format_to;
-    using std::print;
 }
 #else
 GLAP_EXPORT namespace glap {
     using fmt::format;
     using fmt::format_to;
-    using fmt::print;
 }
 #endif
