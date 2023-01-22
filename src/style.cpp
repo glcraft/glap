@@ -4,6 +4,12 @@
 
 namespace glap::generators {
 #ifdef _WIN32
+    void Style::apply() const noexcept {
+
+    }
+    void Style::reset() noexcept {
+        
+    }
 #else
     void Style::apply() const noexcept
     {
