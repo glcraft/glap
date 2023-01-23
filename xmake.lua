@@ -83,7 +83,6 @@ target("glap-example")
     set_default(false)
     add_deps("glap")
     add_files("tests/example.cpp")
-    add_options("use_tl_expected", "use_fmt", "enable_module", "enable_std_module")
 
 if has_config("enable_module") then
     target("glap-module-example")
@@ -97,7 +96,6 @@ if has_config("enable_module") then
         set_default(false)
         add_deps("glap")
         add_files("tests/example.cpp")
-        add_options("use_tl_expected", "use_fmt", "enable_std_module")
         on_load(function(target)
             if not has_config("enable_std_modules") then
                 target:data_set("c++.msvc.enable_std_import", false)
@@ -117,7 +115,6 @@ if has_config("build_tests") then
         add_packages("gtest")
         add_files("tests/tests.cpp")
         set_warnings("allextra", "error")
-        add_options("use_tl_expected", "use_fmt")
         if is_plat("linux", "macosx") then
             add_cxflags("-Wno-unknown-pragmas")
         end
@@ -140,7 +137,6 @@ if has_config("build_tests") then
             add_packages("gtest")
             add_files("tests/tests.cpp")
             set_warnings("allextra", "error")
-            add_options("use_tl_expected", "use_fmt", "enable_std_module")
             add_defines("GLAP_USE_MODULE")
             if is_plat("linux", "macosx") then
                 add_cxflags("-Wno-unknown-pragmas")
