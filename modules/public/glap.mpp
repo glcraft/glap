@@ -1,5 +1,7 @@
 export module glap;
 
+#include <config.h>
+
 #ifdef GLAP_USE_FMT
 import <fmt/fmt.h>;
 #endif
