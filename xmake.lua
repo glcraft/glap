@@ -66,8 +66,8 @@ target("glap")
     add_headerfiles("include/(glap/**.h)", "include/(glap/**.inl)")
     add_includedirs("include", {public = true})
     add_options("use_tl_expected", "use_fmt", "enable_std_module", "enable_module")
-    add_includedirs("$(buildir)/glap", {public = true})
-    add_configfiles("xmake/config/config.h.in", {prefixdir = "glap"})
+    add_includedirs("$(buildir)/include", {public = true})
+    add_configfiles("xmake/config/config.h.in", {prefixdir = "include/glap"})
     if has_config("use_tl_expected") then
         add_packages("tl_expected", {public = true})
     end
