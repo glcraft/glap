@@ -592,4 +592,4 @@ build
 .xmake
 test.lua
 
-make_my_glap/output.h
+make_my_glap/sample.h
