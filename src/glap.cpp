@@ -1,4 +1,5 @@
 #ifndef GLAP_MODULE
+#include <glap/core/base.h>
 #include <string_view>
 #include <array>
 #include <glap/core/fmt.h>
