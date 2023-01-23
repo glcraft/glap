@@ -3,7 +3,7 @@ export module glap;
 #include <config.h>
 
 #ifdef GLAP_USE_FMT
-import <fmt/fmt.h>;
+import <fmt/format.h>;
 #endif
 
 #ifdef GLAP_USE_TL_EXPECTED
@@ -36,6 +36,7 @@ import <expected>;
 #pragma warning(disable:5244)
 #define GLAP_MODULE
 #define GLAP_EXPORT export
+
 #include <glap/core/discard.h>
 #include <glap/core/convertible_to.h>
 #include <glap/core/fmt.h>
