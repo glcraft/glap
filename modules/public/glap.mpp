@@ -1,6 +1,6 @@
 export module glap;
 
-#include <config.h>
+#include <glap/config.h>
 
 #ifdef GLAP_USE_FMT
 import <fmt/format.h>;
