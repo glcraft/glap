@@ -35,7 +35,7 @@ namespace format {
 
 #include <glap/generators/style.h>
 #include <glap/generators/help.h>
-
+#endif
 
 
 using flag_t = glap::model::Flag<
