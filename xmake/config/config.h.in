@@ -2,3 +2,5 @@
 
 ${define GLAP_USE_TL_EXPECTED}
 ${define GLAP_USE_FMT}
+${define GLAP_USE_MODULE}
+${define GLAP_USE_STD_MODULE}
