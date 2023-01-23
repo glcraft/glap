@@ -18,7 +18,7 @@ GLAP_EXPORT namespace glap
         concept convertible_to = std::convertible_to<From, To>;
     #else
     template <class From, class To>
-    concept convertible to =
+    concept convertible_to =
         std::is_convertible_v<From, To> &&
         requires {
             static_cast<To>(std::declval<From>());
