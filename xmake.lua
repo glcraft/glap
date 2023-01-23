@@ -15,11 +15,15 @@ option("use_tl_expected")
     set_configvar("GLAP_USE_TL_EXPECTED", 1)
     add_deps("enable_std_module")
     on_check(function (option)
-        if option:dep("enable_std_module"):enabled() then
-            option:enable(false)
-        else
-            option:enable(true)
-        end
+        import("lib.detect.check_cxsnippets")
+        local has_expected = check_cxsnippets({[[
+            #include <expected>
+            int main() {
+                std::expected<int> e = 42;
+                return 0;
+            }
+        ]]}, {configs = {languages = "c++latest"}})
+        option:enable(not has_expected)
     end)
 option("use_fmt")
     set_showmenu(true)
@@ -27,11 +31,15 @@ option("use_fmt")
     set_configvar("GLAP_USE_FMT", 1)
     add_deps("enable_module")
     on_check(function (option)
-        if option:dep("enable_module"):enabled() then
-            option:enable(false)
-        else
-            option:enable(true)
-        end
+        import("lib.detect.check_cxsnippets")
+        local has_format_lib = check_cxsnippets({[[
+            #include <format>
+            int main() {
+                std::format("{}", 42);
+                return 0;
+            }
+        ]]}, {configs = {languages = "c++latest"}})
+        option:enable(not has_format_lib)
     end)
 option("enable_module")
     set_default(false)
