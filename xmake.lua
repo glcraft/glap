@@ -1,4 +1,4 @@
-includes("xmake/**.lua")
+includes("xmake/**/xmake.lua")
 
 add_rules("mode.debug", "mode.release", "mode.asan")
 add_requires("fmt 9.0.0", {optional = true}) -- required only if stl has not std::format
@@ -68,6 +68,7 @@ target("glap")
     add_options("use_tl_expected", "use_fmt", "enable_std_module", "enable_module")
     add_includedirs("$(buildir)/include", {public = true})
     add_configfiles("xmake/config/config.h.in", {prefixdir = "include/glap"})
+    add_installfiles("xmake/rules/(**/*.lua)", {prefixdir = "xmake/rules"})
     if has_config("use_tl_expected") then
         add_packages("tl_expected", {public = true})
     end
