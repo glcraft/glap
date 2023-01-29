@@ -12,6 +12,7 @@ end
 
 function mmg_update_file(target, input_file, opt)
     import("core.base.option")
+    import("core.project.depend")
     local opt = opt or {}
     local mmg_program = opt.mmg_program or get_mmg()
     local config_dir = opt.config_dir
@@ -29,11 +30,15 @@ function mmg_update_file(target, input_file, opt)
     local output_file = path.join(config_dir, input_file:gsub("%.ya?ml$", ""):gsub("%.glap", "") .. ".h")
     -- generate the header file from the mmg configuration file
     if option.get("verbose") then
-        cprint("${dim}generating %s to %s ..", input_file, output_file)
+        cprint("${dim}generating %s to %s ..", path.filename(input_file), path.filename(output_file))
     end
     os.runv(mmg_program, {"-t", "header", "-i", input_file, "-o", output_file})
 
-    
+    depend.on_changed(function()
+        local mmg = get_mmg()
+        os.runv(mmg_program, {"-t", "header", "-i", input_file, "-o", output_file})
+        cprint("${dim}generating %s to %s ..", path.filename(input_file), path.filename(output_file))
+    end, {files = {input_file}})
 
     return output_file
 end
