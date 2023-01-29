@@ -1,0 +1,4 @@
+[submodule "test_mmg/test-xmake-repo"]
+	path = test_mmg/test-xmake-repo
+	url = https://github.com/glcraft/xmake-repo.git
+	branch = mmg-test
