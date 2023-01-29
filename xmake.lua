@@ -53,8 +53,6 @@ option("enable_std_module")
     set_description("Enable C++23 std module support")
     add_defines("GLAP_USE_STD_MODULE", {public = true})
 
-includes("make_my_glap")
-
 target("glap")
     set_kind("$(kind)")
     if has_config("enable_std_module") or not has_config("use_tl_expected") then
@@ -68,7 +66,8 @@ target("glap")
     add_options("use_tl_expected", "use_fmt", "enable_std_module", "enable_module")
     add_includedirs("$(buildir)/include", {public = true})
     add_configfiles("xmake/config/config.h.in", {prefixdir = "include/glap"})
-    add_installfiles("xmake/rules/(**/*.lua)", {prefixdir = "xmake/rules"})
+    add_headerfiles("$(buildir)/(include/**.h)")
+    
     if has_config("use_tl_expected") then
         add_packages("tl_expected", {public = true})
     end
