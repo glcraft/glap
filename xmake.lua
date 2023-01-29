@@ -78,6 +78,8 @@ target("glap")
         add_files("modules/**.mpp")
     end
     on_load(function(target)
+        import("core.project.config")
+        target:add("headerfiles", config.buildir() .. "/include/glap/config.h", {prefixdir = "glap"})
         if not has_config("enable_std_module") then
             -- target:data_set("c++.msvc.enable_std_import", false)
         end
