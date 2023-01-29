@@ -593,3 +593,4 @@ build
 test.lua
 
 make_my_glap/sample.h
+install/
