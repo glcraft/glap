@@ -1,6 +1,6 @@
 # Help text generator
 
-It is currently in development, not usable.
+It is still in development, usable but not yet documented.
 
 ## Utils
 
@@ -15,19 +15,19 @@ struct FullDescription;
 ## Program description class
 ```cpp
 /// In namespace glap::help::model
-template<StringLiteral Name, IsDescription Desc, class ...Commands>
+template<StringLiteral Name, HasDescription Desc, class ...Commands>
 struct Program;
 ```
 ## Command description class
 ```cpp
 /// In namespace glap::help::model
-template<StringLiteral Name, IsDescription Desc, class ...Params>
+template<StringLiteral Name, HasDescription Desc, class ...Params>
 struct Command;
 ```
 ## Argument description class
 ```cpp
 /// In namespace glap::help::model
-template<StringLiteral Name, IsDescription Desc> 
+template<StringLiteral Name, HasDescription Desc> 
 struct Argument;
 ```
 ## Help generator class

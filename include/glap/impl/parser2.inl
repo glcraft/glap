@@ -16,7 +16,7 @@ namespace glap
         template <HasLongName Command>
         static constexpr bool check_names(std::optional<std::string_view> name, std::optional<char32_t> codepoint)
         {
-            if (name && *name == Command::longname)
+            if (name && *name == Command::name)
                 return true;
             if constexpr(HasShortName<Command>)
                 if (codepoint && *codepoint == *Command::shortname)
@@ -406,7 +406,7 @@ namespace glap
         {
             if (arg.value.has_value()) [[unlikely]] {
                 return make_unexpected(Error{
-                    .parameter = OutputType::longname,
+                    .parameter = OutputType::name,
                     .value = value,
                     .type = Error::Type::Parameter,
                     .code = Error::Code::DuplicateParameter

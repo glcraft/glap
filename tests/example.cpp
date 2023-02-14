@@ -27,70 +27,16 @@ namespace format {
 #else
 #include <concepts>
 #include <glap/glap.h>
+#include <fmt/format.h>
+#include <iterator>
 #include <string_view>
 #include <variant>
-
-#ifdef GLAP_USE_FMT
-#include <fmt/format.h>
-using namespace format = fmt;
-#else
-#include <format>
 #include <iostream>
-namespace format {
-    using std::format;
-    using std::vformat;
-    using std::format_to;
-    using std::vformat_to;
 
-    template<typename... Args>
-    constexpr auto print(std::format_string<Args...> format_string, Args&& ... args)
-    {
-        std::cout << std::format(format_string, std::forward<decltype(args)>(args)...);
-    }
-}
-#endif
+#include <glap/generators/style.h>
+#include <glap/generators/help.h>
 #endif
 
-template <class T>
-    requires requires { T::type; }
-void print(const T& value) {
-    if constexpr (requires { value.longname; }) {
-        format::print("  --{}: ", value.longname);
-    } else {
-        format::print("  input: ");
-    }
-    if constexpr (requires { value.value; }) { // Value based
-        format::print("\"{}\"", value.value.value());
-    } else if constexpr (requires { value.values; }) { // Container based
-        format::print("[ ");
-        for (const auto& v : value.values) {
-            format::print("\"{}\" ", v.value.value());
-        }
-        format::print("]");
-    } else if constexpr (requires { value.occurences; }) { // Flag
-        format::print("{}x", value.occurences);
-    }
-    format::print("\n");
-}
-template <class Names, class ...P>
-auto print(const glap::model::Command<Names, P...>& command) {
-    format::print("{}: \n", command.longname);
-    ([&] {
-        print(std::get<P>(command.arguments));
-    }(), ...);
-}
-template <auto Name, auto D, class ...C>
-auto print(const glap::model::Program<Name, D, C...>& program) {
-    format::print("{}\n", program.program);
-    ([&] {
-        if (std::holds_alternative<C>(program.command)) {
-            print(std::get<C>(program.command));
-            return true;
-        } else {
-            return false;
-        }
-    }() || ...);
-}
 
 using flag_t = glap::model::Flag<
     glap::Names<"flag", 'f'>
@@ -98,7 +44,7 @@ using flag_t = glap::model::Flag<
 using verbose_t = glap::model::Flag<
     glap::Names<"verbose", 'v'>
 >;
-using help_t = glap::model::Flag<
+using flag_help_t = glap::model::Flag<
     glap::Names<"help", 'h'>
 >;
 using single_param_t = glap::model::Parameter<
@@ -125,22 +71,112 @@ using inputs_t = glap::model::Inputs<
 >;
 
 using command1_t = glap::model::Command<
-    glap::Names<"command1", 'c'>,
-    flag_t,
-    verbose_t,
-    help_t,
+    glap::Names<"command1", 'c'>, 
+    flag_t, 
+    verbose_t, 
+    flag_help_t, 
     inputs_t
 >;
 using command2_t = glap::model::Command<
     glap::Names<"command2">, // notice that there is no short name here
-    single_param_t,
-    single_int_param_t,
-    multi_param_t,
-    help_t,
+    single_param_t, 
+    multi_param_t, 
+    flag_help_t, 
     inputs_t
 >;
 
 using program_t = glap::model::Program<"myprogram", glap::model::DefaultCommand::FirstDefined, command1_t, command2_t>;
+
+using help_flag_t = glap::generators::help::Argument<
+    "flag",
+    glap::generators::help::Description<"test flag">
+>;
+using help_verbose_t = glap::generators::help::Argument<
+    "verbose",
+    glap::generators::help::Description<"test verbose flag">
+>;
+using help_single_param_t = glap::generators::help::Argument<
+    "single_param",
+    glap::generators::help::Description<"test single param">
+>;
+using help_multi_param_t = glap::generators::help::Argument<
+    "multi_param",
+    glap::generators::help::Description<"test multi param">
+>;
+using help_inputs_t = glap::generators::help::Argument<
+    "INPUTS",
+    glap::generators::help::Description<"test inputs">
+>;
+using help_command1_t = glap::generators::help::Command<
+    "command1",
+    glap::generators::help::FullDescription<"first command", "This is the first command defined in the program">,
+    help_flag_t,
+    help_verbose_t,
+    help_single_param_t,
+    help_multi_param_t,
+    help_inputs_t
+>;
+using help_command2_t = glap::generators::help::Command<
+    "command2",
+    glap::generators::help::FullDescription<"second command", "This is the second command defined in the program">,
+    help_single_param_t,
+    single_int_param_t, 
+    help_multi_param_t,
+    help_inputs_t
+>;
+
+using help_program_t = glap::generators::help::Program<
+    "myprogram",
+    glap::generators::help::FullDescription<"myprogram", "This is my program">,
+    help_command1_t,
+    help_command2_t
+>;
+
+template <class T>
+    requires requires { T::type; }
+void print(const T& value) {
+    if constexpr (requires { value.name; }) {
+        fmt::print("  --{}: ", value.name);
+    } else {
+        fmt::print("  input: ");
+    }
+    if constexpr (requires { value.value; }) { // Value based
+        fmt::print("\"{}\"", value.value.value());
+    } else if constexpr (requires { value.values; }) { // Container based
+        fmt::print("[ ");
+        for (const auto& v : value.values) {
+            fmt::print("\"{}\" ", v.value.value());
+        }
+        fmt::print("]");
+    } else if constexpr (requires { value.occurences; }) { // Flag
+        fmt::print("{}x", value.occurences);
+    }
+    fmt::print("\n");
+}
+template <class Names, class ...P>
+auto print(const glap::model::Command<Names, P...>& command) {
+    fmt::print("{}: \n", command.name);
+    ([&] {
+        print(std::get<P>(command.arguments));
+    }(), ...);
+}
+template <auto Name, auto D, class ...C>
+auto print(const glap::model::Program<Name, D, C...>& program) {
+    fmt::print("{}\n", program.program);
+    ([&] {
+        if (std::holds_alternative<C>(program.command)) {
+            const auto& command = std::get<C>(program.command);
+            if (command.template get_argument<"help">().occurences > 0) {
+                fmt::print("Help:\n\n{}\n", glap::generators::get_help<help_program_t, C>());
+            } else {
+                print(command);
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }() || ...);
+}
 
 int main(int argc, char** argv)
 {
@@ -154,8 +190,30 @@ int main(int argc, char** argv)
         auto& v = *result;
         print(v);
     } else {
-        format::print("{}\n", result.error().to_string());
+        fmt::print("{}\n\n", result.error().to_string());
+        fmt::print("Help:\n\n{}\n", glap::generators::get_help<help_program_t, program_t>());
         return 1;
     }
+    return 0;
+}
+int main2(int argc, char** argv) {
+    using namespace glap::generators;
+    Style{
+        .foreground_color = colors::foreground::RED,
+        .bold = true,
+        .underlined = true,
+        .italic = true,
+    }.apply();
+    fmt::print("Hello, world!\n");
+    Style{
+        .foreground_color = colors::foreground::BLACK,
+        .background_color = colors::background::GREEN,
+        .bold = true,
+        .underlined = true,
+        .italic = true,
+    }.apply();
+    fmt::print("Hello, world!\n");
+    Style::reset();
+    fmt::print("Hello, world!\n");
     return 0;
 }

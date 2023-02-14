@@ -1,18 +1,19 @@
 #pragma once
 
 #ifndef GLAP_MODULE
-#include "core/utf8.h"
-#include "core/discard.h"
-#include "core/utils.h"
-#include "help.h"
+#include "../../core/utf8.h"
+#include "../../core/discard.h"
+#include "../../core/utils.h"
+#include "../../core/fmt.h"
+#include "../help.h"
 
-#include "model.h"
-#include "parser.h"
+#include "../../model.h"
+#include <concepts>
 #include <cstddef>
 #include <algorithm>
 #endif
 
-namespace glap {
+namespace glap::generators {
     namespace impl {
         template <class P, class H>
         concept IsHelpInputsCompatible = requires { P::type == glap::model::ArgumentType::Input; } && help::IsInputs<H>;
@@ -20,15 +21,14 @@ namespace glap {
         struct FindByName
         {};
         template <class FromParser, class T, class ...Others>
-            requires (HasLongName<FromParser> && FromParser::longname == T::name) || IsHelpInputsCompatible<FromParser, T>
+            requires (HasLongName<FromParser> && FromParser::name == T::name) || IsHelpInputsCompatible<FromParser, T>
         struct FindByName<FromParser, T, Others...>
         {
         public:
             using type = T;
         };
         template <class Named, class T, class ...Others>
-            requires ((!HasLongName<Named> || Named::longname != T::name) && !IsHelpInputsCompatible<Named, T>)
-        struct FindByName<Named, T, Others...> : FindByName<Named, Others...>
+        struct FindByName<Named, T, Others...> : FindByName<Named, Others...> 
         {};
         template <class FromParser>
         struct FindByName<FromParser>
@@ -42,7 +42,7 @@ namespace glap {
             ([&max, separator_length]() {
                 size_t len = 0;
                 if constexpr (HasNames<FromParser>) {
-                    len = FromParser::longname.length();
+                    len = FromParser::name.length();
                     if constexpr (HasShortName<FromParser>) {
                         len += 1 + separator_length;
                     }
@@ -72,7 +72,7 @@ namespace glap {
             }
             template <class OutputIt, bool FullDescription = false>
             OutputIt description(OutputIt it) const noexcept {
-                if constexpr(help::IsFullDescription<FromHelp>)
+                if constexpr(help::HasFullDescription<FromHelp>)
                     return glap::format_to(it, "{}\n\n{}", FromHelp::short_description, FromHelp::long_description);
                 else
                     return glap::format_to(it, "{}", FromHelp::short_description);
@@ -85,19 +85,22 @@ namespace glap {
                 return it;
             }
         };
-        template<help::IsDescription FromHelp, HasLongName FromParser>
+        template<help::HasDescription FromHelp, class FromParser>
+            requires (HasLongName<FromParser> || requires { FromParser::name; })
         struct BasicHelp<FromHelp, FromParser>
         {
             template <class OutputIt, bool Fullname = false>
             OutputIt name(OutputIt it) const noexcept {
                 if constexpr(Fullname && HasShortName<FromParser>)
-                    return glap::format_to(it, "{}, {}", glap::utils::uni::codepoint_to_utf8(FromParser::shortname.value()), FromParser::longname);
-                else
-                    return glap::format_to(it, "{}", FromParser::longname);
+                    return glap::format_to(it, "{}, {}", glap::utils::uni::codepoint_to_utf8(FromParser::shortname.value()), FromParser::name);
+                else if constexpr(requires { FromParser::name; })
+                    return glap::format_to(it, "{}", FromParser::name);
+                else 
+                    return glap::format_to(it, "{}", FromParser::name);
             }
             template <class OutputIt, bool FullDescription = false>
             OutputIt description(OutputIt it) const noexcept {
-                if constexpr(help::IsFullDescription<FromHelp>)
+                if constexpr(FullDescription && help::HasFullDescription<FromHelp>)
                     return glap::format_to(it, "{}\n\n{}", FromHelp::short_description, FromHelp::long_description);
                 else
                     return glap::format_to(it, "{}", FromHelp::short_description);
@@ -116,9 +119,9 @@ namespace glap {
             template <class OutputIt, bool Fullname = false>
             OutputIt name(OutputIt it) const noexcept {
                 if constexpr(Fullname && HasNames<FromParser> && FromParser::shortname.has_value())
-                    return glap::format_to(it, "{}, {}", glap::utils::uni::codepoint_to_utf8(FromParser::shortname.value()), FromParser::longname);
+                    return glap::format_to(it, "{}, {}", glap::utils::uni::codepoint_to_utf8(FromParser::shortname.value()), FromParser::name);
                 else
-                    return glap::format_to(it, "{}", FromParser::longname);
+                    return glap::format_to(it, "{}", FromParser::name);
             }
             template <class OutputIt, bool FullDescription = false>
             OutputIt description(OutputIt it) const noexcept {
@@ -135,13 +138,14 @@ namespace glap {
         static constexpr auto basic_help = BasicHelp<FromHelp, FromParser>{};
     }
 
-    template<StringLiteral NameHelp, help::IsDescription Desc, class ...CommandsHelp, StringLiteral NameParser, DefaultCommand def_cmd, class... CommandsParser>
-    struct Help<help::model::Program<NameHelp, Desc, CommandsHelp...>, Parser<NameParser, def_cmd, CommandsParser...>> {
-        using ProgramHelp = help::model::Program<NameHelp, Desc, CommandsHelp...>;
-        using ProgramParser = Parser<NameParser, def_cmd, CommandsParser...>;
-
-        [[nodiscard]] constexpr std::string operator()() const noexcept {
+    template<StringLiteral NameHelp, help::HasDescription Desc, class ...CommandsHelp, StringLiteral NameParser, model::DefaultCommand def_cmd, class... CommandsParser>
+    struct Help<help::Program<NameHelp, Desc, CommandsHelp...>, model::Program<NameParser, def_cmd, CommandsParser...>> {
+        using ProgramHelp = help::Program<NameHelp, Desc, CommandsHelp...>;
+        using ProgramParser = model::Program<NameParser, def_cmd, CommandsParser...>;
+        
+        [[nodiscard]] std::string operator()() const noexcept {
             std::string result;
+            result.reserve(1024);
             this->operator()(std::back_inserter(result));
             return result;
         }
@@ -149,7 +153,7 @@ namespace glap {
         constexpr OutputIt operator()(OutputIt it) const noexcept {
             it = this_basic_help.template identity<OutputIt, false, false>(it);
             it = glap::format_to(it, "\n\n");
-            it = glap::format_to(it, "Command{}:\n", sizeof...(CommandsParser) > 1 ? "s" : "");
+            it = glap::format_to(it, "Command{}:", sizeof...(CommandsParser) > 1 ? "s" : "");
             // constexpr auto max_cmd_name_length = impl::max_length<CommandsParser...>(2)+2;
             ([&] {
                 constexpr auto cmd_basic_help = impl::basic_help<typename impl::FindByName<CommandsParser, CommandsHelp...>::type, CommandsParser>;
@@ -164,12 +168,13 @@ namespace glap {
         static constexpr auto this_basic_help = impl::basic_help<ProgramHelp, ProgramParser>;
     };
 
-    template<StringLiteral Name, help::IsDescription Desc, class ...ParamsHelp, class CommandNames, model::IsArgument... ParamsParser>
-    struct Help<help::model::Command<Name, Desc, ParamsHelp...>, model::Command<CommandNames, ParamsParser...>> {
-        using CommandHelp = help::model::Command<Name, Desc, ParamsHelp...>;
+    template<StringLiteral Name, help::HasDescription Desc, class ...ParamsHelp, class CommandNames, model::IsArgument... ParamsParser>
+    struct Help<help::Command<Name, Desc, ParamsHelp...>, model::Command<CommandNames, ParamsParser...>> {
+        using CommandHelp = help::Command<Name, Desc, ParamsHelp...>;
         using CommandParser = model::Command<CommandNames, ParamsParser...>;
-        [[nodiscard]] constexpr std::string operator()() const noexcept {
+        [[nodiscard]] std::string operator()() const noexcept {
             std::string result;
+            result.reserve(1024);
             this->operator()(std::back_inserter(result));
             return result;
         }
@@ -185,7 +190,7 @@ namespace glap {
                     if constexpr(model::IsArgumentTyped<ParamsParser, model::ArgumentType::Parameter>) {
                         it = glap::format_to(it, " [--");
                         it = param_basic_help.template name<OutputIt>(it);
-                        it = glap::format_to(it, " VALUE]");
+                        it = glap::format_to(it, "=VALUE]");
                     } else if constexpr(model::IsArgumentTyped<ParamsParser, model::ArgumentType::Flag>) {
                         it = glap::format_to(it, " [--");
                         it = param_basic_help.template name<OutputIt>(it);
@@ -196,7 +201,7 @@ namespace glap {
                 }(), ...);
                 it = glap::format_to(it, "\n\n");
             }
-            it = glap::format_to(it, "Argument{}:\n", sizeof...(ParamsParser) > 1 ? "s" : "");
+            it = glap::format_to(it, "Argument{}:", sizeof...(ParamsParser) > 1 ? "s" : "");
             ([&] {
                 constexpr auto param_basic_help = impl::basic_help<typename impl::FindByName<ParamsParser, ParamsHelp...>::type, ParamsParser>;
                 constexpr auto spacing = param_name_max_length - impl::max_length<ParamsParser>(2);
@@ -209,4 +214,7 @@ namespace glap {
             static constexpr auto param_name_max_length = impl::max_length<ParamsParser...>(2)+help::PADDING;
             static constexpr auto this_basic_help = impl::basic_help<CommandHelp, CommandParser>;
     };
+    template<StringLiteral NameHelp, help::HasDescription Desc, class ...CommandsHelp, class CommandNames, model::IsArgument... ParamsParser>
+    struct Help<help::Program<NameHelp, Desc, CommandsHelp...>, model::Command<CommandNames, ParamsParser...>> : Help<typename impl::FindByName<CommandNames, CommandsHelp...>::type, model::Command<CommandNames, ParamsParser...>>
+    {};
 }

@@ -88,13 +88,13 @@ namespace glap::impl {
 }
 
 GLAP_EXPORT namespace glap {
-    template <StringLiteral LongName, auto ShortName = discard>
+    template <StringLiteral Name, auto ShortName = discard>
     struct Names {
-        static constexpr std::string_view longname = LongName;
+        static constexpr std::string_view name = Name;
         static constexpr std::optional<char32_t> shortname = impl::optional_value<char32_t, ShortName>;
     };
     template <typename T>
-    concept HasLongName = std::same_as<std::remove_cvref_t<decltype(T::longname)>, std::string_view>;
+    concept HasLongName = std::same_as<std::remove_cvref_t<decltype(T::name)>, std::string_view>;
     template <typename T>
     concept HasNames = HasLongName<T>
         && std::same_as<std::remove_cvref_t<decltype(T::shortname)>, std::optional<char32_t>>;
@@ -117,7 +117,7 @@ namespace glap::impl
     template <HasNames Arg1, HasNames Arg2, class ...ArgN>
     struct NameChecker<Arg1, Arg2, ArgN...>
     {
-        static constexpr bool has_duplicate_longname = Arg1::longname == Arg2::longname || NameChecker<Arg1, ArgN...>::has_duplicate_longname || NameChecker<Arg2, ArgN...>::has_duplicate_longname;
+        static constexpr bool has_duplicate_longname = Arg1::name == Arg2::name || NameChecker<Arg1, ArgN...>::has_duplicate_longname || NameChecker<Arg2, ArgN...>::has_duplicate_longname;
         static constexpr bool has_duplicate_shortname = (Arg1::shortname.has_value() && Arg2::shortname.has_value() && Arg1::shortname.value() == Arg2::shortname.value()) || NameChecker<Arg1, ArgN...>::has_duplicate_shortname || NameChecker<Arg2, ArgN...>::has_duplicate_shortname;
     };
     template <typename Arg1, typename Arg2, class ...ArgN>
