@@ -1,6 +1,6 @@
 # Help text generator
 
-It is currently in development, not usable.
+It is still in development, usable but not yet documented.
 
 ## Utils
 
