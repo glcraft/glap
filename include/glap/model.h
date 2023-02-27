@@ -16,10 +16,16 @@ GLAP_EXPORT namespace glap::model
         Flag,
         Input
     };
-    enum class DefaultCommand {
-        FirstDefined,
-        None
+    template <class Command>
+    struct DefaultCommand {
+        using type = Command;
     };
+    namespace impl {
+        template <class T>
+        struct IsDefaultCommand : std::false_type {};
+        template <class T>
+        struct IsDefaultCommand<DefaultCommand<T>> : std::true_type {};
+    }
 
     template <class T, ArgumentType PType>
     concept IsArgumentTyped = requires {
@@ -28,7 +34,7 @@ GLAP_EXPORT namespace glap::model
 
     template <class ArgNames, auto Resolver = discard, auto Validator = discard>
     struct Parameter : ArgNames, Value<Resolver, Validator> {
-        using value_type = typename impl::ResolverReturnType<decltype(Resolver)>::type;
+        using value_type = typename glap::impl::ResolverReturnType<decltype(Resolver)>::type;
         constexpr Parameter() = default;
         constexpr Parameter(std::string_view v) : Value<Resolver, Validator>(v)
         {}
@@ -37,7 +43,7 @@ GLAP_EXPORT namespace glap::model
 
     template <class ArgNames, auto N = discard, auto Resolver = discard, auto Validator = discard>
     struct Parameters : ArgNames, Container<Parameter<ArgNames, Resolver, Validator>, N> {
-        using value_type = typename impl::ResolverReturnType<decltype(Resolver)>::type;
+        using value_type = typename glap::impl::ResolverReturnType<decltype(Resolver)>::type;
         static constexpr auto resolver = Resolver;
         static constexpr auto validator = Validator;
         static constexpr auto type = ArgumentType::Parameter;
@@ -49,7 +55,7 @@ GLAP_EXPORT namespace glap::model
     };
     template <auto Resolver = discard, auto Validator = discard>
     struct Input : Value<Resolver, Validator> {
-        using value_type = typename impl::ResolverReturnType<decltype(Resolver)>::type;
+        using value_type = typename glap::impl::ResolverReturnType<decltype(Resolver)>::type;
         constexpr Input() = default;
         constexpr Input(std::string_view v) : Value<Resolver, Validator>(v)
         {}
@@ -57,7 +63,7 @@ GLAP_EXPORT namespace glap::model
     };
     template <auto N = discard, auto Resolver = discard, auto Validator = discard>
     struct Inputs : Container<Input<Resolver, Validator>, N> {
-        using value_type = typename impl::ResolverReturnType<decltype(Resolver)>::type;
+        using value_type = typename glap::impl::ResolverReturnType<decltype(Resolver)>::type;
         static constexpr auto resolver = Resolver;
         static constexpr auto validator = Validator;
         static constexpr auto type = ArgumentType::Input;
@@ -71,7 +77,7 @@ GLAP_EXPORT namespace glap::model
         using Params = std::tuple<Arguments...>;
         Params arguments;
     private:
-        using NameCheck = impl::NameChecker<Arguments...>;
+        using NameCheck = glap::impl::NameChecker<Arguments...>;
         static_assert(!NameCheck::has_duplicate_longname, "arguments has duplicate long name");
         static_assert(!NameCheck::has_duplicate_shortname, "arguments has duplicate short name");
 
@@ -108,14 +114,14 @@ GLAP_EXPORT namespace glap::model
         }
 
     };
-    template<StringLiteral Name, DefaultCommand def_cmd, class... Commands>
+    template<StringLiteral Name, class... Commands>
     struct Program {
-        using NameCheck = impl::NameChecker<Commands...>;
+        using NameCheck = glap::impl::NameChecker<Commands...>;
         static_assert(!NameCheck::has_duplicate_longname, "arguments has duplicate long name");
         static_assert(!NameCheck::has_duplicate_shortname, "arguments has duplicate short name");
 
         static constexpr std::string_view name = Name;
-        static constexpr auto default_command = def_cmd;
+        using default_command_t = typename glap::impl::TypeOr<impl::IsDefaultCommand, Discard, Commands...>::type;
         std::string_view program;
         std::variant<Commands...> command;
     };
