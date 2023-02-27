@@ -26,6 +26,14 @@ GLAP_EXPORT namespace glap::model
         template <class T>
         struct IsDefaultCommand<DefaultCommand<T>> : std::true_type {};
     }
+    template <class T>
+    struct GetCommand {
+        using type = T;
+    };
+    template <class T>
+    struct GetCommand<DefaultCommand<T>> {
+        using type = T;
+    };
 
     template <class T, ArgumentType PType>
     concept IsArgumentTyped = requires {
@@ -123,6 +131,6 @@ GLAP_EXPORT namespace glap::model
         static constexpr std::string_view name = Name;
         using default_command_t = typename glap::impl::TypeOr<impl::IsDefaultCommand, Discard, Commands...>::type;
         std::string_view program;
-        std::variant<Commands...> command;
+        std::variant<typename GetCommand<Commands>::type...> command;
     };
 }

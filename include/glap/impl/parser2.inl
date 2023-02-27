@@ -29,7 +29,7 @@ namespace glap
             requires glap::model::impl::IsDefaultCommand<Command>::value && HasLongName<typename Command::command_t>
         static constexpr bool check_names(std::optional<std::string_view> name, std::optional<char32_t> codepoint)
         {
-            return check_names<Command::command_t>(name, codepoint);
+            return check_names<typename Command::command_t>(name, codepoint);
         }
     }
     template <class Model>
@@ -128,8 +128,9 @@ namespace glap
 
                 auto found = ([&]{
                     if (impl::check_names<Commands>(name, codepoint)) {
-                        program.command.template emplace<Commands>();
-                        result = glap::parser<Commands>.parse(std::get<Commands>(program.command), impl::BiIterator(itarg, args.end));
+                        using RealCommand = typename model::GetCommand<Commands>::type;
+                        program.command.template emplace<RealCommand>();
+                        result = glap::parser<RealCommand>.parse(std::get<RealCommand>(program.command), impl::BiIterator(itarg, args.end));
                         return true;
                     }
                     return false;
