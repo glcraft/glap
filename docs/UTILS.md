@@ -9,7 +9,7 @@
 template <StringLiteral Name, auto ShortName = discard>
 struct Names {
     static constexpr std::string_view name = Name;
-    static constexpr std::optional<char32_t> shortname = impl::optional_value<char32_t, ShortName>;
+    static constexpr std::optional<char32_t> shortname = impl::Optional<char32_t, ShortName>;
 };
 ```
 

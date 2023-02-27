@@ -28,11 +28,11 @@ GLAP_EXPORT namespace glap::model
     }
     template <class T>
     struct GetCommand {
-        using type = T;
+        using CommandType = T;
     };
     template <class T>
     struct GetCommand<DefaultCommand<T>> {
-        using type = T;
+        using CommandType = T;
     };
 
     template <class T, ArgumentType PType>
@@ -129,7 +129,7 @@ GLAP_EXPORT namespace glap::model
         static_assert(!NameCheck::has_duplicate_shortname, "arguments has duplicate short name");
 
         static constexpr std::string_view name = Name;
-        using default_command_t = typename glap::impl::TypeOr<impl::IsDefaultCommand, Discard, Commands...>::type;
+        using default_command_t = typename glap::impl::TypeSelectorTrait<impl::IsDefaultCommand, Discard, Commands...>::type;
         std::string_view program;
         std::variant<typename GetCommand<Commands>::type...> command;
     };

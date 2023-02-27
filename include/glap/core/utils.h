@@ -41,74 +41,74 @@ GLAP_EXPORT namespace glap
 
 namespace glap::impl {
     template <template<class> class Predicate, class Type>
-    concept MetaPredicate =  requires {
+    concept IsMetaPredicate =  requires {
         {Predicate<Type>::value} -> std::convertible_to<bool>;
     };
 
-    template <template<class> class Predicate, class Def, class Type, class ...Ts>
-        requires MetaPredicate<Predicate, Type>
-    struct TypeOr {
-        using type = typename std::conditional<Predicate<Type>::value, Type, typename TypeOr<Predicate, Def, Ts...>::type>::type;
+    template <template<class> class Predicate, class DefaultType, class CurrentType, class ...Ts>
+        requires IsMetaPredicate<Predicate, CurrentType>
+    struct TypeSelectorTrait {
+        using type = typename std::conditional<Predicate<CurrentType>::value, CurrentType, typename TypeSelectorTrait<Predicate, DefaultType, Ts...>::type>::type;
     };
-    template <template<class> class Predicate, class Def, class Type>
-        requires MetaPredicate<Predicate, Type>
-    struct TypeOr<Predicate, Def, Type> {
-        using type = typename std::conditional<Predicate<Type>::value, Type, Def>::type;
+    template <template<class> class Predicate, class DefaultType, class CurrentType>
+        requires IsMetaPredicate<Predicate, CurrentType>
+    struct TypeSelectorTrait<Predicate, DefaultType, CurrentType> {
+        using type = typename std::conditional<Predicate<CurrentType>::value, CurrentType, DefaultType>::type;
     };
-    template <template<class> class Predicate, class Def, class Type, class ...Ts>
-        requires MetaPredicate<Predicate, Type>
-    using type_or_t = typename TypeOr<Predicate, Def, Type, Ts...>::type;
+    template <template<class> class Predicate, class DefaultType, class CurrentType, class ...Ts>
+        requires IsMetaPredicate<Predicate, CurrentType>
+    using TypeSelector = typename TypeSelectorTrait<Predicate, DefaultType, CurrentType, Ts...>::type;
 
     template <auto Value, auto Default>
-    struct ValueOr {
+    struct ValueOrTrait {
         static constexpr auto value = Value;
     };
     template <size_t Default>
-    struct ValueOr<glap::discard, Default> {
+    struct ValueOrTrait<glap::discard, Default> {
         static constexpr auto value = Default;
     };
     template <auto Value, auto Default>
-    inline constexpr auto value_or_v = ValueOr<Value, Default>::value;
+    inline constexpr auto ValueOr = ValueOrTrait<Value, Default>::value;
 
     template <auto I, auto V>
-    struct IsEqual
+    struct IsEqualTrait
     {
         static constexpr bool value = false;
     };
     template <auto V>
-    struct IsEqual<V, V>
+    struct IsEqualTrait<V, V>
     {
         static constexpr bool value = true;
     };
     template <auto I, auto V>
-    inline constexpr bool is_equal_v = IsEqual<I, V>::value;
+    inline constexpr bool IsEqual = IsEqualTrait<I, V>::value;
 
     template <class T, auto SN>
-    struct OptionalValue {
+    struct OptionalTrait {
         static constexpr auto value = std::optional<T>{SN};
     };
     template<class T>
-    struct OptionalValue<T, discard> {
+    struct OptionalTrait<T, discard> {
         static constexpr auto value = std::optional<T>{};
     };
     template<>
-    struct OptionalValue<char32_t, 0> {
+    struct OptionalTrait<char32_t, 0> {
         static constexpr auto value = std::optional<char32_t>{};
     };
     template<auto V>
         requires impl::convertible_to<decltype(V), std::string_view> && (std::string_view(V).size() == 0)
-    struct OptionalValue<std::string_view, V> {
+    struct OptionalTrait<std::string_view, V> {
         static constexpr auto value = std::optional<std::string_view>{};
     };
     template <class T, auto SN>
-    inline constexpr auto optional_value = OptionalValue<T, SN>::value;
+    inline constexpr auto Optional = OptionalTrait<T, SN>::value;
 }
 
 GLAP_EXPORT namespace glap {
     template <StringLiteral Name, auto ShortName = discard>
     struct Names {
         static constexpr std::string_view name = Name;
-        static constexpr std::optional<char32_t> shortname = impl::optional_value<char32_t, ShortName>;
+        static constexpr std::optional<char32_t> shortname = impl::Optional<char32_t, ShortName>;
     };
     template <typename T>
     concept HasLongName = std::same_as<std::remove_cvref_t<decltype(T::name)>, std::string_view>;

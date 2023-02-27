@@ -95,8 +95,7 @@ target("glap-example")
     set_default(false)
     add_deps("glap")
     add_files(
-        "tests/example.cpp",
-        "tests/WIP_API.cpp"
+        "tests/example.cpp"
     )
 
 if has_config("enable_module") then
