@@ -61,11 +61,11 @@ namespace glap::impl {
 
     template <auto Value, auto Default>
     struct ValueOr {
-        static constexpr auto value = Default;
-    };
-    template <auto Value, size_t Default>
-    struct ValueOr<Value, Default> {
         static constexpr auto value = Value;
+    };
+    template <size_t Default>
+    struct ValueOr<glap::discard, Default> {
+        static constexpr auto value = Default;
     };
     template <auto Value, auto Default>
     inline constexpr auto value_or_v = ValueOr<Value, Default>::value;
