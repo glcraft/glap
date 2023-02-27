@@ -41,29 +41,28 @@ GLAP_EXPORT namespace glap
 
 namespace glap::impl {
 
-    template <auto Value, size_t Default>
+    template <auto Value, auto Default>
     struct ValueOr {
         static constexpr auto value = Default;
     };
     template <auto Value, size_t Default>
-        requires impl::convertible_to<decltype(Value), size_t>
     struct ValueOr<Value, Default> {
-        static constexpr size_t value = Value;
+        static constexpr auto value = Value;
     };
-    template <auto Value, size_t Default>
+    template <auto Value, auto Default>
     inline constexpr auto value_or_v = ValueOr<Value, Default>::value;
 
-    template <auto I, size_t V>
+    template <auto I, auto V>
     struct IsEqual
     {
         static constexpr bool value = false;
     };
-    template <size_t V>
+    template <auto V>
     struct IsEqual<V, V>
     {
         static constexpr bool value = true;
     };
-    template <auto I, size_t V>
+    template <auto I, auto V>
     inline constexpr bool is_equal_v = IsEqual<I, V>::value;
 
     template <class T, auto SN>
