@@ -40,6 +40,24 @@ GLAP_EXPORT namespace glap
 }
 
 namespace glap::impl {
+    template <template<class> class Predicate, class Type>
+    concept MetaPredicate =  requires {
+        {Predicate<Type>::value} -> std::convertible_to<bool>;
+    };
+
+    template <template<class> class Predicate, class Def, class Type, class ...Ts>
+        requires MetaPredicate<Predicate, Type>
+    struct TypeOr {
+        using type = typename std::conditional<Predicate<Type>::value, Type, typename TypeOr<Predicate, Def, Ts...>::type>::type;
+    };
+    template <template<class> class Predicate, class Def, class Type>
+        requires MetaPredicate<Predicate, Type>
+    struct TypeOr<Predicate, Def, Type> {
+        using type = typename std::conditional<Predicate<Type>::value, Type, Def>::type;
+    };
+    template <template<class> class Predicate, class Def, class Type, class ...Ts>
+        requires MetaPredicate<Predicate, Type>
+    using type_or_t = typename TypeOr<Predicate, Def, Type, Ts...>::type;
 
     template <auto Value, auto Default>
     struct ValueOr {
