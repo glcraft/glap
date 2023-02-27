@@ -1,6 +1,8 @@
 #pragma once
 
 #ifndef GLAP_MODULE
+#include "glap/core/discard.h"
+#include "glap/core/utils.h"
 #include "../parser.h"
 #include "../model.h"
 #include "glap/core/expected.h"
@@ -22,6 +24,12 @@ namespace glap
                 if (codepoint && *codepoint == *Command::shortname)
                     return true;
             return false;
+        }
+        template <class Command>
+            requires glap::model::impl::IsDefaultCommand<Command>::value && HasLongName<typename Command::command_t>
+        static constexpr bool check_names(std::optional<std::string_view> name, std::optional<char32_t> codepoint)
+        {
+            return check_names<Command::command_t>(name, codepoint);
         }
     }
     template <class Model>
@@ -50,10 +58,11 @@ namespace glap
         std::optional<std::variant<std::string_view, char32_t>> name;
         std::optional<std::string_view> value;
     };
-    template <StringLiteral Name, model::DefaultCommand def_cmd, class... Commands>
-    class Parser<model::Program<Name, def_cmd, Commands...>> : public Parser<Parser<model::Program<Name, def_cmd, Commands...>>> {
+    template <StringLiteral Name, class... Commands>
+    class Parser<model::Program<Name, Commands...>> : public Parser<Parser<model::Program<Name, Commands...>>> {
+        using Self = Parser<model::Program<Name, Commands...>>;
     public:
-        using OutputType = model::Program<Name, def_cmd, Commands...>;
+        using OutputType = model::Program<Name, Commands...>;
         template <class Iter>
         constexpr auto parse(OutputType& program, impl::BiIterator<Iter> args) const -> PosExpected<Iter>
         {
@@ -81,7 +90,7 @@ namespace glap
             }();
             PosExpected<Iter> result;
             if (default_command) {
-                if constexpr (def_cmd == model::DefaultCommand::None) {
+                if constexpr (std::same_as<typename OutputType::default_command_t, glap::Discard>) {
                     return make_unexpected(PositionnedError{
                         .error = Error{
                             .parameter = "",
@@ -93,7 +102,7 @@ namespace glap
                     });
                 } else {
                     program.command.template emplace<0>();
-                    result = glap::parser<std::variant_alternative_t<0, decltype(program.command)>>.parse(std::get<0>(program.command), impl::BiIterator(itarg, args.end));
+                    result = glap::parser<typename OutputType::default_command_t::command_t>.parse(std::get<0>(program.command), impl::BiIterator(itarg, args.end));
                 }
             }
             else {

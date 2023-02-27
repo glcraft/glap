@@ -138,10 +138,10 @@ namespace glap::generators {
         static constexpr auto basic_help = BasicHelp<FromHelp, FromParser>{};
     }
 
-    template<StringLiteral NameHelp, help::HasDescription Desc, class ...CommandsHelp, StringLiteral NameParser, model::DefaultCommand def_cmd, class... CommandsParser>
-    struct Help<help::Program<NameHelp, Desc, CommandsHelp...>, model::Program<NameParser, def_cmd, CommandsParser...>> {
+    template<StringLiteral NameHelp, help::HasDescription Desc, class ...CommandsHelp, StringLiteral NameParser, class... CommandsParser>
+    struct Help<help::Program<NameHelp, Desc, CommandsHelp...>, model::Program<NameParser,CommandsParser...>> {
         using ProgramHelp = help::Program<NameHelp, Desc, CommandsHelp...>;
-        using ProgramParser = model::Program<NameParser, def_cmd, CommandsParser...>;
+        using ProgramParser = model::Program<NameParser, CommandsParser...>;
         
         [[nodiscard]] std::string operator()() const noexcept {
             std::string result;

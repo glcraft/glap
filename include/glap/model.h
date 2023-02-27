@@ -18,7 +18,7 @@ GLAP_EXPORT namespace glap::model
     };
     template <class Command>
     struct DefaultCommand {
-        using type = Command;
+        using command_t = Command;
     };
     namespace impl {
         template <class T>
