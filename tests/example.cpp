@@ -1,3 +1,4 @@
+#include "glap/model.h"
 #ifdef GLAP_USE_MODULE
 #ifndef GLAP_USE_STD_MODULE
 import <concepts>;
@@ -85,7 +86,7 @@ using command2_t = glap::model::Command<
     inputs_t
 >;
 
-using program_t = glap::model::Program<"myprogram", glap::model::DefaultCommand::FirstDefined, command1_t, command2_t>;
+using program_t = glap::model::Program<"myprogram", glap::model::DefaultCommand<command1_t>, command2_t>;
 
 using help_flag_t = glap::generators::help::Argument<
     "flag",
@@ -160,14 +161,15 @@ auto print(const glap::model::Command<Names, P...>& command) {
         print(std::get<P>(command.arguments));
     }(), ...);
 }
-template <auto Name, auto D, class ...C>
-auto print(const glap::model::Program<Name, D, C...>& program) {
+template <auto Name, class ...C>
+auto print(const glap::model::Program<Name, C...>& program) {
     fmt::print("{}\n", program.program);
     ([&] {
-        if (std::holds_alternative<C>(program.command)) {
-            const auto& command = std::get<C>(program.command);
+        using Command = typename glap::model::GetCommand<C>::type;
+        if (std::holds_alternative<Command>(program.command)) {
+            const auto& command = std::get<Command>(program.command);
             if (command.template get_argument<"help">().occurences > 0) {
-                fmt::print("Help:\n\n{}\n", glap::generators::get_help<help_program_t, C>());
+                fmt::print("Help:\n\n{}\n", glap::generators::get_help<help_program_t, Command>());
             } else {
                 print(command);
             }
@@ -191,7 +193,7 @@ int main(int argc, char** argv)
         print(v);
     } else {
         fmt::print("{}\n\n", result.error().to_string());
-        fmt::print("Help:\n\n{}\n", glap::generators::get_help<help_program_t, program_t>());
+        // fmt::print("Help:\n\n{}\n", glap::generators::get_help<help_program_t, program_t>());
         return 1;
     }
     return 0;
