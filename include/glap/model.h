@@ -42,7 +42,7 @@ GLAP_EXPORT namespace glap::model
 
     template <class ArgNames, auto Resolver = discard, auto Validator = discard>
     struct Parameter : ArgNames, Value<Resolver, Validator> {
-        using value_type = typename glap::impl::ResolverReturnType<decltype(Resolver)>::type;
+        using value_type = typename glap::impl::ResolverReturn<decltype(Resolver)>;
         constexpr Parameter() = default;
         constexpr Parameter(std::string_view v) : Value<Resolver, Validator>(v)
         {}
@@ -51,7 +51,7 @@ GLAP_EXPORT namespace glap::model
 
     template <class ArgNames, auto N = discard, auto Resolver = discard, auto Validator = discard>
     struct Parameters : ArgNames, Container<Parameter<ArgNames, Resolver, Validator>, N> {
-        using value_type = typename glap::impl::ResolverReturnType<decltype(Resolver)>::type;
+        using value_type = typename glap::impl::ResolverReturn<decltype(Resolver)>;
         static constexpr auto resolver = Resolver;
         static constexpr auto validator = Validator;
         static constexpr auto type = ArgumentType::Parameter;
@@ -63,7 +63,7 @@ GLAP_EXPORT namespace glap::model
     };
     template <auto Resolver = discard, auto Validator = discard>
     struct Input : Value<Resolver, Validator> {
-        using value_type = typename glap::impl::ResolverReturnType<decltype(Resolver)>::type;
+        using value_type = typename glap::impl::ResolverReturn<decltype(Resolver)>;
         constexpr Input() = default;
         constexpr Input(std::string_view v) : Value<Resolver, Validator>(v)
         {}
@@ -71,7 +71,7 @@ GLAP_EXPORT namespace glap::model
     };
     template <auto N = discard, auto Resolver = discard, auto Validator = discard>
     struct Inputs : Container<Input<Resolver, Validator>, N> {
-        using value_type = typename glap::impl::ResolverReturnType<decltype(Resolver)>::type;
+        using value_type = typename glap::impl::ResolverReturn<decltype(Resolver)>;
         static constexpr auto resolver = Resolver;
         static constexpr auto validator = Validator;
         static constexpr auto type = ArgumentType::Input;

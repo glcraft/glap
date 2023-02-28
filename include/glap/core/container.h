@@ -119,9 +119,9 @@ GLAP_EXPORT namespace glap
     private:
         using n_type = std::remove_cvref_t<decltype(N)>;
         static constexpr auto is_n_discard = std::is_same_v<n_type, Discard>;
-        static constexpr auto is_n_zero = impl::is_equal_v<N, 0>;
+        static constexpr auto is_n_zero = impl::IsEqual<N, 0>;
         using dynamic_vector = std::vector<value_type>;
-        using stack_vector = StackVector<value_type, impl::value_or_v<N, 0>>;
+        using stack_vector = StackVector<value_type, impl::ValueOr<N, 0>>;
     public:
         using container_type = std::conditional_t<is_n_discard || is_n_zero, dynamic_vector, stack_vector>;
         container_type values;
@@ -132,24 +132,24 @@ GLAP_EXPORT namespace glap
 
         [[nodiscard]]constexpr const auto& get(size_t i) const noexcept(noexcept(this->values[i])) {
             if constexpr(std::same_as<container_type, stack_vector>) {
-                assert(i < impl::ValueOr<N, 0>::value, "Index out of bounds");
+                assert(i < impl::ValueOr<N, 0>, "Index out of bounds");
             }
             return this->values[i].value;
         }
         [[nodiscard]]constexpr auto& get(size_t i) noexcept(noexcept(this->values[i])) {
             if constexpr(std::same_as<container_type, stack_vector>) {
-                assert(i < impl::ValueOr<N, 0>::value, "Index out of bounds");
+                assert(i < impl::ValueOr<N, 0>, "Index out of bounds");
             }
             return this->values[i].value;
         }
         template <size_t I>
         [[nodiscard]]constexpr auto& get() noexcept(noexcept(this->values[I])) {
-            static_assert((std::same_as<container_type, stack_vector> && I < impl::ValueOr<N, 0>::value), "Index out of bounds");
+            static_assert((std::same_as<container_type, stack_vector> && I < impl::ValueOr<N, 0>), "Index out of bounds");
             return this->values[I].value;
         }
         template <size_t I>
         [[nodiscard]]constexpr const auto& get() const noexcept(noexcept(this->values[I])) {
-            static_assert((std::same_as<container_type, stack_vector> && I < impl::ValueOr<N, 0>::value), "Index out of bounds");
+            static_assert((std::same_as<container_type, stack_vector> && I < impl::ValueOr<N, 0>), "Index out of bounds");
             return this->values[I].value;
         }
         [[nodiscard]]constexpr auto& operator[](size_t i) noexcept(noexcept(get(i))) {

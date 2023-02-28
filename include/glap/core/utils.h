@@ -48,22 +48,22 @@ namespace glap::impl {
     template <template<class> class Predicate, class DefaultType, class CurrentType, class ...Ts>
         requires IsMetaPredicate<Predicate, CurrentType>
     struct TypeSelectorTrait {
-        using type = typename std::conditional<Predicate<CurrentType>::value, CurrentType, typename TypeSelectorTrait<Predicate, DefaultType, Ts...>::type>::type;
+        using Type = typename std::conditional<Predicate<CurrentType>::value, CurrentType, typename TypeSelectorTrait<Predicate, DefaultType, Ts...>::type>::type;
     };
     template <template<class> class Predicate, class DefaultType, class CurrentType>
         requires IsMetaPredicate<Predicate, CurrentType>
     struct TypeSelectorTrait<Predicate, DefaultType, CurrentType> {
-        using type = typename std::conditional<Predicate<CurrentType>::value, CurrentType, DefaultType>::type;
+        using Type = typename std::conditional<Predicate<CurrentType>::value, CurrentType, DefaultType>::type;
     };
     template <template<class> class Predicate, class DefaultType, class CurrentType, class ...Ts>
         requires IsMetaPredicate<Predicate, CurrentType>
-    using TypeSelector = typename TypeSelectorTrait<Predicate, DefaultType, CurrentType, Ts...>::type;
+    using TypeSelector = typename TypeSelectorTrait<Predicate, DefaultType, CurrentType, Ts...>::Type;
 
     template <auto Value, auto Default>
     struct ValueOrTrait {
         static constexpr auto value = Value;
     };
-    template <size_t Default>
+    template <auto Default>
     struct ValueOrTrait<glap::discard, Default> {
         static constexpr auto value = Default;
     };
@@ -84,31 +84,31 @@ namespace glap::impl {
     inline constexpr bool IsEqual = IsEqualTrait<I, V>::value;
 
     template <class T, auto SN>
-    struct OptionalTrait {
+    struct MetaOptionalTrait {
         static constexpr auto value = std::optional<T>{SN};
     };
     template<class T>
-    struct OptionalTrait<T, discard> {
+    struct MetaOptionalTrait<T, discard> {
         static constexpr auto value = std::optional<T>{};
     };
     template<>
-    struct OptionalTrait<char32_t, 0> {
+    struct MetaOptionalTrait<char32_t, 0> {
         static constexpr auto value = std::optional<char32_t>{};
     };
     template<auto V>
         requires impl::convertible_to<decltype(V), std::string_view> && (std::string_view(V).size() == 0)
-    struct OptionalTrait<std::string_view, V> {
+    struct MetaOptionalTrait<std::string_view, V> {
         static constexpr auto value = std::optional<std::string_view>{};
     };
     template <class T, auto SN>
-    inline constexpr auto Optional = OptionalTrait<T, SN>::value;
+    inline constexpr auto MetaOptional = MetaOptionalTrait<T, SN>::value;
 }
 
 GLAP_EXPORT namespace glap {
     template <StringLiteral Name, auto ShortName = discard>
     struct Names {
         static constexpr std::string_view name = Name;
-        static constexpr std::optional<char32_t> shortname = impl::Optional<char32_t, ShortName>;
+        static constexpr std::optional<char32_t> shortname = impl::MetaOptional<char32_t, ShortName>;
     };
     template <typename T>
     concept HasLongName = std::same_as<std::remove_cvref_t<decltype(T::name)>, std::string_view>;
@@ -150,25 +150,27 @@ namespace glap::impl
         static_assert(!std::is_same_v<Arg1, Arg1>, "Duplicate argument");
     };
     template <class T>
-    struct ResolverReturnType
+    struct ResolverReturnTrait
     {
-        using type = T;
+        using Type = T;
     };
     template <class D>
         requires std::same_as<std::remove_cv_t<D>, Discard>
-    struct ResolverReturnType<D>
+    struct ResolverReturnTrait<D>
     {
-        using type = std::string_view;
+        using Type = std::string_view;
     };
     template <IsResolver T>
-    struct ResolverReturnType<T>
+    struct ResolverReturnTrait<T>
     {
-        using type = typename ResolverReturnType<std::invoke_result_t<T, std::string_view>>::type;
+        using Type = typename ResolverReturnTrait<std::invoke_result_t<T, std::string_view>>::Type;
     };
     template <class T, class D>
         requires std::same_as<std::remove_cv_t<D>, Discard>
-    struct ResolverReturnType<glap::expected<T, D>>
+    struct ResolverReturnTrait<glap::expected<T, D>>
     {
-        using type = T;
+        using Type = T;
     };
+    template <class T>
+    using ResolverReturn = typename ResolverReturnTrait<T>::Type;
 }

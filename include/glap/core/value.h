@@ -12,7 +12,7 @@ GLAP_EXPORT namespace glap
 {
     template <auto Resolver = discard, auto Validator = discard>
     struct Value {
-        using value_type = typename impl::ResolverReturnType<decltype(Resolver)>::type;
+        using value_type = impl::ResolverReturn<decltype(Resolver)>;
         constexpr Value() = default;
         constexpr Value(std::string_view v) : value(v)
         {}
