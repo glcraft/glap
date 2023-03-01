@@ -21,7 +21,7 @@ namespace glap
             if (name && *name == Command::name)
                 return true;
             if constexpr(HasShortName<Command>)
-                if (codepoint && *codepoint == *Command::shortname)
+                if (codepoint && *codepoint == *Command::SHORTNAME)
                     return true;
             return false;
         }

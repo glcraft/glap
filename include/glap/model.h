@@ -86,8 +86,8 @@ GLAP_EXPORT namespace glap::model
         Params arguments;
     private:
         using NameCheck = glap::impl::NameChecker<Arguments...>;
-        static_assert(!NameCheck::has_duplicate_longname, "arguments has duplicate long name");
-        static_assert(!NameCheck::has_duplicate_shortname, "arguments has duplicate short name");
+        static_assert(!NameCheck::HAS_DUPLICATE_LONGNAME, "arguments has duplicate long name");
+        static_assert(!NameCheck::HAS_DUPLICATE_SHORTNAME, "arguments has duplicate short name");
 
 
         static constexpr size_t NbParams = sizeof...(Arguments);
@@ -125,8 +125,8 @@ GLAP_EXPORT namespace glap::model
     template<StringLiteral Name, class... Commands>
     struct Program {
         using NameCheck = glap::impl::NameChecker<Commands...>;
-        static_assert(!NameCheck::has_duplicate_longname, "arguments has duplicate long name");
-        static_assert(!NameCheck::has_duplicate_shortname, "arguments has duplicate short name");
+        static_assert(!NameCheck::HAS_DUPLICATE_LONGNAME, "arguments has duplicate long name");
+        static_assert(!NameCheck::HAS_DUPLICATE_SHORTNAME, "arguments has duplicate short name");
 
         static constexpr std::string_view name = Name;
         using default_command_t = typename glap::impl::TypeSelectorTrait<impl::IsDefaultCommand, Discard, Commands...>::type;

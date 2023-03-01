@@ -117,13 +117,12 @@ GLAP_EXPORT namespace glap
     public:
         using value_type = T;
     private:
-        using n_type = std::remove_cvref_t<decltype(N)>;
-        static constexpr auto is_n_discard = std::is_same_v<n_type, Discard>;
-        static constexpr auto is_n_zero = impl::IsEqual<N, 0>;
+        static constexpr auto IS_N_DISCARD = std::is_same_v<std::remove_cvref_t<decltype(N)>, Discard>;
+        static constexpr auto IS_N_ZERO = impl::IsEqual<N, 0>;
         using dynamic_vector = std::vector<value_type>;
         using stack_vector = StackVector<value_type, impl::ValueOr<N, 0>>;
     public:
-        using container_type = std::conditional_t<is_n_discard || is_n_zero, dynamic_vector, stack_vector>;
+        using container_type = std::conditional_t<IS_N_DISCARD || IS_N_ZERO, dynamic_vector, stack_vector>;
         container_type values;
 
         [[nodiscard]]constexpr auto size() const noexcept {

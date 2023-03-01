@@ -92,7 +92,7 @@ namespace glap::generators {
             template <class OutputIt, bool Fullname = false>
             OutputIt name(OutputIt it) const noexcept {
                 if constexpr(Fullname && HasShortName<FromParser>)
-                    return glap::format_to(it, "{}, {}", glap::utils::uni::codepoint_to_utf8(FromParser::shortname.value()), FromParser::name);
+                    return glap::format_to(it, "{}, {}", glap::utils::uni::codepoint_to_utf8(FromParser::SHORTNAME.value()), FromParser::name);
                 else if constexpr(requires { FromParser::name; })
                     return glap::format_to(it, "{}", FromParser::name);
                 else 
@@ -118,8 +118,8 @@ namespace glap::generators {
         {
             template <class OutputIt, bool Fullname = false>
             OutputIt name(OutputIt it) const noexcept {
-                if constexpr(Fullname && HasNames<FromParser> && FromParser::shortname.has_value())
-                    return glap::format_to(it, "{}, {}", glap::utils::uni::codepoint_to_utf8(FromParser::shortname.value()), FromParser::name);
+                if constexpr(Fullname && HasNames<FromParser> && FromParser::SHORTNAME.has_value())
+                    return glap::format_to(it, "{}, {}", glap::utils::uni::codepoint_to_utf8(FromParser::SHORTNAME.value()), FromParser::name);
                 else
                     return glap::format_to(it, "{}", FromParser::name);
             }
