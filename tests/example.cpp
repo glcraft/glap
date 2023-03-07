@@ -142,7 +142,10 @@ void print(const T& value) {
         fmt::print("  input: ");
     }
     if constexpr (requires { value.value; }) { // Value based
-        fmt::print("\"{}\"", value.value.value());
+        if (value.value)
+            fmt::print("\"{}\"", value.value.value());
+        else
+            fmt::print("None");
     } else if constexpr (requires { value.values; }) { // Container based
         fmt::print("[ ");
         for (const auto& v : value.values) {
