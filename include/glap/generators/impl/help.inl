@@ -21,7 +21,7 @@ namespace glap::generators {
         struct FindByName
         {};
         template <class FromParser, class T, class ...Others>
-            requires (HasLongName<FromParser> && FromParser::name == T::name) || IsHelpInputsCompatible<FromParser, T>
+            requires (HasLongName<FromParser> && FromParser::NAME == T::name) || IsHelpInputsCompatible<FromParser, T>
         struct FindByName<FromParser, T, Others...>
         {
         public:
@@ -42,7 +42,7 @@ namespace glap::generators {
             ([&max, separator_length]() {
                 size_t len = 0;
                 if constexpr (HasNames<FromParser>) {
-                    len = FromParser::name.length();
+                    len = FromParser::NAME.length();
                     if constexpr (HasShortName<FromParser>) {
                         len += 1 + separator_length;
                     }
@@ -86,17 +86,17 @@ namespace glap::generators {
             }
         };
         template<help::HasDescription FromHelp, class FromParser>
-            requires (HasLongName<FromParser> || requires { FromParser::name; })
+            requires (HasLongName<FromParser> || requires { FromParser::NAME; })
         struct BasicHelp<FromHelp, FromParser>
         {
             template <class OutputIt, bool Fullname = false>
             OutputIt name(OutputIt it) const noexcept {
                 if constexpr(Fullname && HasShortName<FromParser>)
-                    return glap::format_to(it, "{}, {}", glap::utils::uni::codepoint_to_utf8(FromParser::SHORTNAME.value()), FromParser::name);
-                else if constexpr(requires { FromParser::name; })
-                    return glap::format_to(it, "{}", FromParser::name);
+                    return glap::format_to(it, "{}, {}", glap::utils::uni::codepoint_to_utf8(FromParser::SHORTNAME.value()), FromParser::NAME);
+                else if constexpr(requires { FromParser::NAME; })
+                    return glap::format_to(it, "{}", FromParser::NAME);
                 else 
-                    return glap::format_to(it, "{}", FromParser::name);
+                    return glap::format_to(it, "{}", FromParser::NAME);
             }
             template <class OutputIt, bool FullDescription = false>
             OutputIt description(OutputIt it) const noexcept {
@@ -119,9 +119,9 @@ namespace glap::generators {
             template <class OutputIt, bool Fullname = false>
             OutputIt name(OutputIt it) const noexcept {
                 if constexpr(Fullname && HasNames<FromParser> && FromParser::SHORTNAME.has_value())
-                    return glap::format_to(it, "{}, {}", glap::utils::uni::codepoint_to_utf8(FromParser::SHORTNAME.value()), FromParser::name);
+                    return glap::format_to(it, "{}, {}", glap::utils::uni::codepoint_to_utf8(FromParser::SHORTNAME.value()), FromParser::NAME);
                 else
-                    return glap::format_to(it, "{}", FromParser::name);
+                    return glap::format_to(it, "{}", FromParser::NAME);
             }
             template <class OutputIt, bool FullDescription = false>
             OutputIt description(OutputIt it) const noexcept {
@@ -216,5 +216,8 @@ namespace glap::generators {
     };
     template<StringLiteral NameHelp, help::HasDescription Desc, class ...CommandsHelp, class CommandNames, model::IsArgument... ParamsParser>
     struct Help<help::Program<NameHelp, Desc, CommandsHelp...>, model::Command<CommandNames, ParamsParser...>> : Help<typename impl::FindByName<CommandNames, CommandsHelp...>::type, model::Command<CommandNames, ParamsParser...>>
+    {};
+    template<class FromHelp, class Command>
+    struct Help<FromHelp, model::DefaultCommand<Command>> : Help<FromHelp, Command>
     {};
 }

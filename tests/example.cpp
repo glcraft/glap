@@ -156,7 +156,7 @@ void print(const T& value) {
 }
 template <class Names, class ...P>
 auto print(const glap::model::Command<Names, P...>& command) {
-    fmt::print("{}: \n", command.name);
+    fmt::print("{}: \n", command.NAME);
     ([&] {
         print(std::get<P>(command.arguments));
     }(), ...);
@@ -165,7 +165,7 @@ template <auto Name, class ...C>
 auto print(const glap::model::Program<Name, C...>& program) {
     fmt::print("{}\n", program.program);
     ([&] {
-        using Command = typename glap::model::GetCommand<C>::type;
+        using Command = typename glap::model::GetCommand<C>::Type;
         if (std::holds_alternative<Command>(program.command)) {
             const auto& command = std::get<Command>(program.command);
             if (command.template get_argument<"help">().occurences > 0) {

@@ -18,7 +18,7 @@ namespace glap::generators {
         concept HasFullDescription = HasDescription<T> 
             && std::same_as<std::remove_cvref_t<decltype(T::long_description)>, std::string_view>;
         template <class T>
-        concept IsInputs = (T::name == INPUTS_NAME);
+        concept IsInputs = (T::NAME == INPUTS_NAME);
 
         template<StringLiteral Short>
         struct Description {

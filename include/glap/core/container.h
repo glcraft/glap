@@ -119,36 +119,39 @@ GLAP_EXPORT namespace glap
     private:
         static constexpr auto IS_N_DISCARD = std::is_same_v<std::remove_cvref_t<decltype(N)>, Discard>;
         static constexpr auto IS_N_ZERO = impl::IsEqual<N, 0>;
-        using dynamic_vector = std::vector<value_type>;
-        using stack_vector = StackVector<value_type, impl::ValueOr<N, 0>>;
+        using DynVectorType = std::vector<value_type>;
+        using StackVectorType = StackVector<value_type, impl::ValueOr<N, 0>>;
     public:
-        using container_type = std::conditional_t<IS_N_DISCARD || IS_N_ZERO, dynamic_vector, stack_vector>;
-        container_type values;
+        using ContainerType = std::conditional_t<IS_N_DISCARD || IS_N_ZERO, DynVectorType, StackVectorType>;
+        ContainerType values;
+    private:
+        static constexpr auto IS_STACK_VECTOR = std::is_same_v<ContainerType, StackVectorType>;
+    public:
 
         [[nodiscard]]constexpr auto size() const noexcept {
             return values.size();
         }
 
         [[nodiscard]]constexpr const auto& get(size_t i) const noexcept(noexcept(this->values[i])) {
-            if constexpr(std::same_as<container_type, stack_vector>) {
+            if constexpr(IS_STACK_VECTOR) {
                 assert(i < impl::ValueOr<N, 0>, "Index out of bounds");
             }
             return this->values[i].value;
         }
         [[nodiscard]]constexpr auto& get(size_t i) noexcept(noexcept(this->values[i])) {
-            if constexpr(std::same_as<container_type, stack_vector>) {
+            if constexpr(IS_STACK_VECTOR) {
                 assert(i < impl::ValueOr<N, 0>, "Index out of bounds");
             }
             return this->values[i].value;
         }
         template <size_t I>
         [[nodiscard]]constexpr auto& get() noexcept(noexcept(this->values[I])) {
-            static_assert((std::same_as<container_type, stack_vector> && I < impl::ValueOr<N, 0>), "Index out of bounds");
+            static_assert((IS_STACK_VECTOR && I < impl::ValueOr<N, 0>), "Index out of bounds");
             return this->values[I].value;
         }
         template <size_t I>
         [[nodiscard]]constexpr const auto& get() const noexcept(noexcept(this->values[I])) {
-            static_assert((std::same_as<container_type, stack_vector> && I < impl::ValueOr<N, 0>), "Index out of bounds");
+            static_assert((IS_STACK_VECTOR && I < impl::ValueOr<N, 0>), "Index out of bounds");
             return this->values[I].value;
         }
         [[nodiscard]]constexpr auto& operator[](size_t i) noexcept(noexcept(get(i))) {

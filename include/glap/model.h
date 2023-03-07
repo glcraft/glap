@@ -18,7 +18,7 @@ GLAP_EXPORT namespace glap::model
     };
     template <class Command>
     struct DefaultCommand : public Command {
-        using command_t = Command;
+        using CommandType = Command;
     };
     namespace impl {
         template <class T>
@@ -28,11 +28,11 @@ GLAP_EXPORT namespace glap::model
     }
     template <class T>
     struct GetCommand {
-        using CommandType = T;
+        using Type = T;
     };
     template <class T>
     struct GetCommand<DefaultCommand<T>> {
-        using CommandType = T;
+        using Type = T;
     };
 
     template <class T, ArgumentType PType>
@@ -97,7 +97,7 @@ GLAP_EXPORT namespace glap::model
         template <size_t i, StringLiteral lit>
         static consteval size_t _get_argument_id() noexcept {
             static_assert((i < NbParams), "Argument not found");
-            if constexpr (Param<i>::name == lit) {
+            if constexpr (Param<i>::NAME == lit) {
                 return i;
             } else {
                 return _get_argument_id<i + 1, lit>();
@@ -129,8 +129,8 @@ GLAP_EXPORT namespace glap::model
         static_assert(!NameCheck::HAS_DUPLICATE_SHORTNAME, "arguments has duplicate short name");
 
         static constexpr std::string_view name = Name;
-        using default_command_t = typename glap::impl::TypeSelectorTrait<impl::IsDefaultCommand, Discard, Commands...>::type;
+        using DefaultCommandType = typename glap::impl::TypeSelectorTrait<impl::IsDefaultCommand, Discard, Commands...>::type;
         std::string_view program;
-        std::variant<typename GetCommand<Commands>::type...> command;
+        std::variant<typename GetCommand<Commands>::Type...> command;
     };
 }

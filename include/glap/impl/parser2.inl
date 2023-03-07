@@ -18,19 +18,19 @@ namespace glap
         template <HasLongName Command>
         static constexpr bool check_names(std::optional<std::string_view> name, std::optional<char32_t> codepoint)
         {
-            if (name && *name == Command::name)
+            if (name && *name == Command::NAME)
                 return true;
             if constexpr(HasShortName<Command>)
                 if (codepoint && *codepoint == *Command::SHORTNAME)
                     return true;
             return false;
         }
-        template <class Command>
-            requires glap::model::impl::IsDefaultCommand<Command>::value && HasLongName<typename Command::command_t>
-        static constexpr bool check_names(std::optional<std::string_view> name, std::optional<char32_t> codepoint)
-        {
-            return check_names<typename Command::command_t>(name, codepoint);
-        }
+        // template <class Command>
+        //     requires glap::model::impl::IsDefaultCommand<Command>::VALUE && HasLongName<typename Command::CommandType>
+        // static constexpr bool check_names(std::optional<std::string_view> name, std::optional<char32_t> codepoint)
+        // {
+        //     return check_names<typename Command::CommandType>(name, codepoint);
+        // }
     }
     template <class Model>
     class Parser<Parser<Model>>
@@ -90,7 +90,7 @@ namespace glap
             }();
             PosExpected<Iter> result;
             if (default_command) {
-                if constexpr (std::same_as<typename OutputType::default_command_t, glap::Discard>) {
+                if constexpr (std::same_as<typename OutputType::DefaultCommandType, glap::Discard>) {
                     return make_unexpected(PositionnedError{
                         .error = Error{
                             .parameter = "",
@@ -102,7 +102,7 @@ namespace glap
                     });
                 } else {
                     program.command.template emplace<0>();
-                    result = glap::parser<typename OutputType::default_command_t::command_t>.parse(std::get<0>(program.command), impl::BiIterator(itarg, args.end));
+                    result = glap::parser<typename OutputType::DefaultCommandType::CommandType>.parse(std::get<0>(program.command), impl::BiIterator(itarg, args.end));
                 }
             }
             else {
@@ -128,7 +128,7 @@ namespace glap
 
                 auto found = ([&]{
                     if (impl::check_names<Commands>(name, codepoint)) {
-                        using RealCommand = typename model::GetCommand<Commands>::type;
+                        using RealCommand = typename model::GetCommand<Commands>::Type;
                         program.command.template emplace<RealCommand>();
                         result = glap::parser<RealCommand>.parse(std::get<RealCommand>(program.command), impl::BiIterator(itarg, args.end));
                         return true;
@@ -416,7 +416,7 @@ namespace glap
         {
             if (arg.value.has_value()) [[unlikely]] {
                 return make_unexpected(Error{
-                    .parameter = OutputType::name,
+                    .parameter = OutputType::NAME,
                     .value = value,
                     .type = Error::Type::Parameter,
                     .code = Error::Code::DuplicateParameter
