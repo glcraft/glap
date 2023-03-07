@@ -33,7 +33,7 @@ glap::expected<T, glap::Discard> from_chars(std::string_view v) {
     if (ch_result.ec == std::errc()) {
         return result;
     } else {
-        return glap::make_unexpected(glap::discard);
+        return glap::make_unexpected(glap::DISCARD);
     }
 }
 
@@ -42,7 +42,7 @@ glap::expected<float, glap::Discard> from_chars<float>(std::string_view v) {
     try {
         return std::stof(std::string(v));
     } catch (const std::invalid_argument&) {
-        return glap::make_unexpected(glap::discard);
+        return glap::make_unexpected(glap::DISCARD);
     }
 }
 template <>
@@ -50,7 +50,7 @@ glap::expected<double, glap::Discard> from_chars<double>(std::string_view v) {
     try {
         return std::stod(std::string(v));
     } catch (const std::invalid_argument&) {
-        return glap::make_unexpected(glap::discard);
+        return glap::make_unexpected(glap::DISCARD);
     }
 }
 template <>
@@ -58,7 +58,7 @@ glap::expected<long double, glap::Discard> from_chars<long double>(std::string_v
     try {
         return std::stold(std::string(v));
     } catch (const std::invalid_argument&) {
-        return glap::make_unexpected(glap::discard);
+        return glap::make_unexpected(glap::DISCARD);
     }
 }
 
@@ -74,15 +74,15 @@ glap::expected<Point, glap::Discard> from_chars<Point>(std::string_view v) {
     Point result;
     auto pos = v.find(',');
     if (pos == std::string_view::npos) {
-        return glap::make_unexpected(glap::discard);
+        return glap::make_unexpected(glap::DISCARD);
     }
     auto ch_result = std::from_chars(v.data(), v.data() + pos, result.x);
     if (ch_result.ec != std::errc()) {
-        return glap::make_unexpected(glap::discard);
+        return glap::make_unexpected(glap::DISCARD);
     }
     ch_result = std::from_chars(v.data() + pos + 1, v.data() + v.size(), result.y);
     if (ch_result.ec != std::errc()) {
-        return glap::make_unexpected(glap::discard);
+        return glap::make_unexpected(glap::DISCARD);
     }
     return result;
 }
@@ -93,23 +93,23 @@ using Command1 = glap::model::Command<glap::Names<"command1", 't'>,
     glap::model::Input<>
 >;
 
-using Command2 = glap::model::Command<glap::Names<"command2", glap::discard>,
+using Command2 = glap::model::Command<glap::Names<"command2", glap::DISCARD>,
     glap::model::Flag<glap::Names<"flag", 'f'>>,
-    glap::model::Parameter<glap::Names<"param", 'a'>, glap::discard, test_is_hello_world>,
+    glap::model::Parameter<glap::Names<"param", 'a'>, glap::DISCARD, test_is_hello_world>,
     glap::model::Parameters<glap::Names<"params", 'b'>>,
     glap::model::Parameters<glap::Names<"stack_args", 'c'>, 2>,
     glap::model::Inputs<>
 >;
 
-using Command3 = glap::model::Command<glap::Names<"command3", glap::discard>,
-    glap::model::Parameter<glap::Names<"float", glap::discard>, from_chars<float>>,
-    glap::model::Parameter<glap::Names<"int", glap::discard>, from_chars<int>>,
-    glap::model::Parameter<glap::Names<"point", glap::discard>, from_chars<Point>>,
+using Command3 = glap::model::Command<glap::Names<"command3", glap::DISCARD>,
+    glap::model::Parameter<glap::Names<"float", glap::DISCARD>, from_chars<float>>,
+    glap::model::Parameter<glap::Names<"int", glap::DISCARD>, from_chars<int>>,
+    glap::model::Parameter<glap::Names<"point", glap::DISCARD>, from_chars<Point>>,
     glap::model::Inputs<2>
 >;
 
 using Command4 = glap::model::Command<glap::Names<"command4">,
-    glap::model::Input<glap::discard, test_is_hello_world>
+    glap::model::Input<glap::DISCARD, test_is_hello_world>
 >;
 using Command5 = glap::model::Command<glap::Names<"command5">,
     glap::model::Input<from_chars<int>>

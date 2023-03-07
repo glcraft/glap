@@ -52,23 +52,23 @@ using single_param_t = glap::model::Parameter<
     glap::Names<"single_param", 's'>
 >;
 using single_int_param_t = glap::model::Parameter<
-    glap::Names<"to_int", glap::discard>,
+    glap::Names<"to_int", glap::DISCARD>,
     [] (std::string_view v) -> glap::expected<int, glap::Discard> {
         try {
             return std::stoi(std::string(v));
         } catch(...) {
             /// In case stoi results in an error by exception,
             /// we return an error the parser can intercept
-            return glap::make_unexpected(glap::discard);
+            return glap::make_unexpected(glap::DISCARD);
         }
     }
 >;
 using multi_param_t = glap::model::Parameters<
     glap::Names<"multi_param", 'm'>,
-    glap::discard // optional, = no limit
+    glap::DISCARD // optional, = no limit
 >;
 using inputs_t = glap::model::Inputs<
-    glap::discard // optional, = no limit
+    glap::DISCARD // optional, = no limit
 >;
 
 using command1_t = glap::model::Command<
@@ -136,8 +136,8 @@ using help_program_t = glap::generators::help::Program<
 template <class T>
     requires requires { T::KIND; }
 void print(const T& value) {
-    if constexpr (requires { value.name; }) {
-        fmt::print("  --{}: ", value.name);
+    if constexpr (requires { value.NAME; }) {
+        fmt::print("  --{}: ", value.NAME);
     } else {
         fmt::print("  input: ");
     }
@@ -184,7 +184,7 @@ auto print(const glap::model::Program<Name, C...>& program) {
 int main(int argc, char** argv)
 {
     using namespace glap::model;
-    using glap::discard;
+    using glap::DISCARD;
     auto args = std::vector<std::string_view>(argv, argv + argc);
 
     auto result = glap::parser<program_t>(args);

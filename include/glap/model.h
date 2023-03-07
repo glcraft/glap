@@ -38,18 +38,18 @@ GLAP_EXPORT namespace glap::model
     template <class T, ArgumentKind PType>
     concept IsArgumentTyped = requires { T::KIND; } && (T::KIND == PType);
 
-    template <class ArgNames, auto Resolver = discard, auto Validator = discard>
+    template <class ArgNames, auto Resolver = DISCARD, auto Validator = DISCARD>
     struct Parameter : ArgNames, Value<Resolver, Validator> {
-        using value_type = typename glap::impl::ResolverReturn<decltype(Resolver)>;
+        using ValueType = typename glap::impl::ResolverReturn<decltype(Resolver)>;
         constexpr Parameter() = default;
         constexpr Parameter(std::string_view v) : Value<Resolver, Validator>(v)
         {}
         static constexpr auto KIND = ArgumentKind::Parameter;
     };
 
-    template <class ArgNames, auto N = discard, auto Resolver = discard, auto Validator = discard>
+    template <class ArgNames, auto N = DISCARD, auto Resolver = DISCARD, auto Validator = DISCARD>
     struct Parameters : ArgNames, Container<Parameter<ArgNames, Resolver, Validator>, N> {
-        using value_type = typename glap::impl::ResolverReturn<decltype(Resolver)>;
+        using ValueType = typename glap::impl::ResolverReturn<decltype(Resolver)>;
         static constexpr auto resolver = Resolver;
         static constexpr auto validator = Validator;
         static constexpr auto KIND = ArgumentKind::Parameter;
@@ -59,17 +59,17 @@ GLAP_EXPORT namespace glap::model
         size_t occurences = 0;
         static constexpr auto KIND = ArgumentKind::Flag;
     };
-    template <auto Resolver = discard, auto Validator = discard>
+    template <auto Resolver = DISCARD, auto Validator = DISCARD>
     struct Input : Value<Resolver, Validator> {
-        using value_type = typename glap::impl::ResolverReturn<decltype(Resolver)>;
+        using ValueType = typename glap::impl::ResolverReturn<decltype(Resolver)>;
         constexpr Input() = default;
         constexpr Input(std::string_view v) : Value<Resolver, Validator>(v)
         {}
         static constexpr auto KIND = ArgumentKind::Input;
     };
-    template <auto N = discard, auto Resolver = discard, auto Validator = discard>
+    template <auto N = DISCARD, auto Resolver = DISCARD, auto Validator = DISCARD>
     struct Inputs : Container<Input<Resolver, Validator>, N> {
-        using value_type = typename glap::impl::ResolverReturn<decltype(Resolver)>;
+        using ValueType = typename glap::impl::ResolverReturn<decltype(Resolver)>;
         static constexpr auto resolver = Resolver;
         static constexpr auto validator = Validator;
         static constexpr auto KIND = ArgumentKind::Input;
@@ -126,7 +126,7 @@ GLAP_EXPORT namespace glap::model
         static_assert(!NameCheck::HAS_DUPLICATE_LONGNAME, "arguments has duplicate long name");
         static_assert(!NameCheck::HAS_DUPLICATE_SHORTNAME, "arguments has duplicate short name");
 
-        static constexpr std::string_view name = Name;
+        static constexpr std::string_view NAME = Name;
         using DefaultCommandType = typename glap::impl::TypeSelectorTrait<impl::IsDefaultCommand, Discard, Commands...>::Type;
         std::string_view program;
         std::variant<typename GetCommand<Commands>::Type...> command;

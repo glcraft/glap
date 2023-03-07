@@ -66,7 +66,7 @@ namespace glap::impl {
         static constexpr auto VALUE = Value;
     };
     template <auto Default>
-    struct ValueOrTrait<glap::discard, Default> {
+    struct ValueOrTrait<glap::DISCARD, Default> {
         static constexpr auto VALUE = Default;
     };
     template <auto Value, auto Default>
@@ -90,7 +90,7 @@ namespace glap::impl {
         static constexpr auto VALUE = std::optional<T>{SN};
     };
     template<class T>
-    struct MetaOptionalTrait<T, discard> {
+    struct MetaOptionalTrait<T, DISCARD> {
         static constexpr auto VALUE = std::optional<T>{};
     };
     template<>
@@ -107,7 +107,7 @@ namespace glap::impl {
 }
 
 GLAP_EXPORT namespace glap {
-    template <StringLiteral Name, auto ShortName = discard>
+    template <StringLiteral Name, auto ShortName = DISCARD>
     struct Names {
         static constexpr std::string_view NAME = Name;
         static constexpr std::optional<char32_t> SHORTNAME = impl::MetaOptional<char32_t, ShortName>;

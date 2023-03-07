@@ -16,12 +16,12 @@ using flag_help_t = glap::model::Flag<
 
 // Define some commands
 using command1_t = glap::model::Command<
-    glap::Names<"command1", glap::discard>,
+    glap::Names<"command1", glap::DISCARD>,
     flag_t
 >;
 
 using command2_t = glap::model::Command<
-    glap::Names<"command2", glap::discard>,
+    glap::Names<"command2", glap::DISCARD>,
     parameter_t
 >;
 
@@ -29,7 +29,7 @@ using command2_t = glap::model::Command<
 // Note: arguments from the parent command are passed in the subcommand. So in this example, subcommand "command1" will 
 // have flag_t and parameter_t argument
 using command3_t = glap::model::Command<
-    glap::Names<"command3", glap::discard>,
+    glap::Names<"command3", glap::DISCARD>,
     command1_t,
     parameter_t
 >;
@@ -39,7 +39,7 @@ using command3_t = glap::model::Command<
 // Note: parsing command name is priorized over input argument type. So if the input argument is a subcommand name, it 
 // will be parsed as a command name, not as an input for the default command.
 using command4_t = glap::model::Command<
-    glap::Names<"command3", glap::discard>,
+    glap::Names<"command3", glap::DISCARD>,
     glap::model::Default<command1_t>,
     command2_t,
     parameter_t

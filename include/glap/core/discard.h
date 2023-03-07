@@ -7,5 +7,5 @@
 GLAP_EXPORT namespace glap
 {
     struct Discard {};
-    inline constexpr Discard discard = {};
+    inline constexpr Discard DISCARD = {};
 }

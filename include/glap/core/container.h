@@ -112,7 +112,7 @@ GLAP_EXPORT namespace glap
             return const_iterator(*this, m_size);
         }
     };
-    template <class T, auto N = discard>
+    template <class T, auto N = DISCARD>
     class Container {
     public:
         using value_type = T;
