@@ -36,9 +36,7 @@ GLAP_EXPORT namespace glap::model
     };
 
     template <class T, ArgumentKind PType>
-    concept IsArgumentTyped = requires {
-        T::KIND;
-    } && (T::KIND == PType);
+    concept IsArgumentTyped = requires { T::KIND; } && (T::KIND == PType);
 
     template <class ArgNames, auto Resolver = discard, auto Validator = discard>
     struct Parameter : ArgNames, Value<Resolver, Validator> {

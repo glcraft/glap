@@ -588,7 +588,7 @@ healthchecksdb
 # End of https://www.gitignore.io/api/qt,c++,macos,linux,cmake,windows,exercism,qtcreator,executable,sublimetext,visualstudio,visualstudiocode
 
 builddir-release
-build
+build*/
 .xmake
 test.lua
 
