@@ -37,8 +37,8 @@ GLAP_EXPORT namespace glap::model
 
     template <class T, ArgumentKind PType>
     concept IsArgumentTyped = requires {
-        T::type;
-    } && (T::type == PType);
+        T::KIND;
+    } && (T::KIND == PType);
 
     template <class ArgNames, auto Resolver = discard, auto Validator = discard>
     struct Parameter : ArgNames, Value<Resolver, Validator> {
@@ -46,7 +46,7 @@ GLAP_EXPORT namespace glap::model
         constexpr Parameter() = default;
         constexpr Parameter(std::string_view v) : Value<Resolver, Validator>(v)
         {}
-        static constexpr auto type = ArgumentKind::Parameter;
+        static constexpr auto KIND = ArgumentKind::Parameter;
     };
 
     template <class ArgNames, auto N = discard, auto Resolver = discard, auto Validator = discard>
@@ -54,12 +54,12 @@ GLAP_EXPORT namespace glap::model
         using value_type = typename glap::impl::ResolverReturn<decltype(Resolver)>;
         static constexpr auto resolver = Resolver;
         static constexpr auto validator = Validator;
-        static constexpr auto type = ArgumentKind::Parameter;
+        static constexpr auto KIND = ArgumentKind::Parameter;
     };
     template <class ArgNames>
     struct Flag : ArgNames {
         size_t occurences = 0;
-        static constexpr auto type = ArgumentKind::Flag;
+        static constexpr auto KIND = ArgumentKind::Flag;
     };
     template <auto Resolver = discard, auto Validator = discard>
     struct Input : Value<Resolver, Validator> {
@@ -67,18 +67,18 @@ GLAP_EXPORT namespace glap::model
         constexpr Input() = default;
         constexpr Input(std::string_view v) : Value<Resolver, Validator>(v)
         {}
-        static constexpr auto type = ArgumentKind::Input;
+        static constexpr auto KIND = ArgumentKind::Input;
     };
     template <auto N = discard, auto Resolver = discard, auto Validator = discard>
     struct Inputs : Container<Input<Resolver, Validator>, N> {
         using value_type = typename glap::impl::ResolverReturn<decltype(Resolver)>;
         static constexpr auto resolver = Resolver;
         static constexpr auto validator = Validator;
-        static constexpr auto type = ArgumentKind::Input;
+        static constexpr auto KIND = ArgumentKind::Input;
     };
 
     template <class T>
-    concept IsArgument = std::same_as<std::remove_cvref_t<decltype(T::type)>, ArgumentKind>;
+    concept IsArgument = std::same_as<std::remove_cvref_t<decltype(T::KIND)>, ArgumentKind>;
 
     template <class CommandNames, IsArgument... Arguments>
     struct Command : CommandNames {
@@ -106,7 +106,7 @@ GLAP_EXPORT namespace glap::model
         template <size_t i>
         static consteval size_t _get_input_id() noexcept {
             static_assert((i < NbParams), "No input in command arguments");
-            if constexpr (Param<i>::type == ArgumentKind::Input) {
+            if constexpr (Param<i>::KIND == ArgumentKind::Input) {
                 return i;
             } else {
                 return _get_input_id<i + 1>();

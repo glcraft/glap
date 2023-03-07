@@ -134,7 +134,7 @@ using help_program_t = glap::generators::help::Program<
 >;
 
 template <class T>
-    requires requires { T::type; }
+    requires requires { T::KIND; }
 void print(const T& value) {
     if constexpr (requires { value.name; }) {
         fmt::print("  --{}: ", value.name);
