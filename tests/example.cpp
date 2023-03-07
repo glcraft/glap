@@ -169,7 +169,8 @@ auto print(const glap::model::Program<Name, C...>& program) {
         if (std::holds_alternative<Command>(program.command)) {
             const auto& command = std::get<Command>(program.command);
             if (command.template get_argument<"help">().occurences > 0) {
-                fmt::print("Help:\n\n{}\n", glap::generators::get_help<help_program_t, Command>());
+                // TODO: This is not working yet
+                // fmt::print("Help:\n\n{}\n", glap::generators::get_help<help_program_t, Command>());
             } else {
                 print(command);
             }

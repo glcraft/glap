@@ -213,7 +213,7 @@ namespace glap
             bool found = false;
             if (pos_equal == std::string_view::npos) {
                 found = ([&]{
-                    if constexpr(glap::model::IsArgumentTyped<Arguments, glap::model::ArgumentType::Flag>) {
+                    if constexpr(glap::model::IsArgumentTyped<Arguments, glap::model::ArgumentKind::Flag>) {
                         if (impl::check_names<Arguments>(name, std::nullopt)) {
                             res = glap::parser<Arguments>.parse(std::get<Arguments>(command.arguments));
                             return true;
@@ -224,7 +224,7 @@ namespace glap
             } else {
                 auto value = name_value.substr(pos_equal + 1);
                 found = ([&]{
-                    if constexpr(glap::model::IsArgumentTyped<Arguments, glap::model::ArgumentType::Parameter>) {
+                    if constexpr(glap::model::IsArgumentTyped<Arguments, glap::model::ArgumentKind::Parameter>) {
                         if (impl::check_names<Arguments>(name, std::nullopt)) {
                             res = glap::parser<Arguments>.parse(std::get<Arguments>(command.arguments), value);
                             return true;
@@ -302,11 +302,11 @@ namespace glap
                 Expected<void> res;
 
                 bool found = ([&]{
-                    if constexpr(!glap::model::IsArgumentTyped<Arguments, glap::model::ArgumentType::Input>) {
+                    if constexpr(!glap::model::IsArgumentTyped<Arguments, glap::model::ArgumentKind::Input>) {
                         if (impl::check_names<Arguments>(std::nullopt, codepoint)) {
-                            if constexpr(glap::model::IsArgumentTyped<Arguments, glap::model::ArgumentType::Flag>) {
+                            if constexpr(glap::model::IsArgumentTyped<Arguments, glap::model::ArgumentKind::Flag>) {
                                 res = glap::parser<Arguments>.parse(std::get<Arguments>(command.arguments));
-                            } else if constexpr(glap::model::IsArgumentTyped<Arguments, glap::model::ArgumentType::Parameter>) {
+                            } else if constexpr(glap::model::IsArgumentTyped<Arguments, glap::model::ArgumentKind::Parameter>) {
                                 if (itcurrent == params.end) {
                                     res = make_unexpected(Error{
                                         .parameter = ch,
@@ -350,7 +350,7 @@ namespace glap
         {
             Expected<void> res;
             auto found = ([&] {
-                if constexpr(glap::model::IsArgumentTyped<Arguments, glap::model::ArgumentType::Input>) {
+                if constexpr(glap::model::IsArgumentTyped<Arguments, glap::model::ArgumentKind::Input>) {
                     res = glap::parser<Arguments>.parse(std::get<Arguments>(command.arguments), input);
                     return true;
                 } else {

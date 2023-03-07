@@ -50,7 +50,7 @@ namespace glap::impl {
     template <template<class> class Predicate, class DefaultType, class CurrentType, class ...Ts>
         requires IsMetaPredicate<Predicate, CurrentType>
     struct TypeSelectorTrait {
-        using Type = typename std::conditional<Predicate<CurrentType>::value, CurrentType, typename TypeSelectorTrait<Predicate, DefaultType, Ts...>::type>::type;
+        using Type = typename std::conditional<Predicate<CurrentType>::value, CurrentType, typename TypeSelectorTrait<Predicate, DefaultType, Ts...>::Type>::type;
     };
     template <template<class> class Predicate, class DefaultType, class CurrentType>
         requires IsMetaPredicate<Predicate, CurrentType>

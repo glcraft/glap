@@ -16,7 +16,7 @@
 namespace glap::generators {
     namespace impl {
         template <class P, class H>
-        concept IsHelpInputsCompatible = requires { P::type == glap::model::ArgumentType::Input; } && help::IsInputs<H>;
+        concept IsHelpInputsCompatible = requires { P::type == glap::model::ArgumentKind::Input; } && help::IsInputs<H>;
         template <class FromParser, class ...Others>
         struct FindByName
         {};
@@ -46,7 +46,7 @@ namespace glap::generators {
                     if constexpr (HasShortName<FromParser>) {
                         len += 1 + separator_length;
                     }
-                } else if constexpr (glap::model::IsArgumentTyped<FromParser, glap::model::ArgumentType::Input>) {
+                } else if constexpr (glap::model::IsArgumentTyped<FromParser, glap::model::ArgumentKind::Input>) {
                     len = help::INPUTS_NAME.length();
                 }
                 if (len > max) {
@@ -62,7 +62,7 @@ namespace glap::generators {
         {
             static_assert(always_false_v<T>, "unable to match help for this type");
         };
-        template<class FromHelp, glap::model::IsArgumentTyped<glap::model::ArgumentType::Input> InputParser>
+        template<class FromHelp, glap::model::IsArgumentTyped<glap::model::ArgumentKind::Input> InputParser>
             requires help::IsInputs<FromHelp>
         struct BasicHelp<FromHelp, InputParser>
         {
@@ -187,15 +187,15 @@ namespace glap::generators {
                 it = this_basic_help.name(it);
                 ([&] {
                     constexpr auto param_basic_help = impl::basic_help<typename impl::FindByName<ParamsParser, ParamsHelp...>::type, ParamsParser>;
-                    if constexpr(model::IsArgumentTyped<ParamsParser, model::ArgumentType::Parameter>) {
+                    if constexpr(model::IsArgumentTyped<ParamsParser, model::ArgumentKind::Parameter>) {
                         it = glap::format_to(it, " [--");
                         it = param_basic_help.template name<OutputIt>(it);
                         it = glap::format_to(it, "=VALUE]");
-                    } else if constexpr(model::IsArgumentTyped<ParamsParser, model::ArgumentType::Flag>) {
+                    } else if constexpr(model::IsArgumentTyped<ParamsParser, model::ArgumentKind::Flag>) {
                         it = glap::format_to(it, " [--");
                         it = param_basic_help.template name<OutputIt>(it);
                         it = glap::format_to(it, "]");
-                    } else if constexpr(model::IsArgumentTyped<ParamsParser, model::ArgumentType::Input>) {
+                    } else if constexpr(model::IsArgumentTyped<ParamsParser, model::ArgumentKind::Input>) {
                         it = glap::format_to(it, " <INPUTS>");
                     }
                 }(), ...);

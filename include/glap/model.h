@@ -11,7 +11,7 @@
 
 GLAP_EXPORT namespace glap::model
 {
-    enum class ArgumentType {
+    enum class ArgumentKind {
         Parameter,
         Flag,
         Input
@@ -35,7 +35,7 @@ GLAP_EXPORT namespace glap::model
         using Type = T;
     };
 
-    template <class T, ArgumentType PType>
+    template <class T, ArgumentKind PType>
     concept IsArgumentTyped = requires {
         T::type;
     } && (T::type == PType);
@@ -46,7 +46,7 @@ GLAP_EXPORT namespace glap::model
         constexpr Parameter() = default;
         constexpr Parameter(std::string_view v) : Value<Resolver, Validator>(v)
         {}
-        static constexpr auto type = ArgumentType::Parameter;
+        static constexpr auto type = ArgumentKind::Parameter;
     };
 
     template <class ArgNames, auto N = discard, auto Resolver = discard, auto Validator = discard>
@@ -54,12 +54,12 @@ GLAP_EXPORT namespace glap::model
         using value_type = typename glap::impl::ResolverReturn<decltype(Resolver)>;
         static constexpr auto resolver = Resolver;
         static constexpr auto validator = Validator;
-        static constexpr auto type = ArgumentType::Parameter;
+        static constexpr auto type = ArgumentKind::Parameter;
     };
     template <class ArgNames>
     struct Flag : ArgNames {
         size_t occurences = 0;
-        static constexpr auto type = ArgumentType::Flag;
+        static constexpr auto type = ArgumentKind::Flag;
     };
     template <auto Resolver = discard, auto Validator = discard>
     struct Input : Value<Resolver, Validator> {
@@ -67,18 +67,18 @@ GLAP_EXPORT namespace glap::model
         constexpr Input() = default;
         constexpr Input(std::string_view v) : Value<Resolver, Validator>(v)
         {}
-        static constexpr auto type = ArgumentType::Input;
+        static constexpr auto type = ArgumentKind::Input;
     };
     template <auto N = discard, auto Resolver = discard, auto Validator = discard>
     struct Inputs : Container<Input<Resolver, Validator>, N> {
         using value_type = typename glap::impl::ResolverReturn<decltype(Resolver)>;
         static constexpr auto resolver = Resolver;
         static constexpr auto validator = Validator;
-        static constexpr auto type = ArgumentType::Input;
+        static constexpr auto type = ArgumentKind::Input;
     };
 
     template <class T>
-    concept IsArgument = std::same_as<std::remove_cvref_t<decltype(T::type)>, ArgumentType>;
+    concept IsArgument = std::same_as<std::remove_cvref_t<decltype(T::type)>, ArgumentKind>;
 
     template <class CommandNames, IsArgument... Arguments>
     struct Command : CommandNames {
@@ -106,7 +106,7 @@ GLAP_EXPORT namespace glap::model
         template <size_t i>
         static consteval size_t _get_input_id() noexcept {
             static_assert((i < NbParams), "No input in command arguments");
-            if constexpr (Param<i>::type == ArgumentType::Input) {
+            if constexpr (Param<i>::type == ArgumentKind::Input) {
                 return i;
             } else {
                 return _get_input_id<i + 1>();
@@ -117,7 +117,7 @@ GLAP_EXPORT namespace glap::model
         constexpr const auto& get_argument() const noexcept requires (NbParams > 0) {
             return std::get<_get_argument_id<0, lit>()>(arguments);
         }
-        constexpr const auto& get_inputs() const noexcept requires (NbParams > 0 && (IsArgumentTyped<Arguments, ArgumentType::Input> || ...)) {
+        constexpr const auto& get_inputs() const noexcept requires (NbParams > 0 && (IsArgumentTyped<Arguments, ArgumentKind::Input> || ...)) {
             return std::get<_get_input_id<0>()>(arguments);
         }
 
@@ -129,7 +129,7 @@ GLAP_EXPORT namespace glap::model
         static_assert(!NameCheck::HAS_DUPLICATE_SHORTNAME, "arguments has duplicate short name");
 
         static constexpr std::string_view name = Name;
-        using DefaultCommandType = typename glap::impl::TypeSelectorTrait<impl::IsDefaultCommand, Discard, Commands...>::type;
+        using DefaultCommandType = typename glap::impl::TypeSelectorTrait<impl::IsDefaultCommand, Discard, Commands...>::Type;
         std::string_view program;
         std::variant<typename GetCommand<Commands>::Type...> command;
     };
