@@ -5,43 +5,44 @@ namespace glap::generators {
 #ifdef _WIN32
         namespace foreground {
             static constexpr int BLACK = 0;
-            static constexpr int DARK_BLUE = 1;
-            static constexpr int DARK_GREEN = 2;
-            static constexpr int DARK_CYAN = 3;
-            static constexpr int DARK_RED = 4;
-            static constexpr int DARK_MAGENTA = 5;
-            static constexpr int DARK_YELLOW = 6;
-            static constexpr int GRAY = 7;
-            static constexpr int DARK_GRAY = 8;
-            static constexpr int BLUE = 9;
-            static constexpr int GREEN = 10;
-            static constexpr int CYAN = 11;
-            static constexpr int RED = 12;
-            static constexpr int MAGENTA = 13;
-            static constexpr int YELLOW = 14;
-            static constexpr int WHITE = 15;
+            static constexpr int DARK_BLUE = FOREGROUND_BLUE;
+            static constexpr int DARK_GREEN = FOREGROUND_GREEN;
+            static constexpr int DARK_CYAN = FOREGROUND_GREEN | FOREGROUND_BLUE;
+            static constexpr int DARK_RED = FOREGROUND_RED;
+            static constexpr int DARK_MAGENTA = FOREGROUND_RED | FOREGROUND_BLUE;
+            static constexpr int DARK_YELLOW = FOREGROUND_RED | FOREGROUND_GREEN;
+            static constexpr int GRAY = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
+            static constexpr int DARK_GRAY = FOREGROUND_INTENSITY;
+            static constexpr int BLUE = FOREGROUND_BLUE | FOREGROUND_INTENSITY;
+            static constexpr int GREEN = FOREGROUND_GREEN | FOREGROUND_INTENSITY;
+            static constexpr int CYAN = FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY;
+            static constexpr int RED = FOREGROUND_RED | FOREGROUND_INTENSITY;
+            static constexpr int MAGENTA = FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_INTENSITY;
+            static constexpr int YELLOW = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY;
+            static constexpr int WHITE = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY;
         }
         namespace background {
             static constexpr int BLACK = 0;
-            static constexpr int DARK_BLUE = 16;
-            static constexpr int DARK_GREEN = 32;
-            static constexpr int DARK_CYAN = 48;
-            static constexpr int DARK_RED = 64;
-            static constexpr int DARK_MAGENTA = 80;
-            static constexpr int DARK_YELLOW = 96;
-            static constexpr int GRAY = 112;
-            static constexpr int DARK_GRAY = 128;
-            static constexpr int BLUE = 144;
-            static constexpr int GREEN = 160;
-            static constexpr int CYAN = 176;
-            static constexpr int RED = 192;
-            static constexpr int MAGENTA = 208;
-            static constexpr int YELLOW = 224;
-            static constexpr int WHITE = 240;
+            static constexpr int DARK_BLUE = BACKGROUND_BLUE;
+            static constexpr int DARK_GREEN = BACKGROUND_GREEN;
+            static constexpr int DARK_CYAN = BACKGROUND_BLUE | BACKGROUND_GREEN;
+            static constexpr int DARK_RED = BACKGROUND_RED;
+            static constexpr int DARK_MAGENTA = BACKGROUND_BLUE | BACKGROUND_RED;
+            static constexpr int DARK_YELLOW = BACKGROUND_GREEN | BACKGROUND_RED;
+            static constexpr int GRAY = BACKGROUND_BLUE | BACKGROUND_GREEN | BACKGROUND_RED;
+            static constexpr int DARK_GRAY = FOREGROUND_INTENSITY;
+            static constexpr int BLUE = BACKGROUND_BLUE | BACKGROUND_INTENSITY;
+            static constexpr int GREEN = BACKGROUND_GREEN | BACKGROUND_INTENSITY;
+            static constexpr int CYAN = BACKGROUND_BLUE | BACKGROUND_GREEN | BACKGROUND_INTENSITY;
+            static constexpr int RED = BACKGROUND_RED | BACKGROUND_INTENSITY;
+            static constexpr int MAGENTA = BACKGROUND_BLUE | BACKGROUND_RED | BACKGROUND_INTENSITY;
+            static constexpr int YELLOW = BACKGROUND_GREEN | BACKGROUND_RED | BACKGROUND_INTENSITY;
+            static constexpr int WHITE = BACKGROUND_BLUE | BACKGROUND_GREEN | BACKGROUND_RED | BACKGROUND_INTENSITY;
         }
 #else
         namespace foreground {
             static constexpr int BLACK = 30;
+            static constexpr int DARK_BLUE = 34;
             static constexpr int RED = 31;
             static constexpr int GREEN = 32;
             static constexpr int YELLOW = 33;
@@ -49,6 +50,8 @@ namespace glap::generators {
             static constexpr int MAGENTA = 35;
             static constexpr int CYAN = 36;
             static constexpr int WHITE = 37;
+            static constexpr int DARK_GRAY = 90;
+            
         }
         namespace background {
             static constexpr int BLACK = 40;
