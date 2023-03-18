@@ -71,7 +71,39 @@ namespace glap::generators {
         std::optional<bool> bold = std::nullopt;
         std::optional<bool> underlined = std::nullopt;
         std::optional<bool> italic = std::nullopt;
-        void apply() const noexcept;
+        template <typename FormatContext>
+        auto format(FormatContext& ctx) const 
+        {
+#if defined(unix) || defined(__unix__) || defined(__unix) || defined(__APPLE__)
+        using fmt::format_to;
+        format_to(ctx.out(), "\033[");
+        [&ctx, sep = ""](auto&&... args) mutable {
+            auto f = [&ctx, &sep](auto&& arg) mutable {
+                if (arg != 0) {
+                    format_to(ctx.out(), "{}{}", sep, arg);
+                    sep = ";";
+                }
+            };
+            (f(args), ...);
+        }(
+            this->bold ? (*this->bold ? 1 : 22) : 0,
+            this->underlined ? (*this->underlined ? 4 : 24) : 0,
+            this->italic ? (*this->italic ? 3 : 23) : 0,
+            this->foreground_color ? *this->foreground_color : 0,
+            this->background_color ? *this->background_color : 0
+        );
+        format_to(ctx.out(), "m");
+        return ctx.out();
+#else
+        HANDLE h = GetStdHandle ( STD_OUTPUT_HANDLE );
+        SetConsoleTextAttribute ( h, 
+            (this->foreground_color ? *this->foreground_color : 0) 
+            | (this->background_color ? *this->background_color : 0)
+            | (this->underlined && *this->underlined ? COMMON_LVB_UNDERSCORE : 0)
+        );
+        return ctx.out();
+#endif
+        }
         static void reset() noexcept;
     private:
         auto is_none() const noexcept -> bool {
