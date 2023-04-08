@@ -7,6 +7,7 @@
 #include "core/container.h"
 #include "core/value.h"
 #include <variant>
+#include <concepts>
 #endif
 
 GLAP_EXPORT namespace glap::model
@@ -14,7 +15,8 @@ GLAP_EXPORT namespace glap::model
     enum class ArgumentKind {
         Parameter,
         Flag,
-        Input
+        Input,
+        Command
     };
     template <class Command>
     struct DefaultCommand : public Command {
@@ -76,29 +78,30 @@ GLAP_EXPORT namespace glap::model
     };
 
     template <class T>
-    concept IsArgument = std::same_as<std::remove_cvref_t<decltype(T::KIND)>, ArgumentKind>;
+    concept IsArgument = std::same_as<std::remove_cvref_t<decltype(T::KIND)>, ArgumentKind> && (T::KIND != ArgumentKind::Command);
+    template <class T>
+    concept IsCommand = std::same_as<std::remove_cvref_t<decltype(T::KIND)>, ArgumentKind> && (T::KIND == ArgumentKind::Command);
 
-    template <class CommandNames, IsArgument... Arguments>
-    struct Command : CommandNames {
-        using Params = std::tuple<Arguments...>;
+    template <class T>
+    using ArgumentOnly = std::conditional_t<IsArgument<T>, T, glap::Discard>;
+    template <class T>
+    using CommandOnly = std::conditional_t<IsCommand<T>, T, glap::Discard>;
+
+    template <class... Arguments>
+    struct ArgumentContainer {
+        using Params = std::tuple<ArgumentOnly<Arguments>...>;
         Params arguments;
-    private:
-        using NameCheck = glap::impl::NameChecker<Arguments...>;
-        static_assert(!NameCheck::HAS_DUPLICATE_LONGNAME, "arguments has duplicate long name");
-        static_assert(!NameCheck::HAS_DUPLICATE_SHORTNAME, "arguments has duplicate short name");
-
-
         static constexpr size_t NbParams = sizeof...(Arguments);
         template <size_t I>
         using Param = std::tuple_element_t<I, Params>;
 
-        template <size_t i, StringLiteral lit>
+        template <size_t i, StringLiteral name>
         static consteval size_t _get_argument_id() noexcept {
             static_assert((i < NbParams), "Argument not found");
-            if constexpr (Param<i>::NAME == lit) {
+            if constexpr (IsArgument<Param<i>> && Param<i>::NAME == name) {
                 return i;
             } else {
-                return _get_argument_id<i + 1, lit>();
+                return _get_argument_id<i + 1, name>();
             }
         }
         template <size_t i>
@@ -118,17 +121,31 @@ GLAP_EXPORT namespace glap::model
         constexpr const auto& get_inputs() const noexcept requires (NbParams > 0 && (IsArgumentTyped<Arguments, ArgumentKind::Input> || ...)) {
             return std::get<_get_input_id<0>()>(arguments);
         }
-
     };
-    template<StringLiteral Name, class... Commands>
-    struct Program {
-        using NameCheck = glap::impl::NameChecker<Commands...>;
-        static_assert(!NameCheck::HAS_DUPLICATE_LONGNAME, "arguments has duplicate long name");
-        static_assert(!NameCheck::HAS_DUPLICATE_SHORTNAME, "arguments has duplicate short name");
 
+    template <class CommandNames, class... Arguments>
+    struct Command : CommandNames, glap::impl::NameChecker<Arguments...> {
+        static constexpr auto KIND = ArgumentKind::Command;
+    private:
+        ArgumentContainer<Arguments...> arguments;
+        using NameCheck = glap::impl::NameChecker<Arguments...>;
+    public:
+        template <StringLiteral lit>
+        constexpr const auto& get_argument() const noexcept {
+            return arguments.template get_argument<lit>();
+        }
+        constexpr const auto& get_inputs() const noexcept {
+            return arguments.get_inputs();
+        }
+    };
+    
+
+    template<StringLiteral Name, class... Arguments>
+    struct Program : glap::impl::NameChecker<Arguments...> {
+        
         static constexpr std::string_view NAME = Name;
-        using DefaultCommandType = typename glap::impl::TypeSelectorTrait<impl::IsDefaultCommand, Discard, Commands...>::Type;
+        using DefaultCommandType = typename glap::impl::TypeSelectorTrait<impl::IsDefaultCommand, Discard, Arguments...>::Type;
         std::string_view program;
-        std::variant<typename GetCommand<Commands>::Type...> command;
+        std::variant<typename GetCommand<Arguments>::Type...> command;
     };
 }
