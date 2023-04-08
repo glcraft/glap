@@ -134,13 +134,13 @@ GLAP_EXPORT namespace glap
 
         [[nodiscard]]constexpr const auto& get(size_t i) const noexcept(noexcept(this->values[i])) {
             if constexpr(IS_STACK_VECTOR) {
-                assert(i < impl::ValueOr<N, 0>, "Index out of bounds");
+                assert((i < impl::ValueOr<N, 0>));
             }
             return this->values[i].value;
         }
         [[nodiscard]]constexpr auto& get(size_t i) noexcept(noexcept(this->values[i])) {
             if constexpr(IS_STACK_VECTOR) {
-                assert(i < impl::ValueOr<N, 0>, "Index out of bounds");
+                assert((i < impl::ValueOr<N, 0>));
             }
             return this->values[i].value;
         }
