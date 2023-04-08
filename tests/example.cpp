@@ -162,23 +162,8 @@ int main() {
 //     return 0;
 // }
 // int main2(int argc, char** argv) {
-//     using namespace glap::generators;
-//     Style{
-//         .foreground_color = colors::foreground::RED,
-//         .bold = true,
-//         .underlined = true,
-//         .italic = true,
-//     }.apply();
-//     fmt::print("Hello, world!\n");
-//     Style{
-//         .foreground_color = colors::foreground::BLACK,
-//         .background_color = colors::background::GREEN,
-//         .bold = true,
-//         .underlined = true,
-//         .italic = true,
-//     }.apply();
-//     fmt::print("Hello, world!\n");
-//     Style::reset();
-//     fmt::print("Hello, world!\n");
+//     using namespace glap::style;
+//     fmt::print("{}Hello, world!\n{}Hello, world!\n{}Hello, world!\n", STYLE<attributes::foreground::RED>,  STYLE<attributes::background::GREEN, attributes::foreground::BLACK>, STYLE<>);
+
 //     return 0;
 // }
