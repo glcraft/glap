@@ -129,23 +129,17 @@ namespace glap::impl
 {
     template <class ...ArgN>
     struct NameChecker
-    {
-        static constexpr bool HAS_DUPLICATE_LONGNAME = false;
-        static constexpr bool HAS_DUPLICATE_SHORTNAME = false;
-    };
+    {};
     template <HasNames Arg1, HasNames Arg2, class ...ArgN>
-    struct NameChecker<Arg1, Arg2, ArgN...>
+    struct NameChecker<Arg1, Arg2, ArgN...> : NameChecker<Arg1, ArgN...>, NameChecker<Arg2, ArgN...>
     {
-        static constexpr bool HAS_DUPLICATE_LONGNAME = Arg1::NAME == Arg2::NAME || NameChecker<Arg1, ArgN...>::HAS_DUPLICATE_LONGNAME || NameChecker<Arg2, ArgN...>::HAS_DUPLICATE_LONGNAME;
-        static constexpr bool HAS_DUPLICATE_SHORTNAME = (Arg1::SHORTNAME.has_value() && Arg2::SHORTNAME.has_value() && Arg1::SHORTNAME.value() == Arg2::SHORTNAME.value()) || NameChecker<Arg1, ArgN...>::HAS_DUPLICATE_SHORTNAME || NameChecker<Arg2, ArgN...>::HAS_DUPLICATE_SHORTNAME;
+        static_assert(Arg1::NAME != Arg2::NAME, "Duplicate long name");
+        static_assert(!Arg1::SHORTNAME.has_value() || !Arg2::SHORTNAME.has_value() || Arg1::SHORTNAME.value() != Arg2::SHORTNAME.value(), "Duplicate short name");
     };
     template <typename Arg1, typename Arg2, class ...ArgN>
         requires HasNames<Arg1> && (!HasNames<Arg2>)
-    struct NameChecker<Arg1, Arg2, ArgN...>
-    {
-        static constexpr bool HAS_DUPLICATE_LONGNAME = NameChecker<Arg1, ArgN...>::HAS_DUPLICATE_LONGNAME;
-        static constexpr bool HAS_DUPLICATE_SHORTNAME = NameChecker<Arg1, ArgN...>::HAS_DUPLICATE_SHORTNAME;
-    };
+    struct NameChecker<Arg1, Arg2, ArgN...> : NameChecker<Arg1, ArgN...>
+    {};
     template <typename Arg1, class ...ArgN>
     struct NameChecker<Arg1, Arg1, ArgN...>
     {
