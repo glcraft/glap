@@ -9,16 +9,33 @@
 GLAP_EXPORT namespace glap::impl
 {
     template <Iterator<std::string_view> T>
-    struct BiIterator {
-        BiIterator(T begin, T end) : begin(begin), end(end)
+    class BiIterator {
+        T m_begin;
+        T m_end;
+    public:
+        BiIterator(T begin, T end) : m_begin(begin), m_end(end)
         {}
         BiIterator(const BiIterator&) = default;
         BiIterator(BiIterator&&) = default;
-        T begin;
-        T end;
+        
 
         size_t size() const {
-            return std::distance(begin, end);
+            return std::distance(m_begin, m_end);
+        }
+        bool empty() const {
+            return m_begin == m_end;
+        }
+        T begin() const {
+            return m_begin;
+        }
+        T end() const {
+            return m_end;
+        }
+        T begin() {
+            return m_begin;
+        }
+        T end() {
+            return m_end;
         }
     };
     template <class T>
